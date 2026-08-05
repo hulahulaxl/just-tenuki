@@ -70,10 +70,38 @@ class Board {
     return liberties.length;
   }
 
-  bool play(int x, int y) {
+  bool isValidMove(int x, int y) {
     var point = Point(x, y);
     if (!isOnBoard(point) || grid.containsKey(point)) return false;
 
+    var neighbors = getNeighbors(point);
+
+    // 1. Has an empty adjacent point (instant liberty).
+    // We check all neighbors first because this is an O(1) check!
+    for (var neighbor in neighbors) {
+      if (grid[neighbor] == null) return true;
+    }
+
+    // If all neighbors are occupied, we must do the more expensive group checks
+    for (var neighbor in neighbors) {
+      var neighborPlayer = grid[neighbor];
+      var neighborGroup = getGroup(neighbor);
+      var liberties = countLiberties(neighborGroup);
+
+      // 2. Connects to a friendly group that has > 1 liberty
+      if (neighborPlayer == currentTurn && liberties > 1) return true;
+
+      // 3. Captures an enemy group (they have exactly 1 liberty left)
+      if (neighborPlayer != currentTurn && liberties == 1) return true;
+    }
+
+    return false; // None of the survival conditions met, it's suicide
+  }
+
+  bool play(int x, int y) {
+    if (!isValidMove(x, y)) return false;
+
+    var point = Point(x, y);
     grid[point] = currentTurn;
     var capturedStones = <Point>{};
 
@@ -89,12 +117,6 @@ class Board {
 
     for (var captured in capturedStones) {
       grid.remove(captured);
-    }
-
-    var myGroup = getGroup(point);
-    if (countLiberties(myGroup) == 0) {
-      grid.remove(point);
-      return false; // Suicide is illegal
     }
 
     advance();
