@@ -51,7 +51,18 @@ class _MainScreenState extends State<MainScreen> {
         title: const Text('GoReview'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: Center(child: BoardWidget(board: _board)),
+      body: Center(
+        child: BoardWidget(
+          board: _board,
+          onIntersectionTapped: (Point point) {
+            // Attempt to play a stone
+            if (_board.play(point)) {
+              // Trigger a UI rebuild if the move was successful
+              setState(() {});
+            }
+          },
+        ),
+      ),
     );
   }
 }
