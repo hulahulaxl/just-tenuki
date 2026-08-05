@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'models/board.dart';
+import 'models/move.dart';
 import 'ui/board_widget.dart';
 
 void main() {
@@ -31,6 +32,17 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   final Board _board = Board(); // Default 19x19
+
+  @override
+  void initState() {
+    super.initState();
+    // Place some test stones to verify rendering!
+    _board.play(const Point(3, 3)); // Player 1 (Black)
+    _board.play(const Point(15, 3)); // Player 2 (White)
+    _board.play(const Point(15, 15)); // Player 1 (Black)
+    _board.play(const Point(3, 15)); // Player 2 (White)
+    _board.play(const Point(15, 16)); // Player 1 (Black)
+  }
 
   @override
   Widget build(BuildContext context) {

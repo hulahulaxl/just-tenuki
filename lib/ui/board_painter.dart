@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/board.dart';
+import '../models/move.dart';
 
 class BoardPainter extends CustomPainter {
   final Board board;
@@ -68,6 +69,39 @@ class BoardPainter extends CustomPainter {
           );
         }
       }
+    }
+
+    // 4. Draw stones
+    final double stoneRadius =
+        cellSize * 0.48; // Leaves a tiny gap between adjacent stones
+
+    for (var entry in board.grid.entries) {
+      final Point pt = entry.key;
+      final int player = entry.value;
+
+      Color stoneColor;
+      if (player == 1) {
+        stoneColor = Colors.black;
+      } else if (player == 2) {
+        stoneColor = Colors.white;
+      } else {
+        // Fallback for N-player variations
+        stoneColor = Colors.red;
+      }
+
+      final Paint stonePaint = Paint()..color = stoneColor;
+      final Paint outlinePaint = Paint()
+        ..color = Colors.black
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = (cellSize * 0.05).clamp(0.5, 1.5);
+
+      final Offset center = Offset(
+        offsetX + pt.x * cellSize,
+        offsetY + pt.y * cellSize,
+      );
+
+      canvas.drawCircle(center, stoneRadius, stonePaint);
+      canvas.drawCircle(center, stoneRadius, outlinePaint);
     }
   }
 
