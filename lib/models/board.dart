@@ -70,8 +70,7 @@ class Board {
     return liberties.length;
   }
 
-  bool isValidMove(int x, int y) {
-    var point = Point(x, y);
+  bool isValidMove(Point point) {
     if (!isOnBoard(point) || grid.containsKey(point)) return false;
 
     var neighbors = getNeighbors(point);
@@ -98,10 +97,9 @@ class Board {
     return false; // None of the survival conditions met, it's suicide
   }
 
-  bool play(int x, int y) {
-    if (!isValidMove(x, y)) return false;
+  bool play(Point point) {
+    if (!isValidMove(point)) return false;
 
-    var point = Point(x, y);
     grid[point] = currentTurn;
     var capturedStones = <Point>{};
 
