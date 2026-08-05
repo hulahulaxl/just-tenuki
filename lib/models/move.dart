@@ -15,22 +15,20 @@ class Point {
   int get hashCode => x.hashCode ^ y.hashCode;
 }
 
-enum StoneColor { black, white }
-
 sealed class Move {
-  final StoneColor color;
-  const Move({required this.color});
+  final int playerId;
+  const Move(this.playerId);
 }
 
 class Play extends Move {
   final Point point;
-  const Play({required super.color, required this.point});
+  const Play(super.playerId, this.point);
 }
 
 class Pass extends Move {
-  const Pass({required super.color});
+  const Pass(super.playerId);
 }
 
 class Resign extends Move {
-  const Resign({required super.color});
+  const Resign(super.playerId);
 }
