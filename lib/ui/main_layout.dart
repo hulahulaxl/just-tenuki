@@ -40,46 +40,66 @@ class _MainLayoutState extends State<MainLayout> {
       child: Column(
         children: [
           const SizedBox(height: 16),
-          _buildTabIcon(Icons.space_dashboard_outlined, 0),
+          _buildTabIcon(Icons.space_dashboard_outlined, 0, 'Lobby'),
           const SizedBox(height: 8),
-          _buildTabIcon(Icons.grid_4x4_outlined, 1),
+          _buildTabIcon(Icons.grid_4x4_outlined, 1, 'Game 1'),
           const Spacer(),
-          IconButton(
-            icon: const Icon(Icons.add, color: Colors.black54),
-            tooltip: 'Add Tab',
-            onPressed: () {},
-          ),
-          const SizedBox(height: 16),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined, color: Colors.black54),
-            tooltip: 'Settings',
-            onPressed: () {},
-          ),
+          _buildSidebarButton(Icons.add, 'Add Tab', () {}),
+          const SizedBox(height: 8),
+          _buildSidebarButton(Icons.settings_outlined, 'Settings', () {}),
           const SizedBox(height: 16),
         ],
       ),
     );
   }
 
-  Widget _buildTabIcon(IconData icon, int index) {
+  Widget _buildTabIcon(IconData icon, int index, String tooltip) {
     final isSelected = _selectedTabIndex == index;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedTabIndex = index),
-      child: Container(
-        width: 60,
-        height: 48,
-        decoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(
-              color: isSelected ? Colors.blue : Colors.transparent,
-              width: 3,
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedTabIndex = index),
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: Container(
+            width: 60,
+            height: 48,
+            decoration: BoxDecoration(
+              border: Border(
+                left: BorderSide(
+                  color: isSelected ? Colors.blue : Colors.transparent,
+                  width: 3,
+                ),
+              ),
+            ),
+            child: Icon(
+              icon,
+              color: isSelected ? Colors.black87 : Colors.black38,
+              size: 26,
             ),
           ),
         ),
-        child: Icon(
-          icon,
-          color: isSelected ? Colors.black87 : Colors.black38,
-          size: 26,
+      ),
+    );
+  }
+
+  Widget _buildSidebarButton(
+    IconData icon,
+    String tooltip,
+    VoidCallback onTap,
+  ) {
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: onTap,
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: Container(
+            width: 60,
+            height: 48,
+            alignment: Alignment.center,
+            child: Icon(icon, color: Colors.black54, size: 26),
+          ),
         ),
       ),
     );
