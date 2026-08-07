@@ -11,7 +11,13 @@ class BoardPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     // 1. Draw flat wooden color background (as requested, no images yet)
     final bgPaint = Paint()..color = const Color(0xFFDCB35C);
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, 0, size.width, size.height),
+        const Radius.circular(8.0),
+      ),
+      bgPaint,
+    );
 
     final int cols = board.columns;
     final int rows = board.rows;

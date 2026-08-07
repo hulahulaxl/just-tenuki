@@ -188,7 +188,7 @@ class _MainLayoutState extends State<MainLayout> {
 
       // Column 3: Control Center (Tabbed Interface)
       Container(
-        width: 340,
+        width: 450, // Widened from 340 for more analysis breathing room
         color: Colors.white,
         child: DefaultTabController(
           length: 3,
