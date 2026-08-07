@@ -249,7 +249,7 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   Widget _buildMenuTile(String title, IconData icon, bool isSelected) {
-    return Container(
+    return Material(
       color: isSelected
           ? Colors.black.withValues(alpha: 0.04)
           : Colors.transparent,
