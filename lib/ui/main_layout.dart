@@ -2,6 +2,30 @@ import 'package:flutter/material.dart';
 import '../models/board.dart';
 import 'board_widget.dart';
 
+// --- Tab State Models ---
+abstract class AppTab {
+  IconData get icon;
+  String get tooltip;
+}
+
+class LobbyTab extends AppTab {
+  @override
+  IconData get icon => Icons.space_dashboard_outlined;
+  @override
+  String get tooltip => 'Lobby';
+}
+
+class GameTab extends AppTab {
+  final Board board;
+  GameTab(this.board);
+
+  @override
+  IconData get icon => Icons.grid_4x4_outlined;
+  @override
+  String get tooltip => 'Analysis';
+}
+
+// --- Main Layout ---
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
 
@@ -10,11 +34,13 @@ class MainLayout extends StatefulWidget {
 }
 
 class _MainLayoutState extends State<MainLayout> {
-  int _selectedTabIndex = 0; // 0 = Lobby, 1 = Game
-  final Board _board = Board(); // Single board state for now
+  final List<AppTab> _tabs = [LobbyTab()]; // Start with 1 Lobby tab
+  int _activeIndex = 0;
 
   @override
   Widget build(BuildContext context) {
+    final activeTab = _tabs[_activeIndex];
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Row(
@@ -25,8 +51,8 @@ class _MainLayoutState extends State<MainLayout> {
             thickness: 1,
             color: Color(0xFFEEEEEE),
           ),
-          if (_selectedTabIndex == 0) ..._buildLobbyContent(),
-          if (_selectedTabIndex == 1) ..._buildGameContent(),
+          if (activeTab is LobbyTab) ..._buildLobbyContent(),
+          if (activeTab is GameTab) ..._buildGameContent(activeTab),
         ],
       ),
     );
@@ -40,11 +66,19 @@ class _MainLayoutState extends State<MainLayout> {
       child: Column(
         children: [
           const SizedBox(height: 16),
-          _buildTabIcon(Icons.space_dashboard_outlined, 0, 'Lobby'),
-          const SizedBox(height: 8),
-          _buildTabIcon(Icons.grid_4x4_outlined, 1, 'Game 1'),
+          // Dynamically build the tab icons based on open tabs
+          for (int i = 0; i < _tabs.length; i++) ...[
+            _buildTabIcon(_tabs[i].icon, i, _tabs[i].tooltip),
+            const SizedBox(height: 8),
+          ],
           const Spacer(),
-          _buildSidebarButton(Icons.add, 'Add Tab', () {}),
+          // Add a new Lobby Tab when clicked
+          _buildSidebarButton(Icons.add, 'Add Tab', () {
+            setState(() {
+              _tabs.add(LobbyTab());
+              _activeIndex = _tabs.length - 1;
+            });
+          }),
           const SizedBox(height: 8),
           _buildSidebarButton(Icons.settings_outlined, 'Settings', () {}),
           const SizedBox(height: 16),
@@ -54,11 +88,11 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   Widget _buildTabIcon(IconData icon, int index, String tooltip) {
-    final isSelected = _selectedTabIndex == index;
+    final isSelected = _activeIndex == index;
     return Tooltip(
       message: tooltip,
       child: GestureDetector(
-        onTap: () => setState(() => _selectedTabIndex = index),
+        onTap: () => setState(() => _activeIndex = index),
         child: MouseRegion(
           cursor: SystemMouseCursors.click,
           child: Container(
@@ -162,7 +196,10 @@ class _MainLayoutState extends State<MainLayout> {
                 'Start a fresh game on a 9x9, 13x13, or 19x19 board.',
                 Icons.grid_on,
                 onTap: () {
-                  setState(() => _selectedTabIndex = 1);
+                  setState(() {
+                    // Replace the current LobbyTab with a new GameTab!
+                    _tabs[_activeIndex] = GameTab(Board());
+                  });
                 },
               ),
               const SizedBox(height: 16),
@@ -185,20 +222,18 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   // Column 2 & 3: Game / Analysis State
-  List<Widget> _buildGameContent() {
+  List<Widget> _buildGameContent(GameTab tab) {
     return [
       // Column 2: The Go Board
       Expanded(
         child: Container(
-          color: const Color(
-            0xFFF7F7F7,
-          ), // Slightly off-white background for contrast
+          color: const Color(0xFFF7F7F7),
           padding: const EdgeInsets.all(40.0),
           child: Center(
             child: BoardWidget(
-              board: _board,
+              board: tab.board, // Use the board attached to this specific tab
               onIntersectionTapped: (point) {
-                if (_board.play(point)) setState(() {});
+                if (tab.board.play(point)) setState(() {});
               },
             ),
           ),
@@ -208,7 +243,7 @@ class _MainLayoutState extends State<MainLayout> {
 
       // Column 3: Control Center (Tabbed Interface)
       Container(
-        width: 450, // Widened from 340 for more analysis breathing room
+        width: 450,
         color: Colors.white,
         child: DefaultTabController(
           length: 3,
