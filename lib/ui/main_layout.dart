@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/board.dart';
+import '../models/tree.dart';
 import 'board_widget.dart';
 
 // --- Tab State Models ---
@@ -16,8 +16,8 @@ class LobbyTab extends AppTab {
 }
 
 class GameTab extends AppTab {
-  final Board board;
-  GameTab(this.board);
+  final GameSession session;
+  GameTab(this.session);
 
   @override
   IconData get icon => Icons.grid_4x4_outlined;
@@ -197,8 +197,8 @@ class _MainLayoutState extends State<MainLayout> {
                 Icons.grid_on,
                 onTap: () {
                   setState(() {
-                    // Replace the current LobbyTab with a new GameTab!
-                    _tabs[_activeIndex] = GameTab(Board());
+                    // Replace the current LobbyTab with a new GameTab powered by a full GameSession!
+                    _tabs[_activeIndex] = GameTab(GameSession());
                   });
                 },
               ),
@@ -231,9 +231,12 @@ class _MainLayoutState extends State<MainLayout> {
           padding: const EdgeInsets.all(40.0),
           child: Center(
             child: BoardWidget(
-              board: tab.board, // Use the board attached to this specific tab
+              board: tab
+                  .session
+                  .currentBoard, // Use the physical board from the session
               onIntersectionTapped: (point) {
-                if (tab.board.play(point)) setState(() {});
+                // Let the session manage the move and tree timeline!
+                if (tab.session.play(point)) setState(() {});
               },
             ),
           ),

@@ -6,10 +6,12 @@ class Board {
   final int playerCount;
   final Map<Point, int> grid;
   int currentTurn;
+  List<int> captures;
 
   Board({this.columns = 19, this.rows = 19, this.playerCount = 2})
     : grid = {},
-      currentTurn = 1;
+      currentTurn = 1,
+      captures = List.filled(playerCount, 0);
 
   Board._clone(
     this.columns,
@@ -17,9 +19,12 @@ class Board {
     this.playerCount,
     this.currentTurn,
     Map<Point, int> existingGrid,
-  ) : grid = Map.from(existingGrid);
+    List<int> existingCaptures,
+  ) : grid = Map.from(existingGrid),
+      captures = List.from(existingCaptures);
 
-  Board clone() => Board._clone(columns, rows, playerCount, currentTurn, grid);
+  Board clone() =>
+      Board._clone(columns, rows, playerCount, currentTurn, grid, captures);
 
   void advance() {
     currentTurn = (currentTurn % playerCount) + 1;
@@ -115,6 +120,11 @@ class Board {
 
     for (var captured in capturedStones) {
       grid.remove(captured);
+    }
+
+    if (capturedStones.isNotEmpty) {
+      // currentTurn is 1-indexed (1, 2, ...), so index is currentTurn - 1
+      captures[currentTurn - 1] += capturedStones.length;
     }
 
     advance();
