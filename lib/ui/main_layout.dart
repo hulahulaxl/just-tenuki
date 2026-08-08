@@ -308,33 +308,39 @@ class _MainLayoutState extends State<MainLayout> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Black Info
-          Row(
-            children: [
-              const Icon(Icons.circle, color: Colors.black87, size: 14),
-              const SizedBox(width: 8),
-              const Text(
-                'Black [9d]',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                  color: Colors.black87,
-                ),
+          Expanded(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Row(
+                children: [
+                  const Icon(Icons.circle, color: Colors.black87, size: 14),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Black [9d]',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Text(
+                    'Captures: $blackCaptures',
+                    style: const TextStyle(color: Colors.black54, fontSize: 12),
+                  ),
+                  const SizedBox(width: 16),
+                  const Text(
+                    '10:00',
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 13,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 16),
-              Text(
-                'Captures: $blackCaptures',
-                style: const TextStyle(color: Colors.black54, fontSize: 12),
-              ),
-              const SizedBox(width: 16),
-              const Text(
-                '10:00',
-                style: TextStyle(
-                  fontFamily: 'monospace',
-                  fontSize: 13,
-                  color: Colors.black87,
-                ),
-              ),
-            ],
+            ),
           ),
 
           // Navigation Controls (No Ripples)
@@ -363,41 +369,47 @@ class _MainLayoutState extends State<MainLayout> {
           ),
 
           // White Info
-          Row(
-            children: [
-              const Text(
-                '10:00',
-                style: TextStyle(
-                  fontFamily: 'monospace',
-                  fontSize: 13,
-                  color: Colors.black87,
-                ),
+          Expanded(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: Row(
+                children: [
+                  const Text(
+                    '10:00',
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 13,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Text(
+                    'Captures: $whiteCaptures',
+                    style: const TextStyle(color: Colors.black54, fontSize: 12),
+                  ),
+                  const SizedBox(width: 16),
+                  const Text(
+                    'White [9d]',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    width: 14,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                      border: Border.all(color: Colors.black45, width: 1.5),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 16),
-              Text(
-                'Captures: $whiteCaptures',
-                style: const TextStyle(color: Colors.black54, fontSize: 12),
-              ),
-              const SizedBox(width: 16),
-              const Text(
-                'White [9d]',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                width: 14,
-                height: 14,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                  border: Border.all(color: Colors.black45, width: 1.5),
-                ),
-              ),
-            ],
+            ),
           ),
         ],
       ),
