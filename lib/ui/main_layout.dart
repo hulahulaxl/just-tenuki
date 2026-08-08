@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/tree.dart';
 import 'board_widget.dart';
+import 'tree/tree_graph_widget.dart';
 
 // --- Tab State Models ---
 abstract class AppTab {
@@ -266,7 +267,7 @@ class _MainLayoutState extends State<MainLayout> {
               Expanded(
                 child: TabBarView(
                   children: [
-                    _buildTreeTabMock(),
+                    _buildTreeTab(tab),
                     _buildAnalysisTabMock(),
                     _buildToolsTabMock(),
                   ],
@@ -279,11 +280,12 @@ class _MainLayoutState extends State<MainLayout> {
     ];
   }
 
-  Widget _buildTreeTabMock() {
-    return const Center(
-      child: Text(
-        'Game Tree Graph (Mock)',
-        style: TextStyle(color: Colors.black54),
+  Widget _buildTreeTab(GameTab tab) {
+    return Container(
+      color: const Color(0xFFFAFAFA),
+      child: TreeGraphWidget(
+        session: tab.session,
+        onNodeSelected: () => setState(() {}),
       ),
     );
   }
