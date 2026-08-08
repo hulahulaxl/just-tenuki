@@ -1,8 +1,8 @@
-# GoReview UI/UX Design Specification
+# Just Tenuki UI/UX Design Specification
 
 ## Overview
 
-GoReview uses a modern, 3-column layout optimized for desktop (landscape) screens. The design is heavily inspired by professional IDEs like VS Code, featuring a minimalist aesthetic and tab-based navigation.
+Just Tenuki uses a modern, 3-column layout optimized for desktop (landscape) screens. The design is heavily inspired by professional IDEs like VS Code, featuring a minimalist aesthetic and tab-based navigation.
 
 ## Design Language
 
@@ -49,7 +49,7 @@ This column provides contextual details based on what is selected in the Middle 
 - If `New...` is selected in the mid-column, this right column reveals the specific creation options:
   - `Empty Board` (Prompts for 9x9, 13x13, 19x19)
   - `Import SGF`
-  - `Load GoReview`
+  - `Load .tenuki`
 - If `Recent Files` is selected, this column shows a list of recent games, metadata, dates, or thumbnails.
 
 **State B: Active Game Context**

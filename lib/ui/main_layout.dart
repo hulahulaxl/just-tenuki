@@ -212,7 +212,7 @@ class _MainLayoutState extends State<MainLayout> {
               ),
               const SizedBox(height: 16),
               _buildDetailCard(
-                'Load GoReview',
+                'Load .tenuki',
                 'Open a proprietary project containing AI analysis and custom annotations.',
                 Icons.analytics_outlined,
               ),
