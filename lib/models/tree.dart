@@ -93,4 +93,27 @@ class GameSession {
       jumpTo(currentNode.parent!);
     }
   }
+
+  /// Traverses exactly one step forward (following the main line/first child).
+  void next() {
+    if (currentNode.children.isNotEmpty) {
+      jumpTo(currentNode.children[0]);
+    }
+  }
+
+  /// Jumps back to the absolute beginning of the game.
+  void first() {
+    jumpTo(rootNode);
+  }
+
+  /// Fast-forwards to the very end of the current variation branch.
+  void last() {
+    TreeNode curr = currentNode;
+    while (curr.children.isNotEmpty) {
+      curr = curr.children[0];
+    }
+    if (curr != currentNode) {
+      jumpTo(curr);
+    }
+  }
 }

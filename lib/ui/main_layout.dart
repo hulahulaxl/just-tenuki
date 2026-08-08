@@ -225,21 +225,30 @@ class _MainLayoutState extends State<MainLayout> {
   // Column 2 & 3: Game / Analysis State
   List<Widget> _buildGameContent(GameTab tab) {
     return [
-      // Column 2: The Go Board
+      // Column 2: The Go Board + Status Bar
       Expanded(
         child: Container(
           color: const Color(0xFFF7F7F7),
-          padding: const EdgeInsets.all(40.0),
-          child: Center(
-            child: BoardWidget(
-              board: tab
-                  .session
-                  .currentBoard, // Use the physical board from the session
-              onIntersectionTapped: (point) {
-                // Let the session manage the move and tree timeline!
-                if (tab.session.play(point)) setState(() {});
-              },
-            ),
+          child: Column(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(40.0),
+                  child: Center(
+                    child: BoardWidget(
+                      board: tab
+                          .session
+                          .currentBoard, // Use the physical board from the session
+                      onIntersectionTapped: (point) {
+                        // Let the session manage the move and tree timeline!
+                        if (tab.session.play(point)) setState(() {});
+                      },
+                    ),
+                  ),
+                ),
+              ),
+              _buildStatusBar(tab.session),
+            ],
           ),
         ),
       ),
@@ -278,6 +287,136 @@ class _MainLayoutState extends State<MainLayout> {
         ),
       ),
     ];
+  }
+
+  Widget _buildStatusBar(GameSession session) {
+    int blackCaptures = session.currentBoard.captures.isNotEmpty
+        ? session.currentBoard.captures[0]
+        : 0;
+    int whiteCaptures = session.currentBoard.captures.length > 1
+        ? session.currentBoard.captures[1]
+        : 0;
+
+    return Container(
+      height: 40,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Color(0xFFEEEEEE))),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Black Info
+          Row(
+            children: [
+              const Icon(Icons.circle, color: Colors.black87, size: 14),
+              const SizedBox(width: 8),
+              const Text(
+                'Black [9d]',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Text(
+                'Captures: $blackCaptures',
+                style: const TextStyle(color: Colors.black54, fontSize: 12),
+              ),
+              const SizedBox(width: 16),
+              const Text(
+                '10:00',
+                style: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 13,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+
+          // Navigation Controls (No Ripples)
+          Row(
+            children: [
+              _buildNavButton(
+                Icons.first_page,
+                () => setState(() => session.first()),
+              ),
+              const SizedBox(width: 4),
+              _buildNavButton(
+                Icons.navigate_before,
+                () => setState(() => session.undo()),
+              ),
+              const SizedBox(width: 4),
+              _buildNavButton(
+                Icons.navigate_next,
+                () => setState(() => session.next()),
+              ),
+              const SizedBox(width: 4),
+              _buildNavButton(
+                Icons.last_page,
+                () => setState(() => session.last()),
+              ),
+            ],
+          ),
+
+          // White Info
+          Row(
+            children: [
+              const Text(
+                '10:00',
+                style: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 13,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Text(
+                'Captures: $whiteCaptures',
+                style: const TextStyle(color: Colors.black54, fontSize: 12),
+              ),
+              const SizedBox(width: 16),
+              const Text(
+                'White [9d]',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                width: 14,
+                height: 14,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                  border: Border.all(color: Colors.black45, width: 1.5),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavButton(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: Container(
+          width: 32,
+          height: 32,
+          alignment: Alignment.center,
+          child: Icon(icon, color: Colors.black54, size: 20),
+        ),
+      ),
+    );
   }
 
   Widget _buildTreeTab(GameTab tab) {
