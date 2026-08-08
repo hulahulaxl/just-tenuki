@@ -4,8 +4,9 @@ import '../models/move.dart';
 
 class BoardPainter extends CustomPainter {
   final Board board;
+  final Point? latestMove;
 
-  BoardPainter({required this.board});
+  BoardPainter({required this.board, this.latestMove});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -108,6 +109,19 @@ class BoardPainter extends CustomPainter {
 
       canvas.drawCircle(center, stoneRadius, stonePaint);
       canvas.drawCircle(center, stoneRadius, outlinePaint);
+
+      // Draw the latest move indicator (a contrasting inner ring)
+      if (latestMove != null &&
+          pt.x == latestMove!.x &&
+          pt.y == latestMove!.y) {
+        final indicatorRadius = stoneRadius * 0.45;
+        final Paint indicatorPaint = Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = (cellSize * 0.08).clamp(1.0, 3.0)
+          ..color = (player == 1) ? Colors.white : Colors.black87;
+
+        canvas.drawCircle(center, indicatorRadius, indicatorPaint);
+      }
     }
   }
 

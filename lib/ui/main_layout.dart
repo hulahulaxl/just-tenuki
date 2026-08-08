@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/tree.dart';
+import '../models/move.dart';
 import 'board_widget.dart';
 import 'tree/tree_graph_widget.dart';
 
@@ -239,6 +240,9 @@ class _MainLayoutState extends State<MainLayout> {
                       board: tab
                           .session
                           .currentBoard, // Use the physical board from the session
+                      latestMove: tab.session.currentNode.move is Play
+                          ? (tab.session.currentNode.move as Play).point
+                          : null,
                       onIntersectionTapped: (point) {
                         // Let the session manage the move and tree timeline!
                         if (tab.session.play(point)) setState(() {});

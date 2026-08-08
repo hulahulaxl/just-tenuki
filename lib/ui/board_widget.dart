@@ -5,11 +5,13 @@ import 'board_painter.dart';
 
 class BoardWidget extends StatelessWidget {
   final Board board;
+  final Point? latestMove;
   final ValueChanged<Point> onIntersectionTapped;
 
   const BoardWidget({
     super.key,
     required this.board,
+    this.latestMove,
     required this.onIntersectionTapped,
   });
 
@@ -23,7 +25,9 @@ class BoardWidget extends StatelessWidget {
 
           return GestureDetector(
             onTapUp: (details) => _handleTap(details.localPosition, size),
-            child: CustomPaint(painter: BoardPainter(board: board)),
+            child: CustomPaint(
+              painter: BoardPainter(board: board, latestMove: latestMove),
+            ),
           );
         },
       ),
