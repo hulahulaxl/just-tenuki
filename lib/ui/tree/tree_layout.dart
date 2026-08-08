@@ -7,6 +7,9 @@ class TreeLayout {
   int _maxColumn = 0;
   int _maxRow = 0;
 
+  int get maxColumn => _maxColumn;
+  int get maxRow => _maxRow;
+
   // Visual config
   static const double nodeSpacingX = 40.0;
   static const double nodeSpacingY = 40.0;
@@ -20,8 +23,8 @@ class TreeLayout {
   }
 
   void _traverse(TreeNode node, int col, int row) {
-    // 20px initial padding
-    positions[node] = Offset(col * nodeSpacingX + 20, row * nodeSpacingY + 20);
+    // 60px initial padding to leave room for the move numbers on the left!
+    positions[node] = Offset(col * nodeSpacingX + 60, row * nodeSpacingY + 20);
 
     if (col > _maxColumn) _maxColumn = col;
     if (row > _maxRow) _maxRow = row;
@@ -42,7 +45,7 @@ class TreeLayout {
   /// The total pixel size required to draw the entire tree
   Size get totalSize {
     return Size(
-      (_maxColumn + 1) * nodeSpacingX + 40,
+      (_maxColumn + 1) * nodeSpacingX + 80, // +80 to account for move numbers
       (_maxRow + 1) * nodeSpacingY + 40,
     );
   }

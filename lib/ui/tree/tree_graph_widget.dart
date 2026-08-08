@@ -63,6 +63,7 @@ class _TreeGraphWidgetState extends State<TreeGraphWidget> {
           painter: TreePainter(
             layout: _layoutEngine.positions,
             currentNode: widget.session.currentNode,
+            maxRow: _layoutEngine.maxRow,
           ),
         ),
       ),

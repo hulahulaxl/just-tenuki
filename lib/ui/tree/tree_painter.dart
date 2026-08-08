@@ -5,8 +5,13 @@ import '../../models/move.dart';
 class TreePainter extends CustomPainter {
   final Map<TreeNode, Offset> layout;
   final TreeNode currentNode;
+  final int maxRow;
 
-  TreePainter({required this.layout, required this.currentNode});
+  TreePainter({
+    required this.layout,
+    required this.currentNode,
+    required this.maxRow,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -27,6 +32,26 @@ class TreePainter extends CustomPainter {
     final highlightPaint = Paint()
       ..color = Colors.blue.withValues(alpha: 0.4)
       ..style = PaintingStyle.fill;
+
+    // 0. Draw chronological move numbers down the left side
+    final textStyle = TextStyle(
+      color: Colors.grey[400],
+      fontSize: 12,
+      fontWeight: FontWeight.bold,
+    );
+    for (int r = 0; r <= maxRow; r++) {
+      final textSpan = TextSpan(text: r.toString(), style: textStyle);
+      final textPainter = TextPainter(
+        text: textSpan,
+        textDirection: TextDirection.ltr,
+        textAlign: TextAlign.right,
+      );
+      textPainter.layout(minWidth: 30, maxWidth: 30);
+
+      // Node centers are at (r * 40.0 + 20) vertically
+      final yPos = r * 40.0 + 20.0 - (textPainter.height / 2);
+      textPainter.paint(canvas, Offset(10, yPos));
+    }
 
     // 1. Draw connecting lines between parents and children
     for (var entry in layout.entries) {
