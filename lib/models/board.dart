@@ -176,6 +176,14 @@ class Board {
     advance();
   }
 
+  /// Directly places a stone without validating captures, suicide, or advancing the turn.
+  /// This is used exclusively for loading SGF setup stones (AB / AW / AE).
+  void addSetupStone(int x, int y, int player) {
+    if (isOnBoard(x, y)) {
+      grid[getIndex(x, y)] = player;
+    }
+  }
+
   void resign() {
     // No-op for physical grid
   }

@@ -4,7 +4,7 @@ import 'move.dart';
 /// Represents a single moment/state in the game. Extremely lightweight.
 class TreeNode {
   /// The move that resulted in this node. Null if this is the root/setup node.
-  final Move? move;
+  Move? move;
 
   /// The parent node to traverse backward.
   final TreeNode? parent;
@@ -62,8 +62,16 @@ class GameSession {
 
   /// Re-calculates the physical board state via Pure Event Sourcing.
   void jumpTo(TreeNode node) {
-    // 1. Reset physical board to starting state (TODO: Handle custom handicap/sizes later)
+    // 1. Reset physical board to starting state
     currentBoard = Board();
+
+    // 1.5 Apply setup stones from the root node (AB, AW)
+    if (rootNode.properties.containsKey('AB')) {
+      _applySetupStones(1, rootNode.properties['AB']);
+    }
+    if (rootNode.properties.containsKey('AW')) {
+      _applySetupStones(2, rootNode.properties['AW']);
+    }
 
     // 2. Find the chronological path from root to the target node
     var path = <TreeNode>[];
@@ -85,6 +93,19 @@ class GameSession {
 
     // 4. Update the timeline pointer
     currentNode = node;
+  }
+
+  void _applySetupStones(int player, dynamic values) {
+    List<String> stoneList = (values is List)
+        ? values.cast<String>()
+        : [values as String];
+    for (String val in stoneList) {
+      if (val.length >= 2) {
+        int x = val.codeUnitAt(0) - 97;
+        int y = val.codeUnitAt(1) - 97;
+        currentBoard.addSetupStone(x, y, player);
+      }
+    }
   }
 
   /// Traverses exactly one step backward using Event Sourcing.

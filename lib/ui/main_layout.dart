@@ -1,6 +1,11 @@
+import 'dart:io';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../models/tree.dart';
 import '../models/move.dart';
+import '../utils/sgf_parser.dart';
 import 'board_widget.dart';
 import 'tree/tree_graph_widget.dart';
 
@@ -209,18 +214,50 @@ class _MainLayoutState extends State<MainLayout> {
                 'Import SGF',
                 'Load a standard .sgf game record to review or play against AI.',
                 Icons.file_download_outlined,
+                onTap: _pickAndLoadSgf,
               ),
               const SizedBox(height: 16),
               _buildDetailCard(
                 'Load .tenuki',
                 'Open a proprietary project containing AI analysis and custom annotations.',
                 Icons.analytics_outlined,
+                onTap: _pickAndLoadSgf,
               ),
             ],
           ),
         ),
       ),
     ];
+  }
+
+  Future<void> _pickAndLoadSgf() async {
+    // 1. Pick the file
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['sgf', 'tenuki'],
+      withData: true, // Crucial for Web support
+    );
+
+    if (result != null) {
+      String sgfText;
+
+      // 2. Read the file (Handle Web vs Desktop differently)
+      if (kIsWeb) {
+        sgfText = utf8.decode(result.files.single.bytes!);
+      } else {
+        File file = File(result.files.single.path!);
+        sgfText = await file.readAsString();
+      }
+
+      // 3. Parse and load
+      GameSession parsedSession = SgfParser.parse(sgfText);
+      // Guarantee that the root board state (including setup stones) is physically applied
+      parsedSession.first();
+
+      setState(() {
+        _tabs[_activeIndex] = GameTab(parsedSession);
+      });
+    }
   }
 
   // Column 2 & 3: Game / Analysis State
