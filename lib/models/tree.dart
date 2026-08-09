@@ -24,6 +24,9 @@ class TreeNode {
   List<int> circleMarks = [];
   List<int> crossMarks = [];
 
+  // Time management per node (Index 0 = Black, Index 1 = White)
+  List<String?> timeLeft = List.filled(2, null);
+
   TreeNode({this.move, this.parent});
 
   /// Adds a new variation (child node) based on a move.
@@ -32,6 +35,20 @@ class TreeNode {
     children.add(child);
     return child;
   }
+}
+
+class GameInfo {
+  String blackName = 'Black';
+  String whiteName = 'White';
+  String? blackRank;
+  String? whiteRank;
+  String? date;
+  String? result;
+  String? event;
+  String komi = '6.5';
+  String rules = 'Japanese';
+  String? baseTime;
+  String? overtime;
 }
 
 /// The master controller that manages the timeline and physical board synchronization using Event Sourcing.
@@ -45,8 +62,8 @@ class GameSession {
   /// Where the user currently is in the timeline.
   late TreeNode currentNode;
 
-  /// Stores metadata like Player Names, Ranks, Date, etc.
-  Map<String, String> gameInfo = {};
+  /// Strongly-typed metadata for the game
+  GameInfo info = GameInfo();
 
   GameSession() : currentBoard = Board() {
     rootNode = TreeNode();

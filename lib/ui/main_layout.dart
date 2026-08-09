@@ -339,6 +339,23 @@ class _MainLayoutState extends State<MainLayout> {
         ? session.currentBoard.captures[1]
         : 0;
 
+    String pb = session.info.blackName;
+    String br = session.info.blackRank != null
+        ? ' [${session.info.blackRank}]'
+        : '';
+    String blackName = '$pb$br';
+
+    String pw = session.info.whiteName;
+    String wr = session.info.whiteRank != null
+        ? ' [${session.info.whiteRank}]'
+        : '';
+    String whiteName = '$pw$wr';
+
+    String blackTime =
+        session.currentNode.timeLeft[0] ?? session.info.baseTime ?? '--:--';
+    String whiteTime =
+        session.currentNode.timeLeft[1] ?? session.info.baseTime ?? '--:--';
+
     return Container(
       height: 40,
       decoration: const BoxDecoration(
@@ -358,9 +375,9 @@ class _MainLayoutState extends State<MainLayout> {
                 children: [
                   const Icon(Icons.circle, color: Colors.black87, size: 14),
                   const SizedBox(width: 8),
-                  const Text(
-                    'Black [9d]',
-                    style: TextStyle(
+                  Text(
+                    blackName,
+                    style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
                       color: Colors.black87,
@@ -372,9 +389,9 @@ class _MainLayoutState extends State<MainLayout> {
                     style: const TextStyle(color: Colors.black54, fontSize: 12),
                   ),
                   const SizedBox(width: 16),
-                  const Text(
-                    '10:00',
-                    style: TextStyle(
+                  Text(
+                    blackTime,
+                    style: const TextStyle(
                       fontFamily: 'monospace',
                       fontSize: 13,
                       color: Colors.black87,
@@ -417,9 +434,9 @@ class _MainLayoutState extends State<MainLayout> {
               alignment: Alignment.centerRight,
               child: Row(
                 children: [
-                  const Text(
-                    '10:00',
-                    style: TextStyle(
+                  Text(
+                    whiteTime,
+                    style: const TextStyle(
                       fontFamily: 'monospace',
                       fontSize: 13,
                       color: Colors.black87,
@@ -431,9 +448,9 @@ class _MainLayoutState extends State<MainLayout> {
                     style: const TextStyle(color: Colors.black54, fontSize: 12),
                   ),
                   const SizedBox(width: 16),
-                  const Text(
-                    'White [9d]',
-                    style: TextStyle(
+                  Text(
+                    whiteName,
+                    style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
                       color: Colors.black87,

@@ -135,7 +135,17 @@ class SgfParser {
       return;
     }
 
-    // 3. Board Annotations (Setup Stones & Marks)
+    // 3. Time Remaining
+    if (key == 'BL') {
+      node.timeLeft[0] = values[0];
+      return;
+    }
+    if (key == 'WL') {
+      node.timeLeft[1] = values[0];
+      return;
+    }
+
+    // 4. Board Annotations (Setup Stones & Marks)
     // SGF properties like AB, AW, TR, SQ can contain multiple values
     List<int> indices = _parseCoordinatesToIndices(
       values,
@@ -163,25 +173,41 @@ class SgfParser {
         break;
     }
 
-    // 4. Game Metadata (Global properties usually found on root node)
-    const metadataKeys = [
-      'PB',
-      'PW',
-      'BR',
-      'WR',
-      'DT',
-      'RE',
-      'KM',
-      'RU',
-      'GN',
-      'EV',
-      'RO',
-      'PC',
-      'TM',
-      'OT',
-    ];
-    if (metadataKeys.contains(key)) {
-      session.gameInfo[key] = values[0];
+    // 5. Game Metadata (Global properties usually found on root node)
+    switch (key) {
+      case 'PB':
+        session.info.blackName = values[0];
+        break;
+      case 'PW':
+        session.info.whiteName = values[0];
+        break;
+      case 'BR':
+        session.info.blackRank = values[0];
+        break;
+      case 'WR':
+        session.info.whiteRank = values[0];
+        break;
+      case 'DT':
+        session.info.date = values[0];
+        break;
+      case 'RE':
+        session.info.result = values[0];
+        break;
+      case 'KM':
+        session.info.komi = values[0];
+        break;
+      case 'RU':
+        session.info.rules = values[0];
+        break;
+      case 'EV':
+        session.info.event = values[0];
+        break;
+      case 'TM':
+        session.info.baseTime = values[0];
+        break;
+      case 'OT':
+        session.info.overtime = values[0];
+        break;
     }
   }
 
