@@ -103,7 +103,7 @@ class GameSession {
       if (val.length >= 2) {
         int x = val.codeUnitAt(0) - 97;
         int y = val.codeUnitAt(1) - 97;
-        currentBoard.addSetupStone(x, y, player);
+        currentBoard.addStone(x, y, player);
       }
     }
   }
