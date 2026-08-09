@@ -82,45 +82,48 @@ class BoardPainter extends CustomPainter {
     final double stoneRadius =
         cellSize * 0.48; // Leaves a tiny gap between adjacent stones
 
-    for (var entry in board.grid.entries) {
-      final Point pt = entry.key;
-      final int player = entry.value;
+    for (int y = 0; y < rows; y++) {
+      for (int x = 0; x < cols; x++) {
+        final int player = board.grid[y * cols + x];
+        if (player == 0) continue;
 
-      Color stoneColor;
-      if (player == 1) {
-        stoneColor = Colors.black;
-      } else if (player == 2) {
-        stoneColor = Colors.white;
-      } else {
-        // Fallback for N-player variations
-        stoneColor = Colors.red;
-      }
+        final Point pt = Point(x, y);
 
-      final Paint stonePaint = Paint()..color = stoneColor;
-      final Paint outlinePaint = Paint()
-        ..color = Colors.black
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = (cellSize * 0.05).clamp(0.5, 1.5);
+        Color stoneColor;
+        if (player == 1) {
+          stoneColor = Colors.black;
+        } else if (player == 2) {
+          stoneColor = Colors.white;
+        } else {
+          stoneColor = Colors.red;
+        }
 
-      final Offset center = Offset(
-        offsetX + pt.x * cellSize,
-        offsetY + pt.y * cellSize,
-      );
-
-      canvas.drawCircle(center, stoneRadius, stonePaint);
-      canvas.drawCircle(center, stoneRadius, outlinePaint);
-
-      // Draw the latest move indicator (a contrasting inner ring)
-      if (latestMove != null &&
-          pt.x == latestMove!.x &&
-          pt.y == latestMove!.y) {
-        final indicatorRadius = stoneRadius * 0.45;
-        final Paint indicatorPaint = Paint()
+        final Paint stonePaint = Paint()..color = stoneColor;
+        final Paint outlinePaint = Paint()
+          ..color = Colors.black
           ..style = PaintingStyle.stroke
-          ..strokeWidth = (cellSize * 0.08).clamp(1.0, 3.0)
-          ..color = (player == 1) ? Colors.white : Colors.black87;
+          ..strokeWidth = (cellSize * 0.05).clamp(0.5, 1.5);
 
-        canvas.drawCircle(center, indicatorRadius, indicatorPaint);
+        final Offset center = Offset(
+          offsetX + pt.x * cellSize,
+          offsetY + pt.y * cellSize,
+        );
+
+        canvas.drawCircle(center, stoneRadius, stonePaint);
+        canvas.drawCircle(center, stoneRadius, outlinePaint);
+
+        // Draw the latest move indicator (a contrasting inner ring)
+        if (latestMove != null &&
+            pt.x == latestMove!.x &&
+            pt.y == latestMove!.y) {
+          final indicatorRadius = stoneRadius * 0.45;
+          final Paint indicatorPaint = Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = (cellSize * 0.08).clamp(1.0, 3.0)
+            ..color = (player == 1) ? Colors.white : Colors.black87;
+
+          canvas.drawCircle(center, indicatorRadius, indicatorPaint);
+        }
       }
     }
   }
