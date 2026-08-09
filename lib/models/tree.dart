@@ -9,11 +9,20 @@ class TreeNode {
   /// The parent node to traverse backward.
   final TreeNode? parent;
 
-  /// All variations/branches diverging from this state.
+  /// All possible continuations/variations from this point.
   final List<TreeNode> children = [];
 
-  /// Flexible storage for annotations, comments, time remaining, etc.
-  final Map<String, dynamic> properties = {};
+  // --- Domain-Specific Properties ---
+  String? comment;
+  String? nodeName;
+
+  // Board annotations (stored as 1D grid indices)
+  List<int> setupBlackStones = [];
+  List<int> setupWhiteStones = [];
+  List<int> triangleMarks = [];
+  List<int> squareMarks = [];
+  List<int> circleMarks = [];
+  List<int> crossMarks = [];
 
   TreeNode({this.move, this.parent});
 
@@ -36,6 +45,9 @@ class GameSession {
   /// Where the user currently is in the timeline.
   late TreeNode currentNode;
 
+  /// Stores metadata like Player Names, Ranks, Date, etc.
+  Map<String, String> gameInfo = {};
+
   GameSession() : currentBoard = Board() {
     rootNode = TreeNode();
     currentNode = rootNode;
@@ -44,20 +56,24 @@ class GameSession {
   /// Attempts to play a move on the physical board.
   /// If successful, adds the move to the tree and advances the timeline.
   bool play(int x, int y) {
-    // Determine whose turn it is before playing (play() advances the turn)
-    int player = currentBoard.currentTurn;
+    // We clone the board just to test if the move is physically legal right now
+    Board testBoard = currentBoard.clone();
+    if (testBoard.play(x, y)) {
+      // 1. Physically apply the move
+      currentBoard = testBoard;
 
-    if (currentBoard.play(x, y)) {
-      var move = Play(player, x, y);
+      // 2. Create the new node and link it
+      TreeNode newNode = TreeNode(
+        move: Play(currentBoard.currentTurn, x, y),
+        parent: currentNode,
+      );
+      currentNode.children.add(newNode);
 
-      // Spawn a new node branching from currentNode
-      var newNode = currentNode.addChild(move);
-
-      // Advance timeline
+      // 3. Advance timeline
       currentNode = newNode;
       return true;
     }
-    return false;
+    return false; // Illegal move
   }
 
   /// Re-calculates the physical board state via Pure Event Sourcing.
@@ -65,19 +81,15 @@ class GameSession {
     // 1. Reset physical board to starting state
     currentBoard = Board();
 
-    // 1.5 Apply setup stones from the root node (AB, AW)
-    if (rootNode.properties.containsKey('AB')) {
-      _applySetupStones(1, rootNode.properties['AB']);
-    }
-    if (rootNode.properties.containsKey('AW')) {
-      _applySetupStones(2, rootNode.properties['AW']);
-    }
+    // 1.5 Apply setup stones from the root node
+    _applySetupStones(1, rootNode.setupBlackStones);
+    _applySetupStones(2, rootNode.setupWhiteStones);
 
     // 2. Find the chronological path from root to the target node
     var path = <TreeNode>[];
     TreeNode? curr = node;
     while (curr != null) {
-      path.insert(0, curr);
+      if (curr.move != null) path.insert(0, curr);
       curr = curr.parent;
     }
 
@@ -95,16 +107,11 @@ class GameSession {
     currentNode = node;
   }
 
-  void _applySetupStones(int player, dynamic values) {
-    List<String> stoneList = (values is List)
-        ? values.cast<String>()
-        : [values as String];
-    for (String val in stoneList) {
-      if (val.length >= 2) {
-        int x = val.codeUnitAt(0) - 97;
-        int y = val.codeUnitAt(1) - 97;
-        currentBoard.addStone(x, y, player);
-      }
+  void _applySetupStones(int player, List<int> indices) {
+    for (int index in indices) {
+      int x = index % currentBoard.columns;
+      int y = index ~/ currentBoard.columns;
+      currentBoard.addStone(x, y, player);
     }
   }
 
@@ -115,26 +122,25 @@ class GameSession {
     }
   }
 
-  /// Traverses exactly one step forward (following the main line/first child).
-  void next() {
-    if (currentNode.children.isNotEmpty) {
-      jumpTo(currentNode.children[0]);
+  /// Traverses to the next variation. Defaults to the main line (index 0).
+  void next({int branchIndex = 0}) {
+    if (currentNode.children.isNotEmpty &&
+        branchIndex < currentNode.children.length) {
+      jumpTo(currentNode.children[branchIndex]);
     }
   }
 
-  /// Jumps back to the absolute beginning of the game.
+  /// Jumps to the absolute beginning of the game.
   void first() {
     jumpTo(rootNode);
   }
 
-  /// Fast-forwards to the very end of the current variation branch.
+  /// Fast-forwards to the end of the current variation.
   void last() {
     TreeNode curr = currentNode;
     while (curr.children.isNotEmpty) {
       curr = curr.children[0];
     }
-    if (curr != currentNode) {
-      jumpTo(curr);
-    }
+    jumpTo(curr);
   }
 }

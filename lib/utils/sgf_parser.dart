@@ -89,7 +89,7 @@ class SgfParser {
           }
 
           if (key.isNotEmpty) {
-            _applyPropertyToNode(currentNode, key, values);
+            _applyPropertyToNode(session, currentNode, key, values);
           }
         }
       } else {
@@ -102,16 +102,14 @@ class SgfParser {
   }
 
   static void _applyPropertyToNode(
+    GameSession session,
     TreeNode node,
     String key,
     List<String> values,
   ) {
     if (values.isEmpty) return;
 
-    // Store all raw properties for future features (like AB, AW, TR, CR, C)
-    node.properties[key] = values.length == 1 ? values[0] : values;
-
-    // Special logic for Moves
+    // 1. Core Moves
     if (key == 'B' || key == 'W') {
       int player = (key == 'B') ? 1 : 2;
       String val = values[0];
@@ -124,7 +122,82 @@ class SgfParser {
         int y = val.codeUnitAt(1) - 97;
         node.move = Play(player, x, y);
       }
+      return;
     }
+
+    // 2. Text and Annotations
+    if (key == 'C') {
+      node.comment = values.join('\n');
+      return;
+    }
+    if (key == 'N') {
+      node.nodeName = values[0];
+      return;
+    }
+
+    // 3. Board Annotations (Setup Stones & Marks)
+    // SGF properties like AB, AW, TR, SQ can contain multiple values
+    List<int> indices = _parseCoordinatesToIndices(
+      values,
+      19,
+    ); // Defaulting to 19x19 for index math, could pull from session later
+
+    switch (key) {
+      case 'AB':
+        node.setupBlackStones.addAll(indices);
+        break;
+      case 'AW':
+        node.setupWhiteStones.addAll(indices);
+        break;
+      case 'TR':
+        node.triangleMarks.addAll(indices);
+        break;
+      case 'SQ':
+        node.squareMarks.addAll(indices);
+        break;
+      case 'CR':
+        node.circleMarks.addAll(indices);
+        break;
+      case 'MA':
+        node.crossMarks.addAll(indices);
+        break;
+    }
+
+    // 4. Game Metadata (Global properties usually found on root node)
+    const metadataKeys = [
+      'PB',
+      'PW',
+      'BR',
+      'WR',
+      'DT',
+      'RE',
+      'KM',
+      'RU',
+      'GN',
+      'EV',
+      'RO',
+      'PC',
+      'TM',
+      'OT',
+    ];
+    if (metadataKeys.contains(key)) {
+      session.gameInfo[key] = values[0];
+    }
+  }
+
+  static List<int> _parseCoordinatesToIndices(
+    List<String> values,
+    int columns,
+  ) {
+    List<int> indices = [];
+    for (var val in values) {
+      if (val.length >= 2) {
+        int x = val.codeUnitAt(0) - 97;
+        int y = val.codeUnitAt(1) - 97;
+        indices.add(y * columns + x);
+      }
+    }
+    return indices;
   }
 
   static bool _isWhitespace(String c) {
