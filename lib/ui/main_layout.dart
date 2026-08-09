@@ -237,15 +237,16 @@ class _MainLayoutState extends State<MainLayout> {
                   padding: const EdgeInsets.all(40.0),
                   child: Center(
                     child: BoardWidget(
-                      board: tab
-                          .session
-                          .currentBoard, // Use the physical board from the session
-                      latestMove: tab.session.currentNode.move is Play
-                          ? (tab.session.currentNode.move as Play).point
+                      board: tab.session.currentBoard,
+                      latestMoveX: tab.session.currentNode.move is Play
+                          ? (tab.session.currentNode.move as Play).x
                           : null,
-                      onIntersectionTapped: (point) {
+                      latestMoveY: tab.session.currentNode.move is Play
+                          ? (tab.session.currentNode.move as Play).y
+                          : null,
+                      onIntersectionTapped: (x, y) {
                         // Let the session manage the move and tree timeline!
-                        if (tab.session.play(point)) setState(() {});
+                        if (tab.session.play(x, y)) setState(() {});
                       },
                     ),
                   ),

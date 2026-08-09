@@ -43,12 +43,12 @@ class GameSession {
 
   /// Attempts to play a move on the physical board.
   /// If successful, adds the move to the tree and advances the timeline.
-  bool play(Point point) {
+  bool play(int x, int y) {
     // Determine whose turn it is before playing (play() advances the turn)
     int player = currentBoard.currentTurn;
 
-    if (currentBoard.play(point)) {
-      var move = Play(player, point);
+    if (currentBoard.play(x, y)) {
+      var move = Play(player, x, y);
 
       // Spawn a new node branching from currentNode
       var newNode = currentNode.addChild(move);
@@ -76,8 +76,8 @@ class GameSession {
     // 3. Replay all moves sequentially
     for (var n in path) {
       if (n.move is Play) {
-        // We inject the move into the physical grid
-        currentBoard.play((n.move as Play).point);
+        final playMove = n.move as Play;
+        currentBoard.play(playMove.x, playMove.y);
       } else if (n.move is Pass) {
         currentBoard.pass();
       }

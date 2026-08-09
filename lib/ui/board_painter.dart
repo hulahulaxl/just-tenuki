@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import '../models/board.dart';
-import '../models/move.dart';
 
 class BoardPainter extends CustomPainter {
   final Board board;
-  final Point? latestMove;
+  final int? latestMoveX;
+  final int? latestMoveY;
 
-  BoardPainter({required this.board, this.latestMove});
+  BoardPainter({required this.board, this.latestMoveX, this.latestMoveY});
 
   @override
   void paint(Canvas canvas, Size size) {
-    // 1. Draw flat wooden color background (as requested, no images yet)
+    // 1. Draw flat wooden color background
     final bgPaint = Paint()..color = const Color(0xFFDCB35C);
     canvas.drawRRect(
       RRect.fromRectAndRadius(
@@ -24,7 +24,6 @@ class BoardPainter extends CustomPainter {
     final int rows = board.rows;
 
     // We allocate space for (cols - 1) grid squares PLUS 1 full square for margins (0.5 left, 0.5 right)
-    // This ensures stones placed on the very edge lines are never clipped.
     final double cellWidth = size.width / cols;
     final double cellHeight = size.height / rows;
     final double cellSize = cellWidth < cellHeight ? cellWidth : cellHeight;
@@ -87,8 +86,6 @@ class BoardPainter extends CustomPainter {
         final int player = board.grid[y * cols + x];
         if (player == 0) continue;
 
-        final Point pt = Point(x, y);
-
         Color stoneColor;
         if (player == 1) {
           stoneColor = Colors.black;
@@ -105,17 +102,18 @@ class BoardPainter extends CustomPainter {
           ..strokeWidth = (cellSize * 0.05).clamp(0.5, 1.5);
 
         final Offset center = Offset(
-          offsetX + pt.x * cellSize,
-          offsetY + pt.y * cellSize,
+          offsetX + x * cellSize,
+          offsetY + y * cellSize,
         );
 
         canvas.drawCircle(center, stoneRadius, stonePaint);
         canvas.drawCircle(center, stoneRadius, outlinePaint);
 
         // Draw the latest move indicator (a contrasting inner ring)
-        if (latestMove != null &&
-            pt.x == latestMove!.x &&
-            pt.y == latestMove!.y) {
+        if (latestMoveX != null &&
+            latestMoveY != null &&
+            x == latestMoveX &&
+            y == latestMoveY) {
           final indicatorRadius = stoneRadius * 0.45;
           final Paint indicatorPaint = Paint()
             ..style = PaintingStyle.stroke

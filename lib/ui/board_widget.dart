@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import '../models/board.dart';
-import '../models/move.dart';
 import 'board_painter.dart';
 
 class BoardWidget extends StatelessWidget {
   final Board board;
-  final Point? latestMove;
-  final ValueChanged<Point> onIntersectionTapped;
+  final int? latestMoveX;
+  final int? latestMoveY;
+  final void Function(int x, int y) onIntersectionTapped;
 
   const BoardWidget({
     super.key,
     required this.board,
-    this.latestMove,
+    this.latestMoveX,
+    this.latestMoveY,
     required this.onIntersectionTapped,
   });
 
@@ -26,7 +27,11 @@ class BoardWidget extends StatelessWidget {
           return GestureDetector(
             onTapUp: (details) => _handleTap(details.localPosition, size),
             child: CustomPaint(
-              painter: BoardPainter(board: board, latestMove: latestMove),
+              painter: BoardPainter(
+                board: board,
+                latestMoveX: latestMoveX,
+                latestMoveY: latestMoveY,
+              ),
             ),
           );
         },
@@ -54,7 +59,7 @@ class BoardWidget extends StatelessWidget {
 
     // Ensure the tap is actually on the board before firing the callback
     if (x >= 0 && x < cols && y >= 0 && y < rows) {
-      onIntersectionTapped(Point(x, y));
+      onIntersectionTapped(x, y);
     }
   }
 }

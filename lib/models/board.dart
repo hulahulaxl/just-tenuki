@@ -1,5 +1,3 @@
-import 'move.dart';
-
 class Board {
   final int columns;
   final int rows;
@@ -40,31 +38,36 @@ class Board {
     return x >= 0 && x < columns && y >= 0 && y < rows;
   }
 
-  List<Point> getNeighbors(Point point) {
-    var neighbors = <Point>[];
-    if (isOnBoard(point.x - 1, point.y)) {
-      neighbors.add(Point(point.x - 1, point.y));
+  /// Returns 1D indices of all valid adjacent intersections
+  List<int> getNeighbors(int index) {
+    int x = index % columns;
+    int y = index ~/ columns;
+
+    var neighbors = <int>[];
+    if (isOnBoard(x - 1, y)) {
+      neighbors.add(getIndex(x - 1, y));
     }
-    if (isOnBoard(point.x + 1, point.y)) {
-      neighbors.add(Point(point.x + 1, point.y));
+    if (isOnBoard(x + 1, y)) {
+      neighbors.add(getIndex(x + 1, y));
     }
-    if (isOnBoard(point.x, point.y - 1)) {
-      neighbors.add(Point(point.x, point.y - 1));
+    if (isOnBoard(x, y - 1)) {
+      neighbors.add(getIndex(x, y - 1));
     }
-    if (isOnBoard(point.x, point.y + 1)) {
-      neighbors.add(Point(point.x, point.y + 1));
+    if (isOnBoard(x, y + 1)) {
+      neighbors.add(getIndex(x, y + 1));
     }
     return neighbors;
   }
 
-  Set<Point> getGroup(Point point) {
-    var targetPlayer = grid[getIndex(point.x, point.y)];
+  /// Returns a set of 1D indices representing the connected string of stones
+  Set<int> getGroup(int index) {
+    var targetPlayer = grid[index];
     if (targetPlayer == 0) {
       return {};
     }
 
-    var visited = <Point>{};
-    var queue = [point];
+    var visited = <int>{};
+    var queue = [index];
 
     while (queue.isNotEmpty) {
       var current = queue.removeAt(0);
@@ -75,8 +78,7 @@ class Board {
       visited.add(current);
 
       for (var neighbor in getNeighbors(current)) {
-        if (grid[getIndex(neighbor.x, neighbor.y)] == targetPlayer &&
-            !visited.contains(neighbor)) {
+        if (grid[neighbor] == targetPlayer && !visited.contains(neighbor)) {
           queue.add(neighbor);
         }
       }
@@ -84,11 +86,12 @@ class Board {
     return visited;
   }
 
-  int countLiberties(Set<Point> group) {
-    var liberties = <Point>{};
-    for (var stone in group) {
-      for (var neighbor in getNeighbors(stone)) {
-        if (grid[getIndex(neighbor.x, neighbor.y)] == 0) {
+  /// Counts the liberties of a given string of stones
+  int countLiberties(Set<int> group) {
+    var liberties = <int>{};
+    for (var stoneIdx in group) {
+      for (var neighbor in getNeighbors(stoneIdx)) {
+        if (grid[neighbor] == 0) {
           liberties.add(neighbor);
         }
       }
@@ -96,23 +99,28 @@ class Board {
     return liberties.length;
   }
 
-  bool isValidMove(Point point) {
-    if (!isOnBoard(point.x, point.y) || grid[getIndex(point.x, point.y)] != 0) {
+  bool isValidMove(int x, int y) {
+    if (!isOnBoard(x, y)) {
       return false;
     }
 
-    var neighbors = getNeighbors(point);
+    int index = getIndex(x, y);
+    if (grid[index] != 0) {
+      return false;
+    }
+
+    var neighbors = getNeighbors(index);
 
     // 1. Has an empty adjacent point (instant liberty).
     for (var neighbor in neighbors) {
-      if (grid[getIndex(neighbor.x, neighbor.y)] == 0) {
+      if (grid[neighbor] == 0) {
         return true;
       }
     }
 
     // 2. Complex checks
     for (var neighbor in neighbors) {
-      var neighborPlayer = grid[getIndex(neighbor.x, neighbor.y)];
+      var neighborPlayer = grid[neighbor];
       var neighborGroup = getGroup(neighbor);
       var liberties = countLiberties(neighborGroup);
 
@@ -132,16 +140,17 @@ class Board {
     return false; // Suicide
   }
 
-  bool play(Point point) {
-    if (!isValidMove(point)) {
+  bool play(int x, int y) {
+    if (!isValidMove(x, y)) {
       return false;
     }
 
-    grid[getIndex(point.x, point.y)] = currentTurn;
-    var capturedStones = <Point>{};
+    int index = getIndex(x, y);
+    grid[index] = currentTurn;
+    var capturedStones = <int>{};
 
-    for (var neighbor in getNeighbors(point)) {
-      var neighborPlayer = grid[getIndex(neighbor.x, neighbor.y)];
+    for (var neighbor in getNeighbors(index)) {
+      var neighborPlayer = grid[neighbor];
       if (neighborPlayer != 0 && neighborPlayer != currentTurn) {
         var opponentGroup = getGroup(neighbor);
         if (countLiberties(opponentGroup) == 0) {
@@ -150,8 +159,8 @@ class Board {
       }
     }
 
-    for (var captured in capturedStones) {
-      grid[getIndex(captured.x, captured.y)] = 0;
+    for (var capturedIdx in capturedStones) {
+      grid[capturedIdx] = 0;
     }
 
     if (capturedStones.isNotEmpty) {
