@@ -134,6 +134,10 @@ class SgfParser {
       node.nodeName = values[0];
       return;
     }
+    if (key == 'PL') {
+      node.playerToPlay = (values[0].toLowerCase() == 'w') ? 2 : 1;
+      return;
+    }
 
     // 3. Time Remaining
     if (key == 'BL') {

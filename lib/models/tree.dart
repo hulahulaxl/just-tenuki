@@ -27,6 +27,9 @@ class TreeNode {
   // Time management per node (Index 0 = Black, Index 1 = White)
   List<String?> timeLeft = List.filled(2, null);
 
+  /// Explicitly dictates whose turn it is next (used for handicap and Tsumego)
+  int? playerToPlay;
+
   TreeNode({this.move, this.parent});
 
   /// Adds a new variation (child node) based on a move.
@@ -102,6 +105,15 @@ class GameSession {
     _applySetupStones(1, rootNode.setupBlackStones);
     _applySetupStones(2, rootNode.setupWhiteStones);
 
+    // 1.6 Determine initial turn based on PL tag or handicap stones
+    if (rootNode.playerToPlay != null) {
+      currentBoard.currentTurn = rootNode.playerToPlay!;
+    } else if (rootNode.setupBlackStones.isNotEmpty &&
+        rootNode.setupWhiteStones.isEmpty) {
+      // Standard Go rule: If Black has handicap stones, White plays first.
+      currentBoard.currentTurn = 2;
+    }
+
     // 2. Find the chronological path from root to the target node
     var path = <TreeNode>[];
     TreeNode? curr = node;
@@ -114,8 +126,13 @@ class GameSession {
     for (var n in path) {
       if (n.move is Play) {
         final playMove = n.move as Play;
+        // Sync the board's turn directly to the SGF move.
+        // This handles SGF files that skip turns or have implicit passes.
+        currentBoard.currentTurn = playMove.playerId;
         currentBoard.play(playMove.x, playMove.y);
       } else if (n.move is Pass) {
+        final passMove = n.move as Pass;
+        currentBoard.currentTurn = passMove.playerId;
         currentBoard.pass();
       }
     }
