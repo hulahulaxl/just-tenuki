@@ -7,22 +7,20 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// We define our custom Application-Level Ping/Pong bytes
-// This is for web-client, which may not support the WebSocket protocol-level ping/pong frames.
 const (
 	OpPing = 0x99
 	OpPong = 0x9A
 )
 
-// The Upgrader transforms a standard HTTP connection into a WebSocket connection
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
-		return true // Allow connections from any origin (Flutter Web/Mobile/Desktop)
+		return true
 	},
 }
 
+var engine *KataGoEngine
+
 func handleWebSocket(w http.ResponseWriter, r *http.Request) {
-	// Upgrade the HTTP request to a WebSocket
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("Upgrade error:", err)
@@ -32,7 +30,6 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Client connected!")
 
-	// Infinite loop to read incoming binary messages
 	for {
 		messageType, payload, err := conn.ReadMessage()
 		if err != nil {
@@ -40,33 +37,43 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		// We only care about Binary messages (messageType == 2)
 		if messageType != websocket.BinaryMessage {
-			log.Println("Ignoring non-binary message")
 			continue
 		}
 
-		// Check if it's our custom Application-Level Ping
+		// Handle Application Ping
 		if len(payload) == 1 && payload[0] == OpPing {
-			log.Println("Received Application Ping (0x99). Sending Pong (0x9A)...")
-			
-			// Respond with exactly 1 byte: 0x9A
-			err := conn.WriteMessage(websocket.BinaryMessage, []byte{OpPong})
-			if err != nil {
-				log.Println("Write error:", err)
-				break
-			}
-		} else {
-			log.Printf("Received %d bytes of binary data: %x\n", len(payload), payload)
+			conn.WriteMessage(websocket.BinaryMessage, []byte{OpPong})
+			continue
 		}
+		
+		// If it's a 1-byte command (0x00), let's use it as a debug trigger to send the test JSON to KataGo!
+		if len(payload) == 1 && payload[0] == 0x00 {
+			log.Println("Received trigger 0x00. Sending JSON to KataGo...")
+			// Note: We MUST use maxVisits. KataGo JSON API does not stream natively.
+			testJSON := `{"id":"test1","rules":"japanese","boardXSize":19,"boardYSize":19,"moves":[["B","Q4"],["W","D4"]],"analyzeTurns":[2],"maxVisits":100}`
+			engine.SendQuery(testJSON)
+			continue
+		}
+
+		log.Printf("Received %d bytes of binary data: %x\n", len(payload), payload)
 	}
 }
 
 func main() {
+	var err error
+	
+	log.Println("Booting up KataGo Engine...")
+	// Make sure the model and config are in the same directory where you run this!
+	engine, err = StartKataGo("kata1-b18c384nbt-s9996604416-d4316597426.bin.gz", "analysis.cfg")
+	if err != nil {
+		log.Fatal("Failed to start KataGo:", err)
+	}
+
 	http.HandleFunc("/ws", handleWebSocket)
 
 	log.Println("Starting Tenuki WebSocket Server on :8080...")
-	err := http.ListenAndServe(":8080", nil)
+	err = http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatal("Server failed:", err)
 	}
