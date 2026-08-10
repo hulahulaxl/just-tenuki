@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"tenuki-server/engine"
 	"tenuki-server/protocol"
 )
 
@@ -23,7 +24,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-var engine *KataGoEngine
+var globalEngine *engine.KataGoEngine
 
 func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -37,7 +38,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 	// Start writer goroutine
 	go func() {
-		for binaryPayload := range engine.Broadcast {
+		for binaryPayload := range globalEngine.Broadcast {
 			err := conn.WriteMessage(websocket.BinaryMessage, binaryPayload)
 			if err != nil {
 				log.Println("Write error:", err)
@@ -96,7 +97,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 					q.MaxVisits = visits
 					jsonBytes, _ := json.Marshal(q)
-					engine.SendQuery(jsonBytes)
+					globalEngine.SendQuery(jsonBytes)
 
 					visits += 50
 					if visits > 2000 {
@@ -116,7 +117,7 @@ func main() {
 	
 	log.Println("Booting up KataGo Engine...")
 	// Make sure the model and config are in the same directory where you run this!
-	engine, err = StartKataGo("kata1-b18c384nbt-s9996604416-d4316597426.bin.gz", "analysis.cfg")
+	globalEngine, err = engine.StartKataGo("kata1-b18c384nbt-s9996604416-d4316597426.bin.gz", "analysis.cfg")
 	if err != nil {
 		log.Fatal("Failed to start KataGo:", err)
 	}
