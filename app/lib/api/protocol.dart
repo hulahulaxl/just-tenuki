@@ -54,7 +54,9 @@ class BinaryProtocol {
     builder.addByte((komiVal * 10).toInt());
 
     // 0x06 Setup Count (uint16)
-    int setupCount = session.rootNode.setupBlackStones.length + session.rootNode.setupWhiteStones.length;
+    int setupCount =
+        session.rootNode.setupBlackStones.length +
+        session.rootNode.setupWhiteStones.length;
     buf16.setUint16(0, setupCount, Endian.big);
     builder.add(buf16.buffer.asUint8List());
 
@@ -144,12 +146,14 @@ class BinaryProtocol {
         offset += 2;
       }
 
-      options.add(MoveOption(
-        moveIndex: moveIndex,
-        winrate: moveWinrate,
-        visits: visits,
-        pvIndices: pvIndices,
-      ));
+      options.add(
+        MoveOption(
+          moveIndex: moveIndex,
+          winrate: moveWinrate,
+          visits: visits,
+          pvIndices: pvIndices,
+        ),
+      );
     }
 
     return EngineResponse(
