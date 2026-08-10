@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/board.dart';
+import '../api/protocol.dart';
 import 'board_painter.dart';
 
 class BoardWidget extends StatelessWidget {
@@ -7,6 +8,7 @@ class BoardWidget extends StatelessWidget {
   final int? latestMoveX;
   final int? latestMoveY;
   final void Function(int x, int y) onIntersectionTapped;
+  final EngineResponse? analysis;
 
   const BoardWidget({
     super.key,
@@ -14,6 +16,7 @@ class BoardWidget extends StatelessWidget {
     this.latestMoveX,
     this.latestMoveY,
     required this.onIntersectionTapped,
+    this.analysis,
   });
 
   @override
@@ -31,6 +34,7 @@ class BoardWidget extends StatelessWidget {
                 board: board,
                 latestMoveX: latestMoveX,
                 latestMoveY: latestMoveY,
+                analysis: analysis,
               ),
             ),
           );

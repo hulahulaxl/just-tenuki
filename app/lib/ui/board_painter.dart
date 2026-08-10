@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 import '../models/board.dart';
+import '../api/protocol.dart';
 
 class BoardPainter extends CustomPainter {
   final Board board;
   final int? latestMoveX;
   final int? latestMoveY;
+  final EngineResponse? analysis;
 
-  BoardPainter({required this.board, this.latestMoveX, this.latestMoveY});
+  BoardPainter({
+    required this.board,
+    this.latestMoveX,
+    this.latestMoveY,
+    this.analysis,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -122,6 +129,52 @@ class BoardPainter extends CustomPainter {
 
           canvas.drawCircle(center, indicatorRadius, indicatorPaint);
         }
+      }
+    }
+
+    // 5. Draw Analysis Overlays (Move Options)
+    if (analysis != null) {
+      for (int i = 0; i < analysis!.moveOptions.length; i++) {
+        if (i > 4) break; // Only show top 5
+
+        final option = analysis!.moveOptions[i];
+
+        // Skip pass moves or invalid indices
+        if (option.moveIndex >= cols * rows) continue;
+
+        int x = option.moveIndex % cols;
+        int y = option.moveIndex ~/ cols;
+
+        Color boxColor;
+        if (i == 0) {
+          boxColor = Colors.blue.withValues(alpha: 0.6); // Top 1: Blue
+        } else if (i == 1) {
+          boxColor = Colors.green.withValues(alpha: 0.6); // High: Green
+        } else if (i == 2) {
+          boxColor = Colors.yellow.withValues(alpha: 0.6); // Medium: Yellow
+        } else {
+          boxColor = Colors.red.withValues(alpha: 0.6); // Low: Red
+        }
+
+        final Offset center = Offset(
+          offsetX + x * cellSize,
+          offsetY + y * cellSize,
+        );
+
+        final Rect boxRect = Rect.fromCenter(
+          center: center,
+          width: cellSize * 0.8,
+          height: cellSize * 0.8,
+        );
+
+        final Paint boxPaint = Paint()
+          ..color = boxColor
+          ..style = PaintingStyle.fill;
+
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(boxRect, const Radius.circular(4.0)),
+          boxPaint,
+        );
       }
     }
   }

@@ -6,6 +6,9 @@ import 'package:flutter/material.dart';
 import '../models/tree.dart';
 import '../models/move.dart';
 import '../utils/sgf_parser.dart';
+import '../api/client.dart';
+import '../api/protocol.dart';
+import 'dart:async';
 import 'board_widget.dart';
 import 'tree/tree_graph_widget.dart';
 
@@ -43,6 +46,29 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   final List<AppTab> _tabs = [LobbyTab()]; // Start with 1 Lobby tab
   int _activeIndex = 0;
+
+  StreamSubscription<EngineResponse>? _analysisSub;
+  EngineResponse? _currentAnalysis;
+
+  @override
+  void initState() {
+    super.initState();
+    engineClient.connect();
+    _analysisSub = engineClient.updates.listen((response) {
+      if (mounted) {
+        setState(() {
+          _currentAnalysis = response;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _analysisSub?.cancel();
+    engineClient.disconnect();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +125,12 @@ class _MainLayoutState extends State<MainLayout> {
     return Tooltip(
       message: tooltip,
       child: GestureDetector(
-        onTap: () => setState(() => _activeIndex = index),
+        onTap: () {
+          setState(() => _activeIndex = index);
+          if (_tabs[index] is GameTab) {
+            engineClient.analyze((_tabs[index] as GameTab).session);
+          }
+        },
         child: MouseRegion(
           cursor: SystemMouseCursors.click,
           child: Container(
@@ -256,6 +287,7 @@ class _MainLayoutState extends State<MainLayout> {
 
       setState(() {
         _tabs[_activeIndex] = GameTab(parsedSession);
+        engineClient.analyze(parsedSession);
       });
     }
   }
@@ -283,12 +315,17 @@ class _MainLayoutState extends State<MainLayout> {
                           : null,
                       onIntersectionTapped: (x, y) {
                         // Let the session manage the move and tree timeline!
-                        if (tab.session.play(x, y)) setState(() {});
+                        if (tab.session.play(x, y)) {
+                          setState(() {});
+                          engineClient.analyze(tab.session);
+                        }
                       },
+                      analysis: _currentAnalysis,
                     ),
                   ),
                 ),
               ),
+              _buildWinrateBar(),
               _buildStatusBar(tab.session),
             ],
           ),
@@ -405,25 +442,25 @@ class _MainLayoutState extends State<MainLayout> {
           // Navigation Controls (No Ripples)
           Row(
             children: [
-              _buildNavButton(
-                Icons.first_page,
-                () => setState(() => session.first()),
-              ),
+              _buildNavButton(Icons.first_page, () {
+                setState(() => session.first());
+                engineClient.analyze(session);
+              }),
               const SizedBox(width: 4),
-              _buildNavButton(
-                Icons.navigate_before,
-                () => setState(() => session.undo()),
-              ),
+              _buildNavButton(Icons.navigate_before, () {
+                setState(() => session.undo());
+                engineClient.analyze(session);
+              }),
               const SizedBox(width: 4),
-              _buildNavButton(
-                Icons.navigate_next,
-                () => setState(() => session.next()),
-              ),
+              _buildNavButton(Icons.navigate_next, () {
+                setState(() => session.next());
+                engineClient.analyze(session);
+              }),
               const SizedBox(width: 4),
-              _buildNavButton(
-                Icons.last_page,
-                () => setState(() => session.last()),
-              ),
+              _buildNavButton(Icons.last_page, () {
+                setState(() => session.last());
+                engineClient.analyze(session);
+              }),
             ],
           ),
 
@@ -486,6 +523,47 @@ class _MainLayoutState extends State<MainLayout> {
           alignment: Alignment.center,
           child: Icon(icon, color: Colors.black54, size: 20),
         ),
+      ),
+    );
+  }
+
+  Widget _buildWinrateBar() {
+    if (_currentAnalysis == null) {
+      return const SizedBox(height: 24);
+    }
+
+    double winrate = _currentAnalysis!.rootWinrate;
+    String scoreLead = _currentAnalysis!.rootScoreLead.toStringAsFixed(1);
+    if (_currentAnalysis!.rootScoreLead > 0) scoreLead = '+$scoreLead';
+
+    return Container(
+      height: 24,
+      color: Colors.white,
+      child: Stack(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                flex: (winrate * 100).round(),
+                child: Container(color: Colors.black87),
+              ),
+              Expanded(
+                flex: ((100 - winrate) * 100).round(),
+                child: Container(color: Colors.white),
+              ),
+            ],
+          ),
+          Center(
+            child: Text(
+              'B ${(winrate).toStringAsFixed(1)}%  ($scoreLead)',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: winrate > 50 ? Colors.white : Colors.black87,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
