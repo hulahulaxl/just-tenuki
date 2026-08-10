@@ -16,13 +16,13 @@ class MoveOption {
   });
 }
 
-class KataGoResponse {
+class EngineResponse {
   final int queryId;
   final double rootWinrate;
   final double rootScoreLead;
   final List<MoveOption> moveOptions;
 
-  KataGoResponse({
+  EngineResponse({
     required this.queryId,
     required this.rootWinrate,
     required this.rootScoreLead,
@@ -100,7 +100,7 @@ class BinaryProtocol {
   }
 
   /// Decodes the ultra-tight binary response back into Dart objects
-  static KataGoResponse? decodeAnalyzeResponse(Uint8List payload) {
+  static EngineResponse? decodeAnalyzeResponse(Uint8List payload) {
     if (payload.isEmpty || payload[0] != 0x02) return null;
 
     ByteData view = ByteData.sublistView(payload);
@@ -152,7 +152,7 @@ class BinaryProtocol {
       ));
     }
 
-    return KataGoResponse(
+    return EngineResponse(
       queryId: queryId,
       rootWinrate: rootWinrate,
       rootScoreLead: rootScoreLead,
