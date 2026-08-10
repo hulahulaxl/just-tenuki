@@ -1,15 +1,20 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/websocket"
+	"tenuki-server/protocol"
 )
 
 const (
-	OpPing = 0x99
-	OpPong = 0x9A
+	OpPing    = 0x99
+	OpPong    = 0x9A
+	OpAnalyze = 0x01
 )
 
 var upgrader = websocket.Upgrader{
@@ -30,33 +35,79 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Client connected!")
 
+	// Start writer goroutine
+	go func() {
+		for binaryPayload := range engine.Broadcast {
+			err := conn.WriteMessage(websocket.BinaryMessage, binaryPayload)
+			if err != nil {
+				log.Println("Write error:", err)
+				return
+			}
+		}
+	}()
+
+	var currentCancel context.CancelFunc
+
 	for {
 		messageType, payload, err := conn.ReadMessage()
 		if err != nil {
 			log.Println("Client disconnected:", err)
+			if currentCancel != nil {
+				currentCancel()
+			}
 			break
 		}
 
-		if messageType != websocket.BinaryMessage {
+		if messageType != websocket.BinaryMessage || len(payload) == 0 {
 			continue
 		}
 
 		// Handle Application Ping
-		if len(payload) == 1 && payload[0] == OpPing {
+		if payload[0] == OpPing {
 			conn.WriteMessage(websocket.BinaryMessage, []byte{OpPong})
 			continue
 		}
 		
-		// If it's a 1-byte command (0x00), let's use it as a debug trigger to send the test JSON to KataGo!
-		if len(payload) == 1 && payload[0] == 0x00 {
-			log.Println("Received trigger 0x00. Sending JSON to KataGo...")
-			// Note: We MUST use maxVisits. KataGo JSON API does not stream natively.
-			testJSON := `{"id":"test1","rules":"japanese","boardXSize":19,"boardYSize":19,"moves":[["B","Q4"],["W","D4"]],"analyzeTurns":[2],"maxVisits":100}`
-			engine.SendQuery(testJSON)
-			continue
-		}
+		// Handle Analyze Request
+		if payload[0] == OpAnalyze {
+			if currentCancel != nil {
+				currentCancel()
+			}
 
-		log.Printf("Received %d bytes of binary data: %x\n", len(payload), payload)
+			query, err := protocol.ParseRequest(payload)
+			if err != nil {
+				log.Println("[Error] Failed to parse binary request:", err)
+				continue
+			}
+
+			ctx, cancel := context.WithCancel(context.Background())
+			currentCancel = cancel
+
+			// Start the pseudo-streaming loop!
+			go func(q *protocol.KataGoQuery, ctx context.Context) {
+				log.Printf("Starting stream for query %s\n", q.ID)
+				visits := 20 // Start small for instant first-frame
+				for {
+					select {
+					case <-ctx.Done():
+						return
+					default:
+					}
+
+					q.MaxVisits = visits
+					jsonBytes, _ := json.Marshal(q)
+					engine.SendQuery(jsonBytes)
+
+					visits += 50
+					if visits > 2000 {
+						return // Stop at 2000 visits
+					}
+					
+					// Pace the queries so we don't flood the engine
+					time.Sleep(300 * time.Millisecond)
+				}
+			}(query, ctx)
+		}
 	}
 }
 

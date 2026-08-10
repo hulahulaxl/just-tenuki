@@ -2,17 +2,21 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"io"
 	"log"
 	"os/exec"
+	
+	"tenuki-server/protocol"
 )
 
 // KataGoEngine manages the background KataGo process
 type KataGoEngine struct {
-	cmd    *exec.Cmd
-	stdin  io.WriteCloser
-	stdout io.ReadCloser
-	stderr io.ReadCloser
+	cmd       *exec.Cmd
+	stdin     io.WriteCloser
+	stdout    io.ReadCloser
+	stderr    io.ReadCloser
+	Broadcast chan []byte
 }
 
 // StartKataGo boots the engine and begins listening to its stdout
@@ -39,10 +43,11 @@ func StartKataGo(modelPath, configPath string) (*KataGoEngine, error) {
 	}
 
 	engine := &KataGoEngine{
-		cmd:    cmd,
-		stdin:  stdin,
-		stdout: stdout,
-		stderr: stderr,
+		cmd:       cmd,
+		stdin:     stdin,
+		stdout:    stdout,
+		stderr:    stderr,
+		Broadcast: make(chan []byte, 100),
 	}
 
 	// Start a background goroutine to read KataGo's output line-by-line
@@ -66,8 +71,27 @@ func (e *KataGoEngine) readLoop() {
 	scanner := bufio.NewScanner(e.stdout)
 	for scanner.Scan() {
 		line := scanner.Text()
-		// For now, just log the raw JSON so we can prove it's streaming!
-		log.Println("[KataGo Output]:", line)
+		
+		// 1. Unmarshal JSON from KataGo
+		var resp protocol.KataGoResponse
+		if err := json.Unmarshal([]byte(line), &resp); err != nil {
+			log.Println("[JSON Parse Error]:", err)
+			continue
+		}
+		
+		// 2. Encode to our Custom Binary Protocol (Assuming 19x19 for now)
+		binaryPayload, err := protocol.EncodeResponse(&resp, 19)
+		if err != nil {
+			log.Println("[Binary Encode Error]:", err)
+			continue
+		}
+		
+		// 3. Broadcast to WebSockets
+		select {
+		case e.Broadcast <- binaryPayload:
+		default:
+			log.Println("[Warning]: Broadcast channel full, dropping frame")
+		}
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -76,11 +100,11 @@ func (e *KataGoEngine) readLoop() {
 	log.Println("KataGo process died.")
 }
 
-// SendQuery writes a raw JSON string to KataGo's stdin
-func (e *KataGoEngine) SendQuery(jsonQuery string) {
+// SendQuery writes a raw JSON query bytes to KataGo's stdin
+func (e *KataGoEngine) SendQuery(jsonQuery []byte) {
 	// KataGo requires a newline \n after the JSON to know the query is finished
-	queryWithNewline := jsonQuery + "\n"
-	_, err := e.stdin.Write([]byte(queryWithNewline))
+	queryWithNewline := append(jsonQuery, '\n')
+	_, err := e.stdin.Write(queryWithNewline)
 	if err != nil {
 		log.Println("Failed to send query to KataGo:", err)
 	}
