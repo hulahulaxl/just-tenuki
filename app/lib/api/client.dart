@@ -47,13 +47,16 @@ class EngineClient {
     }
   }
 
+  int _latestQueryId = 0;
+
   void _handleBinaryMessage(Uint8List bytes) {
     if (bytes.isEmpty) return;
 
     // OpCode 0x02 = Analysis Response
     if (bytes[0] == 0x02) {
       EngineResponse? response = BinaryProtocol.decodeAnalyzeResponse(bytes);
-      if (response != null) {
+      // Ignore trailing responses from older queries in KataGo's pipeline!
+      if (response != null && response.queryId == _latestQueryId) {
         _responseController.add(response);
       }
     }
@@ -63,8 +66,11 @@ class EngineClient {
   void analyze(GameSession session) {
     if (!_isConnected || _channel == null) return;
 
-    int queryId = _nextQueryId++;
-    Uint8List payload = BinaryProtocol.encodeAnalyzeRequest(queryId, session);
+    _latestQueryId = _nextQueryId++;
+    Uint8List payload = BinaryProtocol.encodeAnalyzeRequest(
+      _latestQueryId,
+      session,
+    );
 
     _channel!.sink.add(payload);
   }

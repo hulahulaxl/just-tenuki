@@ -69,6 +69,13 @@ func (e *KataGoEngine) readStderr() {
 // readLoop continuously reads JSON lines from KataGo
 func (e *KataGoEngine) readLoop() {
 	scanner := bufio.NewScanner(e.stdout)
+	
+	// KataGo JSON analysis lines can easily exceed the default 64KB bufio limit.
+	// We increase the max token size to 10MB to be safe.
+	const maxCapacity = 10 * 1024 * 1024 // 10MB
+	buf := make([]byte, 1024*1024)       // 1MB initial
+	scanner.Buffer(buf, maxCapacity)
+
 	for scanner.Scan() {
 		line := scanner.Text()
 		

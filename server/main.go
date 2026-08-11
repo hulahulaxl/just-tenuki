@@ -97,6 +97,9 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 					q.MaxVisits = visits
 					jsonBytes, _ := json.Marshal(q)
+					if visits == 20 {
+						log.Println("[DEBUG] KataGo JSON Query:", string(jsonBytes))
+					}
 					globalEngine.SendQuery(jsonBytes)
 
 					visits += 50
