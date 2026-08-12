@@ -557,45 +557,67 @@ class _MainLayoutState extends State<MainLayout> {
 
     // Calculate bar width based on scoreLead and historical max score scale.
     // Black's share goes from 0 (White +max) to 1.0 (Black +max)
-    double blackShare = (scoreLead + _maxScoreScale) / (2 * _maxScoreScale);
-    // Clamp it just in case of slight floating point rounding
-    blackShare = blackShare.clamp(0.0, 1.0);
-    
-    int blackFlex = (blackShare * 1000).round();
-    int whiteFlex = 1000 - blackFlex;
+    double targetBlackShare = (scoreLead + _maxScoreScale) / (2 * _maxScoreScale);
+    targetBlackShare = targetBlackShare.clamp(0.0, 1.0);
 
-    String scoreStr = scoreLead.abs().toStringAsFixed(1);
-    scoreStr = scoreLead > 0 ? 'B+$scoreStr' : 'W+$scoreStr';
-    if (scoreLead == 0) scoreStr = '0.0';
+    String scoreStr = scoreLead == 0 ? '0.0' : '+${scoreLead.abs().toStringAsFixed(1)}';
+    
+    Alignment textAlignment;
+    Color textColor;
+    
+    if (scoreLead > 0) {
+      textAlignment = Alignment.centerLeft;
+      textColor = Colors.white;
+    } else if (scoreLead < 0) {
+      textAlignment = Alignment.centerRight;
+      textColor = Colors.black87;
+    } else {
+      textAlignment = Alignment.center;
+      textColor = Colors.black45;
+    }
 
     return Container(
       height: 24,
       color: Colors.white,
-      child: Stack(
-        children: [
-          Row(
+      child: TweenAnimationBuilder<double>(
+        tween: Tween<double>(begin: 0.5, end: targetBlackShare),
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOutCubic,
+        builder: (context, animatedBlackShare, child) {
+          int blackFlex = (animatedBlackShare * 1000).round();
+          int whiteFlex = 1000 - blackFlex;
+
+          return Stack(
             children: [
-              Expanded(
-                flex: blackFlex,
-                child: Container(color: Colors.black87),
+              Row(
+                children: [
+                  Expanded(
+                    flex: blackFlex,
+                    child: Container(color: Colors.black87),
+                  ),
+                  Expanded(
+                    flex: whiteFlex,
+                    child: Container(color: Colors.white),
+                  ),
+                ],
               ),
-              Expanded(
-                flex: whiteFlex,
-                child: Container(color: Colors.white),
+              Align(
+                alignment: textAlignment,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    scoreStr,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
+                  ),
+                ),
               ),
             ],
-          ),
-          Center(
-            child: Text(
-              'B ${(winrate).toStringAsFixed(1)}%  ($scoreStr)',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: blackShare > 0.5 ? Colors.white : Colors.black87,
-              ),
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
