@@ -284,9 +284,20 @@ class BoardPainter extends CustomPainter {
       int player = board.grid[index];
       if (player == 1) return Colors.white; // On black stone
       if (player == 2) return Colors.black; // On white stone
-      return Colors
-          .blue
-          .shade900; // On empty board (use a nice dark blue for visibility)
+      return Colors.black; // On empty board
+    }
+
+    // Helper to draw a background circle on empty intersections to obscure grid lines
+    void drawBackgroundCircleIfEmpty(Canvas c, Offset center, int index) {
+      if (board.grid[index] == 0) {
+        c.drawCircle(
+          center,
+          stoneRadius * 0.8,
+          Paint()
+            ..color = const Color(0xFFDCB35C).withValues(alpha: 0.85)
+            ..style = PaintingStyle.fill,
+        );
+      }
     }
 
     void drawShape(
@@ -296,6 +307,9 @@ class BoardPainter extends CustomPainter {
       int x = index % cols;
       int y = index ~/ cols;
       Offset center = Offset(offsetX + x * cellSize, offsetY + y * cellSize);
+
+      drawBackgroundCircleIfEmpty(canvas, center, index);
+
       Paint paint = Paint()
         ..color = getContrastingColor(index)
         ..style = PaintingStyle.stroke
@@ -369,6 +383,8 @@ class BoardPainter extends CustomPainter {
       int x = index % cols;
       int y = index ~/ cols;
       Offset center = Offset(offsetX + x * cellSize, offsetY + y * cellSize);
+
+      drawBackgroundCircleIfEmpty(canvas, center, index);
 
       final textSpan = TextSpan(
         text: text,
