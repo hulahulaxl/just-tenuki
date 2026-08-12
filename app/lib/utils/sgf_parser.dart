@@ -175,6 +175,20 @@ class SgfParser {
       case 'MA':
         node.crossMarks.addAll(indices);
         break;
+      case 'LB':
+        for (var val in values) {
+          int colonIdx = val.indexOf(':');
+          if (colonIdx >= 2) {
+            int x = val.codeUnitAt(0) - 97;
+            int y = val.codeUnitAt(1) - 97;
+            int idx = y * 19 + x; // Defaulting to 19x19
+            String text = val.substring(colonIdx + 1);
+            // Remove any SGF escaping inside the text
+            text = text.replaceAll('\\:', ':').replaceAll('\\]', ']');
+            node.labels[idx] = text;
+          }
+        }
+        break;
     }
 
     // 5. Game Metadata (Global properties usually found on root node)
