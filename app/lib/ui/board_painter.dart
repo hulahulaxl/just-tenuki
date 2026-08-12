@@ -145,15 +145,18 @@ class BoardPainter extends CustomPainter {
         int x = option.moveIndex % cols;
         int y = option.moveIndex ~/ cols;
 
+        // Calculate point difference (relative to the player to move)
+        double pointDiff = option.scoreLead - analysis!.rootScoreLead;
+
         Color boxColor;
         if (i == 0) {
-          boxColor = Colors.blue.withValues(alpha: 0.6); // Top 1: Blue
-        } else if (i == 1) {
-          boxColor = Colors.green.withValues(alpha: 0.6); // High: Green
-        } else if (i == 2) {
-          boxColor = Colors.yellow.withValues(alpha: 0.6); // Medium: Yellow
+          boxColor = Colors.blue.withValues(alpha: 0.7); // Top 1: Blue
+        } else if (pointDiff >= 0) {
+          boxColor = Colors.green.withValues(alpha: 0.7); // Good/Equal: Green
+        } else if (pointDiff >= -2.0) {
+          boxColor = Colors.yellow.shade600.withValues(alpha: 0.85); // Suboptimal: Yellow
         } else {
-          boxColor = Colors.red.withValues(alpha: 0.6); // Low: Red
+          boxColor = Colors.red.withValues(alpha: 0.7); // Blunder: Red
         }
 
         final Offset center = Offset(
@@ -176,8 +179,11 @@ class BoardPainter extends CustomPainter {
           boxPaint,
         );
 
-        // Draw scoreLead text
-        String scoreText = (option.scoreLead > 0 ? '+' : '') + option.scoreLead.toStringAsFixed(1);
+        // Draw point difference text
+        String scoreText = (pointDiff > 0 ? '+' : '') + pointDiff.toStringAsFixed(1);
+        // Prevent "-0.0" display
+        if (scoreText == "-0.0") scoreText = "0.0";
+        
         final textSpan = TextSpan(
           text: scoreText,
           style: TextStyle(
