@@ -2,18 +2,15 @@ import 'package:flutter/material.dart';
 import '../models/board.dart';
 import '../api/protocol.dart';
 
+import '../../models/tree.dart';
+import '../../models/move.dart';
+
 class BoardPainter extends CustomPainter {
   final Board board;
-  final int? latestMoveX;
-  final int? latestMoveY;
+  final TreeNode currentNode;
   final EngineResponse? analysis;
 
-  BoardPainter({
-    required this.board,
-    this.latestMoveX,
-    this.latestMoveY,
-    this.analysis,
-  });
+  BoardPainter({required this.board, required this.currentNode, this.analysis});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -117,6 +114,13 @@ class BoardPainter extends CustomPainter {
         canvas.drawCircle(center, stoneRadius, outlinePaint);
 
         // Draw the latest move indicator (a contrasting inner ring)
+        int? latestMoveX = currentNode.move is Play
+            ? (currentNode.move as Play).x
+            : null;
+        int? latestMoveY = currentNode.move is Play
+            ? (currentNode.move as Play).y
+            : null;
+
         if (latestMoveX != null &&
             latestMoveY != null &&
             x == latestMoveX &&
@@ -132,20 +136,53 @@ class BoardPainter extends CustomPainter {
       }
     }
 
+    // 4.5 Draw Markups
+    _drawMarkups(canvas, offsetX, offsetY, cellSize, stoneRadius);
+
     // 5. Draw Analysis Overlays (Move Options)
     EngineResponse? activeAnalysis = analysis;
-    
+
     // --- DUMMY DATA FOR UI TESTING ---
     activeAnalysis ??= EngineResponse(
       queryId: 0,
       rootWinrate: 0.5,
       rootScoreLead: 0.0,
       moveOptions: [
-        MoveOption(moveIndex: 300, winrate: 0.55, scoreLead: 0.0, visits: 100, pvIndices: []),
-        MoveOption(moveIndex: 288, winrate: 0.54, scoreLead: 0.2, visits: 90, pvIndices: []), // Green (+0.2)
-        MoveOption(moveIndex: 72, winrate: 0.50, scoreLead: -0.5, visits: 80, pvIndices: []), // Yellow (-0.5)
-        MoveOption(moveIndex: 60, winrate: 0.45, scoreLead: -1.5, visits: 60, pvIndices: []), // Yellow (-1.5)
-        MoveOption(moveIndex: 40, winrate: 0.40, scoreLead: -3.0, visits: 40, pvIndices: []), // Red (-3.0)
+        MoveOption(
+          moveIndex: 300,
+          winrate: 0.55,
+          scoreLead: 0.0,
+          visits: 100,
+          pvIndices: [],
+        ),
+        MoveOption(
+          moveIndex: 288,
+          winrate: 0.54,
+          scoreLead: 0.2,
+          visits: 90,
+          pvIndices: [],
+        ), // Green (+0.2)
+        MoveOption(
+          moveIndex: 72,
+          winrate: 0.50,
+          scoreLead: -0.5,
+          visits: 80,
+          pvIndices: [],
+        ), // Yellow (-0.5)
+        MoveOption(
+          moveIndex: 60,
+          winrate: 0.45,
+          scoreLead: -1.5,
+          visits: 60,
+          pvIndices: [],
+        ), // Yellow (-1.5)
+        MoveOption(
+          moveIndex: 40,
+          winrate: 0.40,
+          scoreLead: -3.0,
+          visits: 40,
+          pvIndices: [],
+        ), // Red (-3.0)
       ],
     );
     // ---------------------------------
@@ -166,13 +203,21 @@ class BoardPainter extends CustomPainter {
 
       Color boxColor;
       if (i == 0) {
-        boxColor = Colors.blue.shade800.withValues(alpha: 0.85); // Top 1: Dark Blue
+        boxColor = Colors.blue.shade800.withValues(
+          alpha: 0.85,
+        ); // Top 1: Dark Blue
       } else if (pointDiff >= 0) {
-        boxColor = Colors.green.shade800.withValues(alpha: 0.85); // Good/Equal: Dark Green
+        boxColor = Colors.green.shade800.withValues(
+          alpha: 0.85,
+        ); // Good/Equal: Dark Green
       } else if (pointDiff >= -2.0) {
-        boxColor = Colors.amber.shade900.withValues(alpha: 0.85); // Suboptimal: Dark Amber/Yellow
+        boxColor = Colors.amber.shade900.withValues(
+          alpha: 0.85,
+        ); // Suboptimal: Dark Amber/Yellow
       } else {
-        boxColor = Colors.red.shade800.withValues(alpha: 0.85); // Blunder: Dark Red
+        boxColor = Colors.red.shade800.withValues(
+          alpha: 0.85,
+        ); // Blunder: Dark Red
       }
 
       final Offset center = Offset(
@@ -222,6 +267,130 @@ class BoardPainter extends CustomPainter {
         center.dy - (textPainter.height / 2),
       );
       textPainter.paint(canvas, textOffset);
+    }
+  }
+
+  void _drawMarkups(
+    Canvas canvas,
+    double offsetX,
+    double offsetY,
+    double cellSize,
+    double stoneRadius,
+  ) {
+    final int cols = board.columns;
+
+    // Helper to get color contrasting with the stone (or board) beneath
+    Color getContrastingColor(int index) {
+      int player = board.grid[index];
+      if (player == 1) return Colors.white; // On black stone
+      if (player == 2) return Colors.black; // On white stone
+      return Colors
+          .blue
+          .shade900; // On empty board (use a nice dark blue for visibility)
+    }
+
+    void drawShape(
+      int index,
+      void Function(Canvas c, Offset center, Paint p, double size) drawFunc,
+    ) {
+      int x = index % cols;
+      int y = index ~/ cols;
+      Offset center = Offset(offsetX + x * cellSize, offsetY + y * cellSize);
+      Paint paint = Paint()
+        ..color = getContrastingColor(index)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = (cellSize * 0.1).clamp(1.5, 3.0);
+      drawFunc(
+        canvas,
+        center,
+        paint,
+        stoneRadius * 0.75,
+      ); // Shape is 75% size of a stone
+    }
+
+    // Triangle
+    for (int index in currentNode.triangleMarks) {
+      drawShape(index, (c, center, p, size) {
+        Path path = Path();
+        path.moveTo(center.dx, center.dy - size);
+        path.lineTo(
+          center.dx - size * 0.866,
+          center.dy + size * 0.5,
+        ); // 0.866 is approx sqrt(3)/2
+        path.lineTo(center.dx + size * 0.866, center.dy + size * 0.5);
+        path.close();
+        c.drawPath(path, p);
+      });
+    }
+
+    // Square
+    for (int index in currentNode.squareMarks) {
+      drawShape(index, (c, center, p, size) {
+        c.drawRect(
+          Rect.fromCenter(
+            center: center,
+            width: size * 1.5,
+            height: size * 1.5,
+          ),
+          p,
+        );
+      });
+    }
+
+    // Circle
+    for (int index in currentNode.circleMarks) {
+      drawShape(index, (c, center, p, size) {
+        c.drawCircle(center, size * 0.8, p);
+      });
+    }
+
+    // Cross (X)
+    for (int index in currentNode.crossMarks) {
+      drawShape(index, (c, center, p, size) {
+        double offset = size * 0.6;
+        c.drawLine(
+          Offset(center.dx - offset, center.dy - offset),
+          Offset(center.dx + offset, center.dy + offset),
+          p,
+        );
+        c.drawLine(
+          Offset(center.dx - offset, center.dy + offset),
+          Offset(center.dx + offset, center.dy - offset),
+          p,
+        );
+      });
+    }
+
+    // Labels (Letters/Numbers)
+    for (var entry in currentNode.labels.entries) {
+      int index = entry.key;
+      String text = entry.value;
+
+      int x = index % cols;
+      int y = index ~/ cols;
+      Offset center = Offset(offsetX + x * cellSize, offsetY + y * cellSize);
+
+      final textSpan = TextSpan(
+        text: text,
+        style: TextStyle(
+          color: getContrastingColor(index),
+          fontSize: cellSize * 0.55, // Large enough to read
+          fontWeight: FontWeight.bold,
+        ),
+      );
+      final textPainter = TextPainter(
+        text: textSpan,
+        textDirection: TextDirection.ltr,
+        textAlign: TextAlign.center,
+      );
+      textPainter.layout();
+      textPainter.paint(
+        canvas,
+        Offset(
+          center.dx - textPainter.width / 2,
+          center.dy - textPainter.height / 2,
+        ),
+      );
     }
   }
 

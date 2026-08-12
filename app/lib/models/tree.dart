@@ -1,6 +1,8 @@
 import 'board.dart';
 import 'move.dart';
 
+enum MarkupType { triangle, square, circle, cross, letter, number }
+
 /// Represents a single moment/state in the game. Extremely lightweight.
 class TreeNode {
   /// The move that resulted in this node. Null if this is the root/setup node.
@@ -24,6 +26,7 @@ class TreeNode {
   List<int> squareMarks = [];
   List<int> circleMarks = [];
   List<int> crossMarks = [];
+  Map<int, String> labels = {}; // LB property (letters, numbers, custom text)
 
   // Time management per node (Index 0 = Black, Index 1 = White)
   List<String?> timeLeft = List.filled(2, null);
@@ -189,6 +192,82 @@ class GameSession {
     // Physically apply the change so the UI updates instantly
     currentBoard.addStone(x, y, player);
     return true;
+  }
+
+  /// Toggles a markup (Triangle, Square, Circle, Cross, Letter, Number) on the current node.
+  /// Markup properties modify the current node directly without branching!
+  bool toggleMarkup(int x, int y, MarkupType type) {
+    if (!currentBoard.isOnBoard(x, y)) return false;
+    int index = currentBoard.getIndex(x, y);
+
+    // 1. Check if the exact mark already exists
+    bool exists = false;
+    if (type == MarkupType.triangle &&
+        currentNode.triangleMarks.contains(index)) {
+      exists = true;
+    }
+    if (type == MarkupType.square && currentNode.squareMarks.contains(index)) {
+      exists = true;
+    }
+    if (type == MarkupType.circle && currentNode.circleMarks.contains(index)) {
+      exists = true;
+    }
+    if (type == MarkupType.cross && currentNode.crossMarks.contains(index)) {
+      exists = true;
+    }
+    if ((type == MarkupType.letter || type == MarkupType.number) &&
+        currentNode.labels.containsKey(index)) {
+      exists = true;
+    }
+
+    // 2. Remove from all markup lists (clears intersection)
+    currentNode.triangleMarks.remove(index);
+    currentNode.squareMarks.remove(index);
+    currentNode.circleMarks.remove(index);
+    currentNode.crossMarks.remove(index);
+    currentNode.labels.remove(index);
+
+    // 3. If it didn't already exist, add it
+    if (!exists) {
+      if (type == MarkupType.triangle) {
+        currentNode.triangleMarks.add(index);
+      }
+      if (type == MarkupType.square) {
+        currentNode.squareMarks.add(index);
+      }
+      if (type == MarkupType.circle) {
+        currentNode.circleMarks.add(index);
+      }
+      if (type == MarkupType.cross) {
+        currentNode.crossMarks.add(index);
+      }
+      if (type == MarkupType.letter) {
+        currentNode.labels[index] = _getNextAvailableLetter();
+      }
+      if (type == MarkupType.number) {
+        currentNode.labels[index] = _getNextAvailableNumber();
+      }
+    }
+
+    return true; // Indicates the tree changed and UI should redraw
+  }
+
+  String _getNextAvailableLetter() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    final used = currentNode.labels.values.toSet();
+    for (int i = 0; i < chars.length; i++) {
+      if (!used.contains(chars[i])) return chars[i];
+    }
+    return 'A'; // Fallback if all 52 are used
+  }
+
+  String _getNextAvailableNumber() {
+    final used = currentNode.labels.values.toSet();
+    int i = 1;
+    while (true) {
+      if (!used.contains(i.toString())) return i.toString();
+      i++;
+    }
   }
 
   /// Traverses exactly one step backward using Event Sourcing.

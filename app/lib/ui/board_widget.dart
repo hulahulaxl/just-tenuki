@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
 import '../models/board.dart';
+import '../models/tree.dart';
 import '../api/protocol.dart';
 import 'board_painter.dart';
 
 class BoardWidget extends StatelessWidget {
   final Board board;
-  final int? latestMoveX;
-  final int? latestMoveY;
+  final TreeNode currentNode;
   final void Function(int x, int y) onIntersectionTapped;
   final EngineResponse? analysis;
 
   const BoardWidget({
     super.key,
     required this.board,
-    this.latestMoveX,
-    this.latestMoveY,
+    required this.currentNode,
     required this.onIntersectionTapped,
     this.analysis,
   });
@@ -32,8 +31,7 @@ class BoardWidget extends StatelessWidget {
             child: CustomPaint(
               painter: BoardPainter(
                 board: board,
-                latestMoveX: latestMoveX,
-                latestMoveY: latestMoveY,
+                currentNode: currentNode,
                 analysis: analysis,
               ),
             ),

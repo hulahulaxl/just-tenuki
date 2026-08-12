@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../models/tree.dart';
-import '../models/move.dart';
+
 import '../utils/sgf_parser.dart';
 import '../api/client.dart';
 import '../api/protocol.dart';
@@ -13,7 +13,18 @@ import 'board_widget.dart';
 import 'tree/tree_graph_widget.dart';
 
 // --- Tab State Models ---
-enum BoardEditMode { play, addBlack, addWhite, remove }
+enum BoardEditMode {
+  play,
+  addBlack,
+  addWhite,
+  remove,
+  markTriangle,
+  markSquare,
+  markCircle,
+  markCross,
+  markLetter,
+  markNumber,
+}
 
 abstract class AppTab {
   IconData get icon;
@@ -331,15 +342,11 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                   child: Center(
                     child: BoardWidget(
                       board: tab.session.currentBoard,
-                      latestMoveX: tab.session.currentNode.move is Play
-                          ? (tab.session.currentNode.move as Play).x
-                          : null,
-                      latestMoveY: tab.session.currentNode.move is Play
-                          ? (tab.session.currentNode.move as Play).y
-                          : null,
+                      currentNode: tab.session.currentNode,
                       onIntersectionTapped: (x, y) {
                         // Edit tools only work when the Tools tab is active
-                        BoardEditMode effectiveMode = _rightTabController.index == 2
+                        BoardEditMode effectiveMode =
+                            _rightTabController.index == 2
                             ? _editMode
                             : BoardEditMode.play;
 
@@ -352,13 +359,46 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                           }
                         } else {
                           // Handle setup stone placement/removal
-                          int playerVal = 0; // Empty
-                          if (effectiveMode == BoardEditMode.addBlack) playerVal = 1;
-                          if (effectiveMode == BoardEditMode.addWhite) playerVal = 2;
-                          
-                          if (tab.session.addSetupStone(x, y, playerVal)) {
-                            setState(() {});
-                            // engineClient.analyze(tab.session);
+                          if (effectiveMode == BoardEditMode.addBlack ||
+                              effectiveMode == BoardEditMode.addWhite ||
+                              effectiveMode == BoardEditMode.remove) {
+                            int playerVal = 0; // Empty
+                            if (effectiveMode == BoardEditMode.addBlack) {
+                              playerVal = 1;
+                            }
+                            if (effectiveMode == BoardEditMode.addWhite) {
+                              playerVal = 2;
+                            }
+
+                            if (tab.session.addSetupStone(x, y, playerVal)) {
+                              setState(() {});
+                            }
+                          } else {
+                            // Handle markups
+                            MarkupType? mType;
+                            if (effectiveMode == BoardEditMode.markTriangle) {
+                              mType = MarkupType.triangle;
+                            }
+                            if (effectiveMode == BoardEditMode.markSquare) {
+                              mType = MarkupType.square;
+                            }
+                            if (effectiveMode == BoardEditMode.markCircle) {
+                              mType = MarkupType.circle;
+                            }
+                            if (effectiveMode == BoardEditMode.markCross) {
+                              mType = MarkupType.cross;
+                            }
+                            if (effectiveMode == BoardEditMode.markLetter) {
+                              mType = MarkupType.letter;
+                            }
+                            if (effectiveMode == BoardEditMode.markNumber) {
+                              mType = MarkupType.number;
+                            }
+
+                            if (mType != null &&
+                                tab.session.toggleMarkup(x, y, mType)) {
+                              setState(() {});
+                            }
                           }
                         }
                       },
@@ -753,11 +793,66 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _buildToolButton(Icons.change_history, 'Triangle'),
-              _buildToolButton(Icons.crop_square, 'Square'),
-              _buildToolButton(Icons.radio_button_unchecked, 'Circle'),
-              _buildToolButton(Icons.clear, 'Cross'),
-              _buildToolButton(Icons.text_fields, 'Letter'),
+              _buildToolButton(
+                Icons.change_history,
+                'Triangle',
+                isSelected: _editMode == BoardEditMode.markTriangle,
+                onTap: () => setState(
+                  () => _editMode = _editMode == BoardEditMode.markTriangle
+                      ? BoardEditMode.play
+                      : BoardEditMode.markTriangle,
+                ),
+              ),
+              _buildToolButton(
+                Icons.crop_square,
+                'Square',
+                isSelected: _editMode == BoardEditMode.markSquare,
+                onTap: () => setState(
+                  () => _editMode = _editMode == BoardEditMode.markSquare
+                      ? BoardEditMode.play
+                      : BoardEditMode.markSquare,
+                ),
+              ),
+              _buildToolButton(
+                Icons.radio_button_unchecked,
+                'Circle',
+                isSelected: _editMode == BoardEditMode.markCircle,
+                onTap: () => setState(
+                  () => _editMode = _editMode == BoardEditMode.markCircle
+                      ? BoardEditMode.play
+                      : BoardEditMode.markCircle,
+                ),
+              ),
+              _buildToolButton(
+                Icons.clear,
+                'Cross',
+                isSelected: _editMode == BoardEditMode.markCross,
+                onTap: () => setState(
+                  () => _editMode = _editMode == BoardEditMode.markCross
+                      ? BoardEditMode.play
+                      : BoardEditMode.markCross,
+                ),
+              ),
+              _buildToolButton(
+                Icons.text_fields,
+                'Letter',
+                isSelected: _editMode == BoardEditMode.markLetter,
+                onTap: () => setState(
+                  () => _editMode = _editMode == BoardEditMode.markLetter
+                      ? BoardEditMode.play
+                      : BoardEditMode.markLetter,
+                ),
+              ),
+              _buildToolButton(
+                Icons.numbers,
+                'Number',
+                isSelected: _editMode == BoardEditMode.markNumber,
+                onTap: () => setState(
+                  () => _editMode = _editMode == BoardEditMode.markNumber
+                      ? BoardEditMode.play
+                      : BoardEditMode.markNumber,
+                ),
+              ),
             ],
           ),
           const Spacer(),
@@ -785,8 +880,12 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildToolButton(IconData icon, String label,
-      {bool isSelected = false, VoidCallback? onTap}) {
+  Widget _buildToolButton(
+    IconData icon,
+    String label, {
+    bool isSelected = false,
+    VoidCallback? onTap,
+  }) {
     return InkWell(
       onTap: onTap ?? () {},
       borderRadius: BorderRadius.circular(8),
