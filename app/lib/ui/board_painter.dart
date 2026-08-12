@@ -292,9 +292,11 @@ class BoardPainter extends CustomPainter {
       if (board.grid[index] == 0) {
         c.drawCircle(
           center,
-          stoneRadius * 0.8,
+          stoneRadius *
+              0.7, // Reduce the background circle size a bit since marks are smaller
           Paint()
-            ..color = const Color(0xFFDCB35C).withValues(alpha: 0.85)
+            ..color =
+                const Color(0xFFDCB35C) // Fully opaque board color
             ..style = PaintingStyle.fill,
         );
       }
@@ -318,8 +320,8 @@ class BoardPainter extends CustomPainter {
         canvas,
         center,
         paint,
-        stoneRadius * 0.75,
-      ); // Shape is 75% size of a stone
+        stoneRadius * 0.60,
+      ); // Shape is 60% size of a stone
     }
 
     // Triangle
@@ -390,8 +392,8 @@ class BoardPainter extends CustomPainter {
         text: text,
         style: TextStyle(
           color: getContrastingColor(index),
-          fontSize: cellSize * 0.55, // Large enough to read
-          fontWeight: FontWeight.bold,
+          fontSize: cellSize * 0.55, // Slightly smaller text
+          fontWeight: FontWeight.w900, // Extra bold to match thick shape lines
         ),
       );
       final textPainter = TextPainter(
