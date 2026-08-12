@@ -49,6 +49,8 @@ class _MainLayoutState extends State<MainLayout> {
 
   StreamSubscription<EngineResponse>? _analysisSub;
   EngineResponse? _currentAnalysis;
+  int? _lastAnalysisTurn;
+  double _maxScoreScale = 10.0;
 
   @override
   void initState() {
@@ -58,6 +60,12 @@ class _MainLayoutState extends State<MainLayout> {
       if (mounted) {
         setState(() {
           _currentAnalysis = response;
+          if (_tabs[_activeIndex] is GameTab) {
+            _lastAnalysisTurn = (_tabs[_activeIndex] as GameTab).session.currentBoard.currentTurn;
+          }
+          if (response.rootScoreLead.abs() > _maxScoreScale) {
+            _maxScoreScale = response.rootScoreLead.abs();
+          }
         });
       }
     });
@@ -237,6 +245,7 @@ class _MainLayoutState extends State<MainLayout> {
                   setState(() {
                     // Replace the current LobbyTab with a new GameTab powered by a full GameSession!
                     _tabs[_activeIndex] = GameTab(GameSession());
+                    _maxScoreScale = 10.0;
                   });
                 },
               ),
@@ -287,6 +296,7 @@ class _MainLayoutState extends State<MainLayout> {
 
       setState(() {
         _tabs[_activeIndex] = GameTab(parsedSession);
+        _maxScoreScale = 10.0;
         engineClient.analyze(parsedSession);
       });
     }
@@ -325,7 +335,7 @@ class _MainLayoutState extends State<MainLayout> {
                   ),
                 ),
               ),
-              _buildWinrateBar(),
+              _buildWinrateBar(tab.session),
               _buildStatusBar(tab.session),
             ],
           ),
@@ -527,14 +537,36 @@ class _MainLayoutState extends State<MainLayout> {
     );
   }
 
-  Widget _buildWinrateBar() {
+  Widget _buildWinrateBar(GameSession session) {
     if (_currentAnalysis == null) {
       return const SizedBox(height: 24);
     }
 
     double winrate = _currentAnalysis!.rootWinrate;
-    String scoreLead = _currentAnalysis!.rootScoreLead.toStringAsFixed(1);
-    if (_currentAnalysis!.rootScoreLead > 0) scoreLead = '+$scoreLead';
+    double scoreLead = _currentAnalysis!.rootScoreLead;
+
+    // KataGo returns values relative to the player to move.
+    // Convert to absolute values (Black's perspective)
+    // We use _lastAnalysisTurn instead of the current board turn to prevent flickering
+    // when a stone is placed but the new AI response hasn't arrived yet!
+    int turnToUse = _lastAnalysisTurn ?? session.currentBoard.currentTurn;
+    if (turnToUse == 2) {
+      winrate = 100 - winrate;
+      scoreLead = -scoreLead;
+    }
+
+    // Calculate bar width based on scoreLead and historical max score scale.
+    // Black's share goes from 0 (White +max) to 1.0 (Black +max)
+    double blackShare = (scoreLead + _maxScoreScale) / (2 * _maxScoreScale);
+    // Clamp it just in case of slight floating point rounding
+    blackShare = blackShare.clamp(0.0, 1.0);
+    
+    int blackFlex = (blackShare * 1000).round();
+    int whiteFlex = 1000 - blackFlex;
+
+    String scoreStr = scoreLead.abs().toStringAsFixed(1);
+    scoreStr = scoreLead > 0 ? 'B+$scoreStr' : 'W+$scoreStr';
+    if (scoreLead == 0) scoreStr = '0.0';
 
     return Container(
       height: 24,
@@ -544,22 +576,22 @@ class _MainLayoutState extends State<MainLayout> {
           Row(
             children: [
               Expanded(
-                flex: (winrate * 100).round(),
+                flex: blackFlex,
                 child: Container(color: Colors.black87),
               ),
               Expanded(
-                flex: ((100 - winrate) * 100).round(),
+                flex: whiteFlex,
                 child: Container(color: Colors.white),
               ),
             ],
           ),
           Center(
             child: Text(
-              'B ${(winrate).toStringAsFixed(1)}%  ($scoreLead)',
+              'B ${(winrate).toStringAsFixed(1)}%  ($scoreStr)',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: winrate > 50 ? Colors.white : Colors.black87,
+                color: blackShare > 0.5 ? Colors.white : Colors.black87,
               ),
             ),
           ),
