@@ -162,8 +162,9 @@ class GameSession {
     if (!currentBoard.isOnBoard(x, y)) return false;
 
     // Standard editor behavior: if the current node has a regular move,
+    // OR if it's a setup node that already has children (to avoid altering history),
     // placing setup stones branches into a new "setup node".
-    if (currentNode.move != null) {
+    if (currentNode.move != null || currentNode.children.isNotEmpty) {
       TreeNode newNode = TreeNode(parent: currentNode);
       currentNode.children.add(newNode);
       currentNode = newNode;
