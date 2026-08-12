@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import '../models/tree.dart';
 
 import '../utils/sgf_parser.dart';
+import '../utils/sgf_writer.dart';
+import '../utils/download_helper.dart';
 import '../api/client.dart';
 import '../api/protocol.dart';
 import 'dart:async';
@@ -1107,7 +1109,20 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () {}, // TODO: Implement SGF Export
+                onPressed: () {
+                  if (_tabs[_activeIndex] is GameTab) {
+                    final session = (_tabs[_activeIndex] as GameTab).session;
+                    final sgfString = SgfWriter.write(session);
+
+                    // Construct a basic filename
+                    String p1 = session.info.blackName.replaceAll(' ', '_');
+                    String p2 = session.info.whiteName.replaceAll(' ', '_');
+                    String filename = '${p1}_vs_$p2.sgf';
+                    if (p1.isEmpty && p2.isEmpty) filename = 'game_review.sgf';
+
+                    downloadTextFile(sgfString, filename);
+                  }
+                },
                 icon: const Icon(Icons.download),
                 label: const Text('Export SGF'),
                 style: ElevatedButton.styleFrom(
