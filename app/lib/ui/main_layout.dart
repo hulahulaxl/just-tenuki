@@ -71,8 +71,13 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   bool _showToolsPane = false;
   bool _showCommentsPane = true;
 
-  // High precision flex values for smooth 1:1 cursor tracking
-  final List<int> _paneFlexes = [10000, 10000, 10000, 10000];
+  // High precision flex values for smooth 1:1 cursor tracking, isolated via ValueNotifier
+  final ValueNotifier<List<int>> _paneFlexes = ValueNotifier([
+    10000,
+    10000,
+    10000,
+    10000,
+  ]);
 
   double _cumulativeDragDelta = 0;
   int _dragStartFlexTop = 0;
@@ -112,6 +117,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     _analysisSub?.cancel();
     engineClient.disconnect();
     _commentController.dispose();
+    _paneFlexes.dispose();
     super.dispose();
   }
 
@@ -472,8 +478,17 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
         color: Colors.white,
         child: LayoutBuilder(
           builder: (context, constraints) {
-            return Column(
-              children: _buildActivePanes(tab, constraints.maxHeight),
+            return ValueListenableBuilder<List<int>>(
+              valueListenable: _paneFlexes,
+              builder: (context, flexes, child) {
+                return Column(
+                  children: _buildActivePanes(
+                    tab,
+                    constraints.maxHeight,
+                    flexes,
+                  ),
+                );
+              },
             );
           },
         ),
@@ -777,7 +792,11 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
 
   // --- Dynamic Resizable Panes Logic ---
 
-  List<Widget> _buildActivePanes(GameTab tab, double totalHeight) {
+  List<Widget> _buildActivePanes(
+    GameTab tab,
+    double totalHeight,
+    List<int> flexes,
+  ) {
     List<_ActivePane> active = [];
     if (_showTreePane) active.add(_ActivePane(0, _buildTreeTab(tab)));
     if (_showAnalysisPane) active.add(_ActivePane(1, _buildAnalysisTabMock()));
@@ -799,13 +818,13 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
 
     int totalActiveFlex = 0;
     for (var pane in active) {
-      totalActiveFlex += _paneFlexes[pane.index];
+      totalActiveFlex += flexes[pane.index];
     }
 
     List<Widget> children = [];
     for (int i = 0; i < active.length; i++) {
       children.add(
-        Expanded(flex: _paneFlexes[active[i].index], child: active[i].widget),
+        Expanded(flex: flexes[active[i].index], child: active[i].widget),
       );
       if (i < active.length - 1) {
         children.add(
@@ -831,34 +850,35 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       behavior: HitTestBehavior.translucent,
       onVerticalDragStart: (details) {
         _cumulativeDragDelta = 0;
-        _dragStartFlexTop = _paneFlexes[topIndex];
-        _dragStartFlexBottom = _paneFlexes[bottomIndex];
+        _dragStartFlexTop = _paneFlexes.value[topIndex];
+        _dragStartFlexBottom = _paneFlexes.value[bottomIndex];
       },
       onVerticalDragUpdate: (details) {
-        setState(() {
-          _cumulativeDragDelta += details.delta.dy;
+        _cumulativeDragDelta += details.delta.dy;
 
-          // Exact absolute math from drag start
-          double fractionMoved = _cumulativeDragDelta / totalHeight;
-          int flexChange = (fractionMoved * totalActiveFlex).round();
+        // Exact absolute math from drag start
+        double fractionMoved = _cumulativeDragDelta / totalHeight;
+        int flexChange = (fractionMoved * totalActiveFlex).round();
 
-          int minFlex = 1000; // 10% of 10000 base
+        int minFlex = 1000; // 10% of 10000 base
 
-          int newTop = _dragStartFlexTop + flexChange;
-          int newBottom = _dragStartFlexBottom - flexChange;
+        int newTop = _dragStartFlexTop + flexChange;
+        int newBottom = _dragStartFlexBottom - flexChange;
 
-          // Clamp strictly against minFlex
-          if (newTop < minFlex) {
-            newTop = minFlex;
-            newBottom = _dragStartFlexTop + _dragStartFlexBottom - minFlex;
-          } else if (newBottom < minFlex) {
-            newBottom = minFlex;
-            newTop = _dragStartFlexTop + _dragStartFlexBottom - minFlex;
-          }
+        // Clamp strictly against minFlex
+        if (newTop < minFlex) {
+          newTop = minFlex;
+          newBottom = _dragStartFlexTop + _dragStartFlexBottom - minFlex;
+        } else if (newBottom < minFlex) {
+          newBottom = minFlex;
+          newTop = _dragStartFlexTop + _dragStartFlexBottom - minFlex;
+        }
 
-          _paneFlexes[topIndex] = newTop;
-          _paneFlexes[bottomIndex] = newBottom;
-        });
+        // Copy the list, update, and reassign to trigger ValueNotifier
+        List<int> newFlexes = List.from(_paneFlexes.value);
+        newFlexes[topIndex] = newTop;
+        newFlexes[bottomIndex] = newBottom;
+        _paneFlexes.value = newFlexes;
       },
       child: MouseRegion(
         cursor: SystemMouseCursors.resizeUpDown,
