@@ -13,6 +13,8 @@ import 'board_widget.dart';
 import 'tree/tree_graph_widget.dart';
 
 // --- Tab State Models ---
+enum BoardEditMode { play, addBlack, addWhite, remove }
+
 abstract class AppTab {
   IconData get icon;
   String get tooltip;
@@ -46,6 +48,7 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   final List<AppTab> _tabs = [LobbyTab()]; // Start with 1 Lobby tab
   int _activeIndex = 0;
+  BoardEditMode _editMode = BoardEditMode.play;
 
   StreamSubscription<EngineResponse>? _analysisSub;
   EngineResponse? _currentAnalysis;
@@ -327,10 +330,23 @@ class _MainLayoutState extends State<MainLayout> {
                           ? (tab.session.currentNode.move as Play).y
                           : null,
                       onIntersectionTapped: (x, y) {
-                        // Let the session manage the move and tree timeline!
-                        if (tab.session.play(x, y)) {
-                          setState(() {});
-                          engineClient.analyze(tab.session);
+                        if (_editMode == BoardEditMode.play) {
+                          // Let the session manage the move and tree timeline!
+                          if (tab.session.play(x, y)) {
+                            setState(() {});
+                            // We do not analyze right now as requested by user
+                            // engineClient.analyze(tab.session);
+                          }
+                        } else {
+                          // Handle setup stone placement/removal
+                          int playerVal = 0; // Empty
+                          if (_editMode == BoardEditMode.addBlack) playerVal = 1;
+                          if (_editMode == BoardEditMode.addWhite) playerVal = 2;
+                          
+                          if (tab.session.addSetupStone(x, y, playerVal)) {
+                            setState(() {});
+                            // engineClient.analyze(tab.session);
+                          }
                         }
                       },
                       analysis:
@@ -672,9 +688,42 @@ class _MainLayoutState extends State<MainLayout> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _buildToolButton(Icons.circle, 'Black Stone', isSelected: true),
-              _buildToolButton(Icons.circle_outlined, 'White Stone'),
-              _buildToolButton(Icons.close, 'Remove'),
+              _buildToolButton(
+                Icons.circle,
+                'Black Stone',
+                isSelected: _editMode == BoardEditMode.addBlack,
+                onTap: () {
+                  setState(() {
+                    _editMode = _editMode == BoardEditMode.addBlack
+                        ? BoardEditMode.play
+                        : BoardEditMode.addBlack;
+                  });
+                },
+              ),
+              _buildToolButton(
+                Icons.circle_outlined,
+                'White Stone',
+                isSelected: _editMode == BoardEditMode.addWhite,
+                onTap: () {
+                  setState(() {
+                    _editMode = _editMode == BoardEditMode.addWhite
+                        ? BoardEditMode.play
+                        : BoardEditMode.addWhite;
+                  });
+                },
+              ),
+              _buildToolButton(
+                Icons.close,
+                'Remove',
+                isSelected: _editMode == BoardEditMode.remove,
+                onTap: () {
+                  setState(() {
+                    _editMode = _editMode == BoardEditMode.remove
+                        ? BoardEditMode.play
+                        : BoardEditMode.remove;
+                  });
+                },
+              ),
             ],
           ),
           const SizedBox(height: 32),
@@ -724,9 +773,10 @@ class _MainLayoutState extends State<MainLayout> {
     );
   }
 
-  Widget _buildToolButton(IconData icon, String label, {bool isSelected = false}) {
+  Widget _buildToolButton(IconData icon, String label,
+      {bool isSelected = false, VoidCallback? onTap}) {
     return InkWell(
-      onTap: () {}, // No functionality yet
+      onTap: onTap ?? () {},
       borderRadius: BorderRadius.circular(8),
       child: Container(
         width: 80,

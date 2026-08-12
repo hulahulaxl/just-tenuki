@@ -19,6 +19,7 @@ class TreeNode {
   // Board annotations (stored as 1D grid indices)
   List<int> setupBlackStones = [];
   List<int> setupWhiteStones = [];
+  List<int> setupEmptyStones = [];
   List<int> triangleMarks = [];
   List<int> squareMarks = [];
   List<int> circleMarks = [];
@@ -105,11 +106,7 @@ class GameSession {
     // 1. Reset physical board to starting state
     currentBoard = Board();
 
-    // 1.5 Apply setup stones from the root node
-    _applySetupStones(1, rootNode.setupBlackStones);
-    _applySetupStones(2, rootNode.setupWhiteStones);
-
-    // 1.6 Determine initial turn based on PL tag or handicap stones
+    // 1.5 Determine initial turn based on PL tag or handicap stones
     if (rootNode.playerToPlay != null) {
       currentBoard.currentTurn = rootNode.playerToPlay!;
     } else if (rootNode.setupBlackStones.isNotEmpty &&
@@ -122,12 +119,17 @@ class GameSession {
     var path = <TreeNode>[];
     TreeNode? curr = node;
     while (curr != null) {
-      if (curr.move != null) path.insert(0, curr);
+      path.insert(0, curr);
       curr = curr.parent;
     }
 
     // 3. Replay all moves sequentially
     for (var n in path) {
+      // Setup stones apply before the move in a node
+      _applySetupStones(1, n.setupBlackStones);
+      _applySetupStones(2, n.setupWhiteStones);
+      _applySetupStones(0, n.setupEmptyStones); // 0 = empty
+
       if (n.move is Play) {
         final playMove = n.move as Play;
         // Sync the board's turn directly to the SGF move.
@@ -151,6 +153,41 @@ class GameSession {
       int y = index ~/ currentBoard.columns;
       currentBoard.addStone(x, y, player);
     }
+  }
+
+  /// Adds a setup stone to the current node. If the current node already
+  /// has a regular move, a new child node is created.
+  /// [player] 1=Black, 2=White, 0=Empty
+  bool addSetupStone(int x, int y, int player) {
+    if (!currentBoard.isOnBoard(x, y)) return false;
+
+    // Standard editor behavior: if the current node has a regular move,
+    // placing setup stones branches into a new "setup node".
+    if (currentNode.move != null) {
+      TreeNode newNode = TreeNode(parent: currentNode);
+      currentNode.children.add(newNode);
+      currentNode = newNode;
+    }
+
+    int index = currentBoard.getIndex(x, y);
+
+    // Remove from all setup lists to avoid conflicts
+    currentNode.setupBlackStones.remove(index);
+    currentNode.setupWhiteStones.remove(index);
+    currentNode.setupEmptyStones.remove(index);
+
+    // Add to the appropriate list
+    if (player == 1) {
+      currentNode.setupBlackStones.add(index);
+    } else if (player == 2) {
+      currentNode.setupWhiteStones.add(index);
+    } else if (player == 0) {
+      currentNode.setupEmptyStones.add(index);
+    }
+
+    // Physically apply the change so the UI updates instantly
+    currentBoard.addStone(x, y, player);
+    return true;
   }
 
   /// Traverses exactly one step backward using Event Sourcing.
