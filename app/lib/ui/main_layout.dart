@@ -45,7 +45,7 @@ class MainLayout extends StatefulWidget {
   State<MainLayout> createState() => _MainLayoutState();
 }
 
-class _MainLayoutState extends State<MainLayout> {
+class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   final List<AppTab> _tabs = [LobbyTab()]; // Start with 1 Lobby tab
   int _activeIndex = 0;
   BoardEditMode _editMode = BoardEditMode.play;
@@ -55,9 +55,16 @@ class _MainLayoutState extends State<MainLayout> {
   int? _lastAnalysisTurn;
   double _maxScoreScale = 10.0;
 
+  late TabController _rightTabController;
+
   @override
   void initState() {
     super.initState();
+    _rightTabController = TabController(length: 3, vsync: this);
+    _rightTabController.addListener(() {
+      if (mounted) setState(() {});
+    });
+
     engineClient.connect();
     _analysisSub = engineClient.updates.listen((response) {
       if (mounted) {
@@ -81,6 +88,7 @@ class _MainLayoutState extends State<MainLayout> {
   void dispose() {
     _analysisSub?.cancel();
     engineClient.disconnect();
+    _rightTabController.dispose();
     super.dispose();
   }
 
@@ -330,7 +338,12 @@ class _MainLayoutState extends State<MainLayout> {
                           ? (tab.session.currentNode.move as Play).y
                           : null,
                       onIntersectionTapped: (x, y) {
-                        if (_editMode == BoardEditMode.play) {
+                        // Edit tools only work when the Tools tab is active
+                        BoardEditMode effectiveMode = _rightTabController.index == 2
+                            ? _editMode
+                            : BoardEditMode.play;
+
+                        if (effectiveMode == BoardEditMode.play) {
                           // Let the session manage the move and tree timeline!
                           if (tab.session.play(x, y)) {
                             setState(() {});
@@ -340,8 +353,8 @@ class _MainLayoutState extends State<MainLayout> {
                         } else {
                           // Handle setup stone placement/removal
                           int playerVal = 0; // Empty
-                          if (_editMode == BoardEditMode.addBlack) playerVal = 1;
-                          if (_editMode == BoardEditMode.addWhite) playerVal = 2;
+                          if (effectiveMode == BoardEditMode.addBlack) playerVal = 1;
+                          if (effectiveMode == BoardEditMode.addWhite) playerVal = 2;
                           
                           if (tab.session.addSetupStone(x, y, playerVal)) {
                             setState(() {});
@@ -370,32 +383,31 @@ class _MainLayoutState extends State<MainLayout> {
       Container(
         width: 450,
         color: Colors.white,
-        child: DefaultTabController(
-          length: 3,
-          child: Column(
-            children: [
-              const TabBar(
-                labelColor: Colors.blue,
-                unselectedLabelColor: Colors.black54,
-                indicatorColor: Colors.blue,
-                labelStyle: TextStyle(fontWeight: FontWeight.w600),
-                tabs: [
-                  Tab(text: 'Tree'),
-                  Tab(text: 'Analysis'),
-                  Tab(text: 'Tools'),
+        child: Column(
+          children: [
+            TabBar(
+              controller: _rightTabController,
+              labelColor: Colors.blue,
+              unselectedLabelColor: Colors.black54,
+              indicatorColor: Colors.blue,
+              labelStyle: const TextStyle(fontWeight: FontWeight.w600),
+              tabs: const [
+                Tab(text: 'Tree'),
+                Tab(text: 'Analysis'),
+                Tab(text: 'Tools'),
+              ],
+            ),
+            Expanded(
+              child: TabBarView(
+                controller: _rightTabController,
+                children: [
+                  _buildTreeTab(tab),
+                  _buildAnalysisTabMock(),
+                  _buildToolsTabMock(),
                 ],
               ),
-              Expanded(
-                child: TabBarView(
-                  children: [
-                    _buildTreeTab(tab),
-                    _buildAnalysisTabMock(),
-                    _buildToolsTabMock(),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     ];
