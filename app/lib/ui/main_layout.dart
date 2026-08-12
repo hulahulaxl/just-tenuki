@@ -864,10 +864,11 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     return Container(
       color: const Color(0xFFFAFAFA),
       padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
             'BOARD EDITING',
             style: TextStyle(
               fontSize: 12,
@@ -996,7 +997,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
               ),
             ],
           ),
-          const Spacer(),
+          const SizedBox(height: 32),
           const Divider(color: Color(0xFFEEEEEE)),
           const SizedBox(height: 16),
           SizedBox(
@@ -1017,6 +1018,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             ),
           ),
         ],
+      ),
       ),
     );
   }
