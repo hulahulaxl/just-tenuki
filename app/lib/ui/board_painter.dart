@@ -99,11 +99,16 @@ class BoardPainter extends CustomPainter {
           stoneColor = Colors.red;
         }
 
+        int? latestMoveX = currentNode.move is Play ? (currentNode.move as Play).x : null;
+        int? latestMoveY = currentNode.move is Play ? (currentNode.move as Play).y : null;
+        
+        bool isLatest = (latestMoveX != null && latestMoveY != null && x == latestMoveX && y == latestMoveY);
+
         final Paint stonePaint = Paint()..color = stoneColor;
         final Paint outlinePaint = Paint()
-          ..color = Colors.black
+          ..color = isLatest ? Colors.blue.shade500 : Colors.black
           ..style = PaintingStyle.stroke
-          ..strokeWidth = (cellSize * 0.05).clamp(0.5, 1.5);
+          ..strokeWidth = isLatest ? (cellSize * 0.12).clamp(2.5, 4.5) : (cellSize * 0.05).clamp(0.5, 1.5);
 
         final Offset center = Offset(
           offsetX + x * cellSize,
@@ -112,27 +117,6 @@ class BoardPainter extends CustomPainter {
 
         canvas.drawCircle(center, stoneRadius, stonePaint);
         canvas.drawCircle(center, stoneRadius, outlinePaint);
-
-        // Draw the latest move indicator (a contrasting inner ring)
-        int? latestMoveX = currentNode.move is Play
-            ? (currentNode.move as Play).x
-            : null;
-        int? latestMoveY = currentNode.move is Play
-            ? (currentNode.move as Play).y
-            : null;
-
-        if (latestMoveX != null &&
-            latestMoveY != null &&
-            x == latestMoveX &&
-            y == latestMoveY) {
-          final indicatorRadius = stoneRadius * 0.45;
-          final Paint indicatorPaint = Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = (cellSize * 0.08).clamp(1.0, 3.0)
-            ..color = (player == 1) ? Colors.white : Colors.black87;
-
-          canvas.drawCircle(center, indicatorRadius, indicatorPaint);
-        }
       }
     }
 
