@@ -33,13 +33,28 @@ class TreePainter extends CustomPainter {
       ..color = Colors.blue.withValues(alpha: 0.4)
       ..style = PaintingStyle.fill;
 
-    // 0. Draw chronological move numbers down the left side
+    // 0. Get the visible bounds for frustum culling
+    // We inflate by 100px to ensure we don't accidentally cull things right on the edge,
+    // since nodes are at most ~56px apart (diagonal).
+    final Rect visibleBounds = canvas.getLocalClipBounds();
+    final Rect cullRect = visibleBounds.inflate(100.0);
+
+    // 1. Draw chronological move numbers down the left side
     final textStyle = TextStyle(
       color: Colors.grey[400],
       fontSize: 12,
       fontWeight: FontWeight.bold,
     );
+    
     for (int r = 0; r <= maxRow; r++) {
+      // Node centers are at (r * 40.0 + 20) vertically
+      final nodeCenterY = r * 40.0 + 20.0;
+      
+      // CULLING: Skip if this row is completely off-screen
+      if (nodeCenterY < cullRect.top || nodeCenterY > cullRect.bottom) {
+        continue;
+      }
+
       final textSpan = TextSpan(text: r.toString(), style: textStyle);
       final textPainter = TextPainter(
         text: textSpan,
@@ -48,15 +63,17 @@ class TreePainter extends CustomPainter {
       );
       textPainter.layout(minWidth: 30, maxWidth: 30);
 
-      // Node centers are at (r * 40.0 + 20) vertically
-      final yPos = r * 40.0 + 20.0 - (textPainter.height / 2);
+      final yPos = nodeCenterY - (textPainter.height / 2);
       textPainter.paint(canvas, Offset(10, yPos));
     }
 
-    // 1. Draw connecting lines between parents and children
+    // 2. Draw connecting lines between parents and children
     for (var entry in layout.entries) {
       final node = entry.key;
       final start = entry.value;
+
+      // CULLING: Skip if start node is completely off-screen
+      if (!cullRect.contains(start)) continue;
 
       for (var child in node.children) {
         final end = layout[child];
@@ -66,10 +83,13 @@ class TreePainter extends CustomPainter {
       }
     }
 
-    // 2. Draw the nodes
+    // 3. Draw the nodes
     for (var entry in layout.entries) {
       final node = entry.key;
       final center = entry.value;
+
+      // CULLING: Skip if node is completely off-screen
+      if (!cullRect.contains(center)) continue;
 
       // Highlight the currently active timeline node
       if (node == currentNode) {
