@@ -330,7 +330,9 @@ class _MainLayoutState extends State<MainLayout> {
                           engineClient.analyze(tab.session);
                         }
                       },
-                      analysis: _currentAnalysis,
+                      analysis: (_lastAnalysisTurn == tab.session.currentBoard.currentTurn)
+                          ? _currentAnalysis
+                          : null,
                     ),
                   ),
                 ),
