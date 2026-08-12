@@ -133,79 +133,95 @@ class BoardPainter extends CustomPainter {
     }
 
     // 5. Draw Analysis Overlays (Move Options)
-    if (analysis != null) {
-      for (int i = 0; i < analysis!.moveOptions.length; i++) {
-        if (i > 4) break; // Only show top 5
+    EngineResponse? activeAnalysis = analysis;
+    
+    // --- DUMMY DATA FOR UI TESTING ---
+    activeAnalysis ??= EngineResponse(
+      queryId: 0,
+      rootWinrate: 0.5,
+      rootScoreLead: 0.0,
+      moveOptions: [
+        MoveOption(moveIndex: 300, winrate: 0.55, scoreLead: 0.0, visits: 100, pvIndices: []),
+        MoveOption(moveIndex: 288, winrate: 0.54, scoreLead: 0.2, visits: 90, pvIndices: []), // Green (+0.2)
+        MoveOption(moveIndex: 72, winrate: 0.50, scoreLead: -0.5, visits: 80, pvIndices: []), // Yellow (-0.5)
+        MoveOption(moveIndex: 60, winrate: 0.45, scoreLead: -1.5, visits: 60, pvIndices: []), // Yellow (-1.5)
+        MoveOption(moveIndex: 40, winrate: 0.40, scoreLead: -3.0, visits: 40, pvIndices: []), // Red (-3.0)
+      ],
+    );
+    // ---------------------------------
 
-        final option = analysis!.moveOptions[i];
+    for (int i = 0; i < activeAnalysis.moveOptions.length; i++) {
+      if (i > 4) break; // Only show top 5
 
-        // Skip pass moves or invalid indices
-        if (option.moveIndex >= cols * rows) continue;
+      final option = activeAnalysis.moveOptions[i];
 
-        int x = option.moveIndex % cols;
-        int y = option.moveIndex ~/ cols;
+      // Skip pass moves or invalid indices
+      if (option.moveIndex >= cols * rows) continue;
 
-        // Calculate point difference (relative to the player to move)
-        double pointDiff = option.scoreLead - analysis!.rootScoreLead;
+      int x = option.moveIndex % cols;
+      int y = option.moveIndex ~/ cols;
 
-        Color boxColor;
-        if (i == 0) {
-          boxColor = Colors.blue.withValues(alpha: 0.7); // Top 1: Blue
-        } else if (pointDiff >= 0) {
-          boxColor = Colors.green.withValues(alpha: 0.7); // Good/Equal: Green
-        } else if (pointDiff >= -2.0) {
-          boxColor = Colors.yellow.shade600.withValues(alpha: 0.85); // Suboptimal: Yellow
-        } else {
-          boxColor = Colors.red.withValues(alpha: 0.7); // Blunder: Red
-        }
+      // Calculate point difference (relative to the player to move)
+      double pointDiff = option.scoreLead - activeAnalysis.rootScoreLead;
 
-        final Offset center = Offset(
-          offsetX + x * cellSize,
-          offsetY + y * cellSize,
-        );
-
-        final Rect boxRect = Rect.fromCenter(
-          center: center,
-          width: cellSize * 0.8,
-          height: cellSize * 0.8,
-        );
-
-        final Paint boxPaint = Paint()
-          ..color = boxColor
-          ..style = PaintingStyle.fill;
-
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(boxRect, const Radius.circular(4.0)),
-          boxPaint,
-        );
-
-        // Draw point difference text
-        String scoreText = (pointDiff > 0 ? '+' : '') + pointDiff.toStringAsFixed(1);
-        // Prevent "-0.0" display
-        if (scoreText == "-0.0") scoreText = "0.0";
-        
-        final textSpan = TextSpan(
-          text: scoreText,
-          style: TextStyle(
-            color: Colors.white, // White text on the colored boxes
-            fontSize: cellSize * 0.28,
-            fontWeight: FontWeight.bold,
-          ),
-        );
-        final textPainter = TextPainter(
-          text: textSpan,
-          textDirection: TextDirection.ltr,
-          textAlign: TextAlign.center,
-        );
-        textPainter.layout();
-        
-        // Center the text in the box
-        final Offset textOffset = Offset(
-          center.dx - (textPainter.width / 2),
-          center.dy - (textPainter.height / 2),
-        );
-        textPainter.paint(canvas, textOffset);
+      Color boxColor;
+      if (i == 0) {
+        boxColor = Colors.blue.shade800.withValues(alpha: 0.85); // Top 1: Dark Blue
+      } else if (pointDiff >= 0) {
+        boxColor = Colors.green.shade800.withValues(alpha: 0.85); // Good/Equal: Dark Green
+      } else if (pointDiff >= -2.0) {
+        boxColor = Colors.amber.shade900.withValues(alpha: 0.85); // Suboptimal: Dark Amber/Yellow
+      } else {
+        boxColor = Colors.red.shade800.withValues(alpha: 0.85); // Blunder: Dark Red
       }
+
+      final Offset center = Offset(
+        offsetX + x * cellSize,
+        offsetY + y * cellSize,
+      );
+
+      final Rect boxRect = Rect.fromCenter(
+        center: center,
+        width: cellSize * 0.8,
+        height: cellSize * 0.8,
+      );
+
+      final Paint boxPaint = Paint()
+        ..color = boxColor
+        ..style = PaintingStyle.fill;
+
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(boxRect, const Radius.circular(4.0)),
+        boxPaint,
+      );
+
+      // Draw point difference text
+      String scoreText =
+          (pointDiff > 0 ? '+' : '') + pointDiff.toStringAsFixed(1);
+      // Prevent "-0.0" display
+      if (scoreText == "-0.0") scoreText = "0.0";
+
+      final textSpan = TextSpan(
+        text: scoreText,
+        style: TextStyle(
+          color: Colors.white, // White text on the colored boxes
+          fontSize: cellSize * 0.28,
+          fontWeight: FontWeight.bold,
+        ),
+      );
+      final textPainter = TextPainter(
+        text: textSpan,
+        textDirection: TextDirection.ltr,
+        textAlign: TextAlign.center,
+      );
+      textPainter.layout();
+
+      // Center the text in the box
+      final Offset textOffset = Offset(
+        center.dx - (textPainter.width / 2),
+        center.dy - (textPainter.height / 2),
+      );
+      textPainter.paint(canvas, textOffset);
     }
   }
 

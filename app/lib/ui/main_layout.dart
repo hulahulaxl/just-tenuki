@@ -61,7 +61,10 @@ class _MainLayoutState extends State<MainLayout> {
         setState(() {
           _currentAnalysis = response;
           if (_tabs[_activeIndex] is GameTab) {
-            _lastAnalysisTurn = (_tabs[_activeIndex] as GameTab).session.currentBoard.currentTurn;
+            _lastAnalysisTurn = (_tabs[_activeIndex] as GameTab)
+                .session
+                .currentBoard
+                .currentTurn;
           }
           if (response.rootScoreLead.abs() > _maxScoreScale) {
             _maxScoreScale = response.rootScoreLead.abs();
@@ -330,7 +333,9 @@ class _MainLayoutState extends State<MainLayout> {
                           engineClient.analyze(tab.session);
                         }
                       },
-                      analysis: (_lastAnalysisTurn == tab.session.currentBoard.currentTurn)
+                      analysis:
+                          (_lastAnalysisTurn ==
+                              tab.session.currentBoard.currentTurn)
                           ? _currentAnalysis
                           : null,
                     ),
@@ -559,14 +564,17 @@ class _MainLayoutState extends State<MainLayout> {
 
     // Calculate bar width based on scoreLead and historical max score scale.
     // Black's share goes from 0 (White +max) to 1.0 (Black +max)
-    double targetBlackShare = (scoreLead + _maxScoreScale) / (2 * _maxScoreScale);
+    double targetBlackShare =
+        (scoreLead + _maxScoreScale) / (2 * _maxScoreScale);
     targetBlackShare = targetBlackShare.clamp(0.0, 1.0);
 
-    String scoreStr = scoreLead == 0 ? '0.0' : '+${scoreLead.abs().toStringAsFixed(1)}';
-    
+    String scoreStr = scoreLead == 0
+        ? '0.0'
+        : '+${scoreLead.abs().toStringAsFixed(1)}';
+
     Alignment textAlignment;
     Color textColor;
-    
+
     if (scoreLead > 0) {
       textAlignment = Alignment.centerLeft;
       textColor = Colors.white;

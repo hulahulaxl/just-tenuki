@@ -78,10 +78,10 @@ class GameSession {
   bool play(int x, int y) {
     // We clone the board just to test if the move is physically legal right now
     Board testBoard = currentBoard.clone();
-    
+
     // Save the turn BEFORE playing, because play() will advance it!
     int playedTurn = currentBoard.currentTurn;
-    
+
     if (testBoard.play(x, y)) {
       // 1. Physically apply the move
       currentBoard = testBoard;

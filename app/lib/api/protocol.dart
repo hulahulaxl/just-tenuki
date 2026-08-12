@@ -135,7 +135,7 @@ class BinaryProtocol {
 
       double moveWinrate = view.getUint16(offset, Endian.big) / 1000.0;
       offset += 2;
-      
+
       double moveScoreLead = view.getInt16(offset, Endian.big) / 10.0;
       offset += 2;
 
