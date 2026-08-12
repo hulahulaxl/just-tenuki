@@ -1,15 +1,14 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"net/http"
-	"time"
 
-	"github.com/gorilla/websocket"
 	"tenuki-server/engine"
 	"tenuki-server/protocol"
+
+	"github.com/gorilla/websocket"
 )
 
 const (
@@ -47,15 +46,10 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	var currentCancel context.CancelFunc
-
 	for {
 		messageType, payload, err := conn.ReadMessage()
 		if err != nil {
 			log.Println("Client disconnected:", err)
-			if currentCancel != nil {
-				currentCancel()
-			}
 			break
 		}
 
@@ -71,46 +65,18 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		
 		// Handle Analyze Request
 		if payload[0] == OpAnalyze {
-			if currentCancel != nil {
-				currentCancel()
-			}
-
 			query, err := protocol.ParseRequest(payload)
 			if err != nil {
 				log.Println("[Error] Failed to parse binary request:", err)
 				continue
 			}
 
-			ctx, cancel := context.WithCancel(context.Background())
-			currentCancel = cancel
-
-			// Start the pseudo-streaming loop!
-			go func(q *protocol.KataGoQuery, ctx context.Context) {
-				log.Printf("Starting stream for query %s\n", q.ID)
-				visits := 20 // Start small for instant first-frame
-				for {
-					select {
-					case <-ctx.Done():
-						return
-					default:
-					}
-
-					q.MaxVisits = visits
-					jsonBytes, _ := json.Marshal(q)
-					if visits == 20 {
-						log.Println("[DEBUG] KataGo JSON Query:", string(jsonBytes))
-					}
-					globalEngine.SendQuery(jsonBytes)
-
-					visits += 50
-					if visits > 2000 {
-						return // Stop at 2000 visits
-					}
-					
-					// Pace the queries so we don't flood the engine
-					time.Sleep(300 * time.Millisecond)
-				}
-			}(query, ctx)
+			q := query
+			q.MaxVisits = 50 // Static, fast query
+			
+			jsonBytes, _ := json.Marshal(q)
+			log.Println("[DEBUG] Sending static KataGo Query:", string(jsonBytes))
+			globalEngine.SendQuery(jsonBytes)
 		}
 	}
 }

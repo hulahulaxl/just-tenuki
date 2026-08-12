@@ -55,6 +55,14 @@ func StartKataGo(modelPath, configPath string) (*KataGoEngine, error) {
 	// Start a background goroutine to read KataGo's stderr (Startup Logs)
 	go engine.readStderr()
 
+	// Send a "warm-up" query to force Metal/GPU shader compilation on startup
+	// This prevents a 2-6 second lag spike when the user plays the first move!
+	go func() {
+		warmup := `{"id":"9999","rules":"japanese","boardXSize":19,"boardYSize":19,"komi":6.5,"moves":[],"analyzeTurns":[0],"maxVisits":1}` + "\n"
+		engine.stdin.Write([]byte(warmup))
+		log.Println("Sent KataGo warm-up query to compile GPU shaders...")
+	}()
+
 	return engine, nil
 }
 
