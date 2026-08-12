@@ -652,10 +652,114 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   Widget _buildToolsTabMock() {
-    return const Center(
-      child: Text(
-        'Annotation Tools (Mock)',
-        style: TextStyle(color: Colors.black54),
+    return Container(
+      color: const Color(0xFFFAFAFA),
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'BOARD EDITING',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.black54,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _buildToolButton(Icons.circle, 'Black Stone', isSelected: true),
+              _buildToolButton(Icons.circle_outlined, 'White Stone'),
+              _buildToolButton(Icons.close, 'Remove'),
+            ],
+          ),
+          const SizedBox(height: 32),
+          const Text(
+            'MARKUP',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.black54,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _buildToolButton(Icons.change_history, 'Triangle'),
+              _buildToolButton(Icons.crop_square, 'Square'),
+              _buildToolButton(Icons.radio_button_unchecked, 'Circle'),
+              _buildToolButton(Icons.clear, 'Cross'),
+              _buildToolButton(Icons.text_fields, 'Letter'),
+            ],
+          ),
+          const Spacer(),
+          const Divider(color: Color(0xFFEEEEEE)),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {}, // TODO: Implement SGF Export
+              icon: const Icon(Icons.download),
+              label: const Text('Export SGF'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue.shade600,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildToolButton(IconData icon, String label, {bool isSelected = false}) {
+    return InkWell(
+      onTap: () {}, // No functionality yet
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        width: 80,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue.shade50 : Colors.white,
+          border: Border.all(
+            color: isSelected ? Colors.blue.shade400 : const Color(0xFFE0E0E0),
+            width: 1.5,
+          ),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? Colors.blue.shade700 : Colors.black87,
+              size: 24,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? Colors.blue.shade800 : Colors.black54,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }
