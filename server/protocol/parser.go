@@ -232,6 +232,11 @@ func EncodeResponse(resp *KataGoResponse, boardSize uint8) ([]byte, error) {
 		binary.BigEndian.PutUint16(buf16, moveWinrate)
 		payload = append(payload, buf16...)
 		
+		// ScoreLead (int16)
+		moveScoreLead := int16(moveInfo.ScoreLead * 10)
+		binary.BigEndian.PutUint16(buf16, uint16(moveScoreLead))
+		payload = append(payload, buf16...)
+		
 		// Visits (uint32)
 		binary.BigEndian.PutUint32(buf32, uint32(moveInfo.Visits))
 		payload = append(payload, buf32...)

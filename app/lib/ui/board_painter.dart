@@ -175,6 +175,30 @@ class BoardPainter extends CustomPainter {
           RRect.fromRectAndRadius(boxRect, const Radius.circular(4.0)),
           boxPaint,
         );
+
+        // Draw scoreLead text
+        String scoreText = (option.scoreLead > 0 ? '+' : '') + option.scoreLead.toStringAsFixed(1);
+        final textSpan = TextSpan(
+          text: scoreText,
+          style: TextStyle(
+            color: Colors.white, // White text on the colored boxes
+            fontSize: cellSize * 0.28,
+            fontWeight: FontWeight.bold,
+          ),
+        );
+        final textPainter = TextPainter(
+          text: textSpan,
+          textDirection: TextDirection.ltr,
+          textAlign: TextAlign.center,
+        );
+        textPainter.layout();
+        
+        // Center the text in the box
+        final Offset textOffset = Offset(
+          center.dx - (textPainter.width / 2),
+          center.dy - (textPainter.height / 2),
+        );
+        textPainter.paint(canvas, textOffset);
       }
     }
   }

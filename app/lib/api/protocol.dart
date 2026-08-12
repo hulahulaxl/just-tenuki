@@ -5,12 +5,14 @@ import '../models/move.dart';
 class MoveOption {
   final int moveIndex;
   final double winrate;
+  final double scoreLead;
   final int visits;
   final List<int> pvIndices;
 
   MoveOption({
     required this.moveIndex,
     required this.winrate,
+    required this.scoreLead,
     required this.visits,
     required this.pvIndices,
   });
@@ -133,6 +135,9 @@ class BinaryProtocol {
 
       double moveWinrate = view.getUint16(offset, Endian.big) / 1000.0;
       offset += 2;
+      
+      double moveScoreLead = view.getInt16(offset, Endian.big) / 10.0;
+      offset += 2;
 
       int visits = view.getUint32(offset, Endian.big);
       offset += 4;
@@ -150,6 +155,7 @@ class BinaryProtocol {
         MoveOption(
           moveIndex: moveIndex,
           winrate: moveWinrate,
+          scoreLead: moveScoreLead,
           visits: visits,
           pvIndices: pvIndices,
         ),

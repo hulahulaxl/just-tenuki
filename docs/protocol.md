@@ -48,6 +48,7 @@ For every move option returned, we append this block:
 | :--- | :--- | :--- | :--- |
 | `0x00` | `uint16`| **Move Index** | The 1D flat index of this move on the board |
 | `0x02` | `uint16` | **Winrate** | `0` to `1000` (Divide by 10. `485` = 48.5%) |
-| `0x04` | `uint32` | **Visits** | Number of neural net evaluations for this branch |
-| `0x08` | `uint8` | **PV Length** | Number of stones in the predicted variation |
-| `0x09` | `[...]` | **PV Indices** | Array of `uint16` move indices forming the variation |
+| `0x04` | `int16` | **ScoreLead** | `+/-3600` (Divide by 10. `125` = 12.5 points) |
+| `0x06` | `uint32` | **Visits** | Number of neural net evaluations for this branch |
+| `0x0A` | `uint8` | **PV Length** | Number of stones in the predicted variation |
+| `0x0B` | `[...]` | **PV Indices** | Array of `uint16` move indices forming the variation |
