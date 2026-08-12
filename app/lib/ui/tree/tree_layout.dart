@@ -31,14 +31,24 @@ class TreeLayout {
 
     if (node.children.isEmpty) return;
 
-    // The first child (Main line) continues straight down the same column
-    _traverse(node.children[0], col, row + 1);
+    // The first child (Main line)
+    if (node.children[0].move == null) {
+      // Setup node on the main line shifts to the right (same row)
+      _maxColumn++;
+      _traverse(node.children[0], _maxColumn, row);
+    } else {
+      // Normal move goes straight down
+      _traverse(node.children[0], col, row + 1);
+    }
 
     // Any subsequent children (Variations) branch horizontally to the right.
-    // We increment a global column counter to guarantee branches never overlap!
     for (int i = 1; i < node.children.length; i++) {
       _maxColumn++;
-      _traverse(node.children[i], _maxColumn, row + 1);
+      if (node.children[i].move == null) {
+        _traverse(node.children[i], _maxColumn, row);
+      } else {
+        _traverse(node.children[i], _maxColumn, row + 1);
+      }
     }
   }
 

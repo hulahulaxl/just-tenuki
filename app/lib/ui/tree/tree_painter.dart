@@ -76,9 +76,12 @@ class TreePainter extends CustomPainter {
         canvas.drawCircle(center, 12, highlightPaint);
       }
 
-      // Root node is a simple gray dot
+      // Setup/Root nodes are drawn as small gray squares
       if (node.move == null) {
-        canvas.drawCircle(center, 6, Paint()..color = Colors.grey);
+        canvas.drawRect(
+          Rect.fromCenter(center: center, width: 10, height: 10),
+          Paint()..color = Colors.grey,
+        );
         continue;
       }
 
