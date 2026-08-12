@@ -83,7 +83,7 @@ class BoardPainter extends CustomPainter {
 
     // 4. Draw stones
     final double stoneRadius =
-        cellSize * 0.48; // Leaves a tiny gap between adjacent stones
+        cellSize * 0.46; // Leaves a proper gap (including the stroke width) between adjacent stones
 
     for (int y = 0; y < rows; y++) {
       for (int x = 0; x < cols; x++) {
