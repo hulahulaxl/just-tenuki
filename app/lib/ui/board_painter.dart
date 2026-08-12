@@ -83,7 +83,8 @@ class BoardPainter extends CustomPainter {
 
     // 4. Draw stones
     final double stoneRadius =
-        cellSize * 0.46; // Leaves a proper gap (including the stroke width) between adjacent stones
+        cellSize *
+        0.46; // Leaves a proper gap (including the stroke width) between adjacent stones
 
     for (int y = 0; y < rows; y++) {
       for (int x = 0; x < cols; x++) {
@@ -99,16 +100,26 @@ class BoardPainter extends CustomPainter {
           stoneColor = Colors.red;
         }
 
-        int? latestMoveX = currentNode.move is Play ? (currentNode.move as Play).x : null;
-        int? latestMoveY = currentNode.move is Play ? (currentNode.move as Play).y : null;
-        
-        bool isLatest = (latestMoveX != null && latestMoveY != null && x == latestMoveX && y == latestMoveY);
+        int? latestMoveX = currentNode.move is Play
+            ? (currentNode.move as Play).x
+            : null;
+        int? latestMoveY = currentNode.move is Play
+            ? (currentNode.move as Play).y
+            : null;
+
+        bool isLatest =
+            (latestMoveX != null &&
+            latestMoveY != null &&
+            x == latestMoveX &&
+            y == latestMoveY);
 
         final Paint stonePaint = Paint()..color = stoneColor;
         final Paint outlinePaint = Paint()
           ..color = isLatest ? Colors.blue.shade500 : Colors.black
           ..style = PaintingStyle.stroke
-          ..strokeWidth = isLatest ? (cellSize * 0.12).clamp(2.5, 4.5) : (cellSize * 0.05).clamp(0.5, 1.5);
+          ..strokeWidth = isLatest
+              ? (cellSize * 0.12).clamp(2.5, 4.5)
+              : (cellSize * 0.05).clamp(0.5, 1.5);
 
         final Offset center = Offset(
           offsetX + x * cellSize,

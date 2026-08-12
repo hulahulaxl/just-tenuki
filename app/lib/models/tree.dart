@@ -15,7 +15,7 @@ class TreeNode {
   final List<TreeNode> children = [];
 
   // --- Domain-Specific Properties ---
-  String? comment;
+  String comment = ''; // C property (node comment)
   String? nodeName;
 
   // Board annotations (stored as 1D grid indices)

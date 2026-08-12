@@ -66,15 +66,19 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   int? _lastAnalysisTurn;
   double _maxScoreScale = 10.0;
 
-  late TabController _rightTabController;
+  bool _showTreePane = true;
+  bool _showAnalysisPane = true;
+  bool _showToolsPane = false;
+  bool _showCommentsPane = true;
+
+  late TextEditingController _commentController;
+  TreeNode? _lastCommentNode;
 
   @override
   void initState() {
     super.initState();
-    _rightTabController = TabController(length: 3, vsync: this);
-    _rightTabController.addListener(() {
-      if (mounted) setState(() {});
-    });
+
+    _commentController = TextEditingController();
 
     engineClient.connect();
     _analysisSub = engineClient.updates.listen((response) {
@@ -99,7 +103,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   void dispose() {
     _analysisSub?.cancel();
     engineClient.disconnect();
-    _rightTabController.dispose();
+    _commentController.dispose();
     super.dispose();
   }
 
@@ -181,6 +185,43 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
               icon,
               color: isSelected ? Colors.black87 : Colors.black38,
               size: 26,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+
+  Widget _buildRightToolbarButton(
+    IconData icon,
+    String tooltip,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
+    return Tooltip(
+      message: tooltip,
+      preferBelow: false,
+      child: GestureDetector(
+        onTap: onTap,
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: Container(
+            width: 49,
+            height: 48,
+            decoration: BoxDecoration(
+              border: Border(
+                right: BorderSide(
+                  color: isSelected ? Colors.blue : Colors.transparent,
+                  width: 3,
+                ),
+              ),
+            ),
+            alignment: Alignment.center,
+            child: Icon(
+              icon,
+              color: isSelected ? Colors.blue : Colors.black45,
+              size: 22,
             ),
           ),
         ),
@@ -344,9 +385,8 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                       board: tab.session.currentBoard,
                       currentNode: tab.session.currentNode,
                       onIntersectionTapped: (x, y) {
-                        // Edit tools only work when the Tools tab is active
-                        BoardEditMode effectiveMode =
-                            _rightTabController.index == 2
+                        // Edit tools only work when the Tools pane is active
+                        BoardEditMode effectiveMode = _showToolsPane
                             ? _editMode
                             : BoardEditMode.play;
 
@@ -419,33 +459,85 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       ),
       const VerticalDivider(width: 1, thickness: 1, color: Color(0xFFEEEEEE)),
 
-      // Column 3: Control Center (Tabbed Interface)
+      // Column 3: Active Panes
       Container(
-        width: 450,
+        width: 400,
         color: Colors.white,
         child: Column(
           children: [
-            TabBar(
-              controller: _rightTabController,
-              labelColor: Colors.blue,
-              unselectedLabelColor: Colors.black54,
-              indicatorColor: Colors.blue,
-              labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-              tabs: const [
-                Tab(text: 'Tree'),
-                Tab(text: 'Analysis'),
-                Tab(text: 'Tools'),
-              ],
-            ),
-            Expanded(
-              child: TabBarView(
-                controller: _rightTabController,
-                children: [
-                  _buildTreeTab(tab),
-                  _buildAnalysisTabMock(),
-                  _buildToolsTabMock(),
-                ],
+            if (_showTreePane) Expanded(child: _buildTreeTab(tab)),
+            if (_showTreePane &&
+                (_showAnalysisPane || _showToolsPane || _showCommentsPane))
+              const Divider(height: 1, color: Color(0xFFEEEEEE)),
+
+            if (_showAnalysisPane) Expanded(child: _buildAnalysisTabMock()),
+            if (_showAnalysisPane && (_showToolsPane || _showCommentsPane))
+              const Divider(height: 1, color: Color(0xFFEEEEEE)),
+
+            if (_showToolsPane) Expanded(child: _buildToolsTabMock()),
+            if (_showToolsPane && _showCommentsPane)
+              const Divider(height: 1, color: Color(0xFFEEEEEE)),
+
+            if (_showCommentsPane) Expanded(child: _buildCommentsPane(tab)),
+
+            if (!_showTreePane &&
+                !_showAnalysisPane &&
+                !_showToolsPane &&
+                !_showCommentsPane)
+              const Expanded(
+                child: Center(
+                  child: Text(
+                    'No panes active.',
+                    style: TextStyle(color: Colors.black38),
+                  ),
+                ),
               ),
+          ],
+        ),
+      ),
+      const VerticalDivider(width: 1, thickness: 1, color: Color(0xFFEEEEEE)),
+
+      // Column 4: Right Toolbar
+      Container(
+        width: 49,
+        color: const Color(0xFFFAFAFA),
+        child: Column(
+          children: [
+            const SizedBox(height: 16),
+            _buildRightToolbarButton(
+              Icons.account_tree_outlined,
+              'Move Tree',
+              _showTreePane,
+              () {
+                setState(() => _showTreePane = !_showTreePane);
+              },
+            ),
+            const SizedBox(height: 8),
+            _buildRightToolbarButton(
+              Icons.analytics_outlined,
+              'AI Analysis',
+              _showAnalysisPane,
+              () {
+                setState(() => _showAnalysisPane = !_showAnalysisPane);
+              },
+            ),
+            const SizedBox(height: 8),
+            _buildRightToolbarButton(
+              Icons.edit_outlined,
+              'Edit Tools',
+              _showToolsPane,
+              () {
+                setState(() => _showToolsPane = !_showToolsPane);
+              },
+            ),
+            const SizedBox(height: 8),
+            _buildRightToolbarButton(
+              Icons.chat_bubble_outline,
+              'Comments',
+              _showCommentsPane,
+              () {
+                setState(() => _showCommentsPane = !_showCommentsPane);
+              },
             ),
           ],
         ),
@@ -706,6 +798,55 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       child: TreeGraphWidget(
         session: tab.session,
         onNodeSelected: () => setState(() {}),
+      ),
+    );
+  }
+
+  Widget _buildCommentsPane(GameTab tab) {
+    // If the node changed, update the text controller's text!
+    if (_lastCommentNode != tab.session.currentNode) {
+      _lastCommentNode = tab.session.currentNode;
+      _commentController.text = tab.session.currentNode.comment;
+    }
+
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'COMMENTS',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.black54,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: TextField(
+              controller: _commentController,
+              onChanged: (val) {
+                tab.session.currentNode.comment = val;
+              },
+              maxLines: null, // Unlimited lines
+              expands: true,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.black87,
+                height: 1.5,
+              ),
+              decoration: const InputDecoration(
+                hintText: 'Add a comment...',
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
