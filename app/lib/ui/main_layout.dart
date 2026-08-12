@@ -71,6 +71,13 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   bool _showToolsPane = false;
   bool _showCommentsPane = true;
 
+  // High precision flex values for smooth 1:1 cursor tracking
+  final List<int> _paneFlexes = [10000, 10000, 10000, 10000];
+
+  double _cumulativeDragDelta = 0;
+  int _dragStartFlexTop = 0;
+  int _dragStartFlexBottom = 0;
+
   late TextEditingController _commentController;
   TreeNode? _lastCommentNode;
 
@@ -80,23 +87,24 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
 
     _commentController = TextEditingController();
 
-    engineClient.connect();
-    _analysisSub = engineClient.updates.listen((response) {
-      if (mounted) {
-        setState(() {
-          _currentAnalysis = response;
-          if (_tabs[_activeIndex] is GameTab) {
-            _lastAnalysisTurn = (_tabs[_activeIndex] as GameTab)
-                .session
-                .currentBoard
-                .currentTurn;
-          }
-          if (response.rootScoreLead.abs() > _maxScoreScale) {
-            _maxScoreScale = response.rootScoreLead.abs();
-          }
-        });
-      }
-    });
+    // TEMP: Commented out WS connection per user request
+    // engineClient.connect();
+    // _analysisSub = engineClient.updates.listen((response) {
+    //   if (mounted) {
+    //     setState(() {
+    //       _currentAnalysis = response;
+    //       if (_tabs[_activeIndex] is GameTab) {
+    //         _lastAnalysisTurn = (_tabs[_activeIndex] as GameTab)
+    //             .session
+    //             .currentBoard
+    //             .currentTurn;
+    //       }
+    //       if (response.rootScoreLead.abs() > _maxScoreScale) {
+    //         _maxScoreScale = response.rootScoreLead.abs();
+    //       }
+    //     });
+    //   }
+    // });
   }
 
   @override
@@ -191,7 +199,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       ),
     );
   }
-
 
   Widget _buildRightToolbarButton(
     IconData icon,
@@ -463,36 +470,12 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       Container(
         width: 400,
         color: Colors.white,
-        child: Column(
-          children: [
-            if (_showTreePane) Expanded(child: _buildTreeTab(tab)),
-            if (_showTreePane &&
-                (_showAnalysisPane || _showToolsPane || _showCommentsPane))
-              const Divider(height: 1, color: Color(0xFFEEEEEE)),
-
-            if (_showAnalysisPane) Expanded(child: _buildAnalysisTabMock()),
-            if (_showAnalysisPane && (_showToolsPane || _showCommentsPane))
-              const Divider(height: 1, color: Color(0xFFEEEEEE)),
-
-            if (_showToolsPane) Expanded(child: _buildToolsTabMock()),
-            if (_showToolsPane && _showCommentsPane)
-              const Divider(height: 1, color: Color(0xFFEEEEEE)),
-
-            if (_showCommentsPane) Expanded(child: _buildCommentsPane(tab)),
-
-            if (!_showTreePane &&
-                !_showAnalysisPane &&
-                !_showToolsPane &&
-                !_showCommentsPane)
-              const Expanded(
-                child: Center(
-                  child: Text(
-                    'No panes active.',
-                    style: TextStyle(color: Colors.black38),
-                  ),
-                ),
-              ),
-          ],
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Column(
+              children: _buildActivePanes(tab, constraints.maxHeight),
+            );
+          },
         ),
       ),
       const VerticalDivider(width: 1, thickness: 1, color: Color(0xFFEEEEEE)),
@@ -792,6 +775,107 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     );
   }
 
+  // --- Dynamic Resizable Panes Logic ---
+
+  List<Widget> _buildActivePanes(GameTab tab, double totalHeight) {
+    List<_ActivePane> active = [];
+    if (_showTreePane) active.add(_ActivePane(0, _buildTreeTab(tab)));
+    if (_showAnalysisPane) active.add(_ActivePane(1, _buildAnalysisTabMock()));
+    if (_showToolsPane) active.add(_ActivePane(2, _buildToolsTabMock()));
+    if (_showCommentsPane) active.add(_ActivePane(3, _buildCommentsPane(tab)));
+
+    if (active.isEmpty) {
+      return const [
+        Expanded(
+          child: Center(
+            child: Text(
+              'No panes active.',
+              style: TextStyle(color: Colors.black38),
+            ),
+          ),
+        ),
+      ];
+    }
+
+    int totalActiveFlex = 0;
+    for (var pane in active) {
+      totalActiveFlex += _paneFlexes[pane.index];
+    }
+
+    List<Widget> children = [];
+    for (int i = 0; i < active.length; i++) {
+      children.add(
+        Expanded(flex: _paneFlexes[active[i].index], child: active[i].widget),
+      );
+      if (i < active.length - 1) {
+        children.add(
+          _buildDraggableDivider(
+            active[i].index,
+            active[i + 1].index,
+            totalHeight,
+            totalActiveFlex,
+          ),
+        );
+      }
+    }
+    return children;
+  }
+
+  Widget _buildDraggableDivider(
+    int topIndex,
+    int bottomIndex,
+    double totalHeight,
+    int totalActiveFlex,
+  ) {
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onVerticalDragStart: (details) {
+        _cumulativeDragDelta = 0;
+        _dragStartFlexTop = _paneFlexes[topIndex];
+        _dragStartFlexBottom = _paneFlexes[bottomIndex];
+      },
+      onVerticalDragUpdate: (details) {
+        setState(() {
+          _cumulativeDragDelta += details.delta.dy;
+
+          // Exact absolute math from drag start
+          double fractionMoved = _cumulativeDragDelta / totalHeight;
+          int flexChange = (fractionMoved * totalActiveFlex).round();
+
+          int minFlex = 1000; // 10% of 10000 base
+
+          int newTop = _dragStartFlexTop + flexChange;
+          int newBottom = _dragStartFlexBottom - flexChange;
+
+          // Clamp strictly against minFlex
+          if (newTop < minFlex) {
+            newTop = minFlex;
+            newBottom = _dragStartFlexTop + _dragStartFlexBottom - minFlex;
+          } else if (newBottom < minFlex) {
+            newBottom = minFlex;
+            newTop = _dragStartFlexTop + _dragStartFlexBottom - minFlex;
+          }
+
+          _paneFlexes[topIndex] = newTop;
+          _paneFlexes[bottomIndex] = newBottom;
+        });
+      },
+      child: MouseRegion(
+        cursor: SystemMouseCursors.resizeUpDown,
+        child: Container(
+          height: 8,
+          color: Colors.transparent, // Invisible hit area
+          child: Center(
+            child: Container(
+              height: 1,
+              color: const Color(0xFFDDDDDD), // Visible thin line
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildTreeTab(GameTab tab) {
     return Container(
       color: const Color(0xFFFAFAFA),
@@ -869,156 +953,156 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-            'BOARD EDITING',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.black54,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _buildToolButton(
-                Icons.circle,
-                'Black Stone',
-                isSelected: _editMode == BoardEditMode.addBlack,
-                onTap: () {
-                  setState(() {
-                    _editMode = _editMode == BoardEditMode.addBlack
-                        ? BoardEditMode.play
-                        : BoardEditMode.addBlack;
-                  });
-                },
-              ),
-              _buildToolButton(
-                Icons.circle_outlined,
-                'White Stone',
-                isSelected: _editMode == BoardEditMode.addWhite,
-                onTap: () {
-                  setState(() {
-                    _editMode = _editMode == BoardEditMode.addWhite
-                        ? BoardEditMode.play
-                        : BoardEditMode.addWhite;
-                  });
-                },
-              ),
-              _buildToolButton(
-                Icons.close,
-                'Remove',
-                isSelected: _editMode == BoardEditMode.remove,
-                onTap: () {
-                  setState(() {
-                    _editMode = _editMode == BoardEditMode.remove
-                        ? BoardEditMode.play
-                        : BoardEditMode.remove;
-                  });
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-          const Text(
-            'MARKUP',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.black54,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _buildToolButton(
-                Icons.change_history,
-                'Triangle',
-                isSelected: _editMode == BoardEditMode.markTriangle,
-                onTap: () => setState(
-                  () => _editMode = _editMode == BoardEditMode.markTriangle
-                      ? BoardEditMode.play
-                      : BoardEditMode.markTriangle,
-                ),
-              ),
-              _buildToolButton(
-                Icons.crop_square,
-                'Square',
-                isSelected: _editMode == BoardEditMode.markSquare,
-                onTap: () => setState(
-                  () => _editMode = _editMode == BoardEditMode.markSquare
-                      ? BoardEditMode.play
-                      : BoardEditMode.markSquare,
-                ),
-              ),
-              _buildToolButton(
-                Icons.radio_button_unchecked,
-                'Circle',
-                isSelected: _editMode == BoardEditMode.markCircle,
-                onTap: () => setState(
-                  () => _editMode = _editMode == BoardEditMode.markCircle
-                      ? BoardEditMode.play
-                      : BoardEditMode.markCircle,
-                ),
-              ),
-              _buildToolButton(
-                Icons.clear,
-                'Cross',
-                isSelected: _editMode == BoardEditMode.markCross,
-                onTap: () => setState(
-                  () => _editMode = _editMode == BoardEditMode.markCross
-                      ? BoardEditMode.play
-                      : BoardEditMode.markCross,
-                ),
-              ),
-              _buildToolButton(
-                Icons.text_fields,
-                'Letter',
-                isSelected: _editMode == BoardEditMode.markLetter,
-                onTap: () => setState(
-                  () => _editMode = _editMode == BoardEditMode.markLetter
-                      ? BoardEditMode.play
-                      : BoardEditMode.markLetter,
-                ),
-              ),
-              _buildToolButton(
-                Icons.numbers,
-                'Number',
-                isSelected: _editMode == BoardEditMode.markNumber,
-                onTap: () => setState(
-                  () => _editMode = _editMode == BoardEditMode.markNumber
-                      ? BoardEditMode.play
-                      : BoardEditMode.markNumber,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-          const Divider(color: Color(0xFFEEEEEE)),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () {}, // TODO: Implement SGF Export
-              icon: const Icon(Icons.download),
-              label: const Text('Export SGF'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue.shade600,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+              'BOARD EDITING',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.black54,
+                letterSpacing: 1.2,
               ),
             ),
-          ),
-        ],
-      ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _buildToolButton(
+                  Icons.circle,
+                  'Black Stone',
+                  isSelected: _editMode == BoardEditMode.addBlack,
+                  onTap: () {
+                    setState(() {
+                      _editMode = _editMode == BoardEditMode.addBlack
+                          ? BoardEditMode.play
+                          : BoardEditMode.addBlack;
+                    });
+                  },
+                ),
+                _buildToolButton(
+                  Icons.circle_outlined,
+                  'White Stone',
+                  isSelected: _editMode == BoardEditMode.addWhite,
+                  onTap: () {
+                    setState(() {
+                      _editMode = _editMode == BoardEditMode.addWhite
+                          ? BoardEditMode.play
+                          : BoardEditMode.addWhite;
+                    });
+                  },
+                ),
+                _buildToolButton(
+                  Icons.close,
+                  'Remove',
+                  isSelected: _editMode == BoardEditMode.remove,
+                  onTap: () {
+                    setState(() {
+                      _editMode = _editMode == BoardEditMode.remove
+                          ? BoardEditMode.play
+                          : BoardEditMode.remove;
+                    });
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 32),
+            const Text(
+              'MARKUP',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.black54,
+                letterSpacing: 1.2,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _buildToolButton(
+                  Icons.change_history,
+                  'Triangle',
+                  isSelected: _editMode == BoardEditMode.markTriangle,
+                  onTap: () => setState(
+                    () => _editMode = _editMode == BoardEditMode.markTriangle
+                        ? BoardEditMode.play
+                        : BoardEditMode.markTriangle,
+                  ),
+                ),
+                _buildToolButton(
+                  Icons.crop_square,
+                  'Square',
+                  isSelected: _editMode == BoardEditMode.markSquare,
+                  onTap: () => setState(
+                    () => _editMode = _editMode == BoardEditMode.markSquare
+                        ? BoardEditMode.play
+                        : BoardEditMode.markSquare,
+                  ),
+                ),
+                _buildToolButton(
+                  Icons.radio_button_unchecked,
+                  'Circle',
+                  isSelected: _editMode == BoardEditMode.markCircle,
+                  onTap: () => setState(
+                    () => _editMode = _editMode == BoardEditMode.markCircle
+                        ? BoardEditMode.play
+                        : BoardEditMode.markCircle,
+                  ),
+                ),
+                _buildToolButton(
+                  Icons.clear,
+                  'Cross',
+                  isSelected: _editMode == BoardEditMode.markCross,
+                  onTap: () => setState(
+                    () => _editMode = _editMode == BoardEditMode.markCross
+                        ? BoardEditMode.play
+                        : BoardEditMode.markCross,
+                  ),
+                ),
+                _buildToolButton(
+                  Icons.text_fields,
+                  'Letter',
+                  isSelected: _editMode == BoardEditMode.markLetter,
+                  onTap: () => setState(
+                    () => _editMode = _editMode == BoardEditMode.markLetter
+                        ? BoardEditMode.play
+                        : BoardEditMode.markLetter,
+                  ),
+                ),
+                _buildToolButton(
+                  Icons.numbers,
+                  'Number',
+                  isSelected: _editMode == BoardEditMode.markNumber,
+                  onTap: () => setState(
+                    () => _editMode = _editMode == BoardEditMode.markNumber
+                        ? BoardEditMode.play
+                        : BoardEditMode.markNumber,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 32),
+            const Divider(color: Color(0xFFEEEEEE)),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {}, // TODO: Implement SGF Export
+                icon: const Icon(Icons.download),
+                label: const Text('Export SGF'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue.shade600,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1155,4 +1239,10 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       ),
     );
   }
+}
+
+class _ActivePane {
+  final int index;
+  final Widget widget;
+  _ActivePane(this.index, this.widget);
 }
