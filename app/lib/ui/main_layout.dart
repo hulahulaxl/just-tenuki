@@ -1007,12 +1007,9 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       color: const Color(0xFFFAFAFA),
       padding: const EdgeInsets.all(24.0),
       child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Wrap(
-              spacing: 4,
-              runSpacing: 4,
+        child: Wrap(
+              spacing: 44 / 6, // 7 items = 6 gaps. (352 available width - 7*44) = 44px for gaps.
+              runSpacing: 8,
               children: [
                 _buildToolButton(
                   Icons.circle,
@@ -1026,7 +1023,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     });
                   },
                 ),
-
                 _buildToolButton(
                   Icons.circle_outlined,
                   'White Stone',
@@ -1039,7 +1035,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     });
                   },
                 ),
-
                 _buildToolButton(
                   Icons.close,
                   'Remove',
@@ -1052,7 +1047,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     });
                   },
                 ),
-
                 _buildToolButton(
                   Icons.change_history,
                   'Triangle',
@@ -1063,7 +1057,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                         : BoardEditMode.markTriangle,
                   ),
                 ),
-
                 _buildToolButton(
                   Icons.crop_square,
                   'Square',
@@ -1074,7 +1067,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                         : BoardEditMode.markSquare,
                   ),
                 ),
-
                 _buildToolButton(
                   Icons.radio_button_unchecked,
                   'Circle',
@@ -1085,7 +1077,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                         : BoardEditMode.markCircle,
                   ),
                 ),
-
                 _buildToolButton(
                   Icons.clear,
                   'Cross',
@@ -1096,7 +1087,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                         : BoardEditMode.markCross,
                   ),
                 ),
-
                 _buildToolButton(
                   Icons.text_fields,
                   'Letter',
@@ -1117,43 +1107,34 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                         : BoardEditMode.markNumber,
                   ),
                 ),
+                // 4 empty cells to push Export SGF to the 7th column of the 2nd row
+                const SizedBox(width: 44, height: 44),
+                const SizedBox(width: 44, height: 44),
+                const SizedBox(width: 44, height: 44),
+                const SizedBox(width: 44, height: 44),
+                _buildToolButton(
+                  Icons.download,
+                  'Export SGF',
+                  isSelected: false,
+                  backgroundColor: Colors.blue.shade600,
+                  iconColor: Colors.white,
+                  onTap: () {
+                    if (_tabs[_activeIndex] is GameTab) {
+                      final session = (_tabs[_activeIndex] as GameTab).session;
+                      final sgfString = SgfWriter.write(session);
+
+                      // Construct a basic filename
+                      String p1 = session.info.blackName.replaceAll(' ', '_');
+                      String p2 = session.info.whiteName.replaceAll(' ', '_');
+                      String filename = '${p1}_vs_$p2.sgf';
+                      if (p1.isEmpty && p2.isEmpty) filename = 'game_review.sgf';
+
+                      downloadTextFile(sgfString, filename);
+                    }
+                  },
+                ),
               ],
             ),
-            const SizedBox(height: 32),
-            const Divider(color: Color(0xFFEEEEEE)),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  if (_tabs[_activeIndex] is GameTab) {
-                    final session = (_tabs[_activeIndex] as GameTab).session;
-                    final sgfString = SgfWriter.write(session);
-
-                    // Construct a basic filename
-                    String p1 = session.info.blackName.replaceAll(' ', '_');
-                    String p2 = session.info.whiteName.replaceAll(' ', '_');
-                    String filename = '${p1}_vs_$p2.sgf';
-                    if (p1.isEmpty && p2.isEmpty) filename = 'game_review.sgf';
-
-                    downloadTextFile(sgfString, filename);
-                  }
-                },
-                icon: const Icon(Icons.download),
-                label: const Text('Export SGF'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue.shade600,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -1162,6 +1143,8 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     IconData icon,
     String tooltip, {
     bool isSelected = false,
+    Color? backgroundColor,
+    Color? iconColor,
     VoidCallback? onTap,
   }) {
     return Tooltip(
@@ -1173,9 +1156,9 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: isSelected ? Colors.blue.shade50 : Colors.white,
+            color: backgroundColor ?? (isSelected ? Colors.blue.shade50 : Colors.white),
             border: Border.all(
-              color: isSelected ? Colors.blue.shade400 : const Color(0xFFE0E0E0),
+              color: isSelected ? Colors.blue.shade400 : (backgroundColor != null ? Colors.transparent : const Color(0xFFE0E0E0)),
               width: 1.5,
             ),
             borderRadius: BorderRadius.circular(8),
@@ -1183,7 +1166,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
           child: Center(
             child: Icon(
               icon,
-              color: isSelected ? Colors.blue.shade700 : Colors.black87,
+              color: iconColor ?? (isSelected ? Colors.blue.shade700 : Colors.black87),
               size: 24,
             ),
           ),
