@@ -47,8 +47,8 @@ class TreePainter extends CustomPainter {
     );
 
     for (int r = 0; r <= maxRow; r++) {
-      // Node centers are at (r * 40.0 + 20) vertically
-      final nodeCenterY = r * 40.0 + 20.0;
+      // Node centers are at (r * 24.0 + 20) vertically
+      final nodeCenterY = r * 24.0 + 20.0;
 
       // CULLING: Skip if this row is completely off-screen
       if (nodeCenterY < cullRect.top || nodeCenterY > cullRect.bottom) {

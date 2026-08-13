@@ -11,8 +11,8 @@ class TreeLayout {
   int get maxRow => _maxRow;
 
   // Visual config
-  static const double nodeSpacingX = 40.0;
-  static const double nodeSpacingY = 40.0;
+  static const double nodeSpacingX = 24.0;
+  static const double nodeSpacingY = 24.0;
 
   /// Recalculates the entire layout starting from the given root node.
   void computeLayout(TreeNode root) {
