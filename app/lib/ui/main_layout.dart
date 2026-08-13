@@ -1010,16 +1010,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'BOARD EDITING',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Colors.black54,
-                letterSpacing: 1.2,
-              ),
-            ),
-            const SizedBox(height: 12),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -1060,23 +1050,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     });
                   },
                 ),
-              ],
-            ),
-            const SizedBox(height: 32),
-            const Text(
-              'MARKUP',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Colors.black54,
-                letterSpacing: 1.2,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
+
                 _buildToolButton(
                   Icons.change_history,
                   'Triangle',
@@ -1180,44 +1154,33 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
 
   Widget _buildToolButton(
     IconData icon,
-    String label, {
+    String tooltip, {
     bool isSelected = false,
     VoidCallback? onTap,
   }) {
-    return InkWell(
-      onTap: onTap ?? () {},
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        width: 80,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.blue.shade50 : Colors.white,
-          border: Border.all(
-            color: isSelected ? Colors.blue.shade400 : const Color(0xFFE0E0E0),
-            width: 1.5,
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap ?? () {},
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.blue.shade50 : Colors.white,
+            border: Border.all(
+              color: isSelected ? Colors.blue.shade400 : const Color(0xFFE0E0E0),
+              width: 1.5,
+            ),
+            borderRadius: BorderRadius.circular(8),
           ),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          children: [
-            Icon(
+          child: Center(
+            child: Icon(
               icon,
               color: isSelected ? Colors.blue.shade700 : Colors.black87,
               size: 24,
             ),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? Colors.blue.shade800 : Colors.black54,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+          ),
         ),
       ),
     );
