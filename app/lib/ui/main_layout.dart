@@ -1011,8 +1011,8 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: 4,
+              runSpacing: 4,
               children: [
                 _buildToolButton(
                   Icons.circle,
@@ -1026,6 +1026,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     });
                   },
                 ),
+
                 _buildToolButton(
                   Icons.circle_outlined,
                   'White Stone',
@@ -1038,6 +1039,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     });
                   },
                 ),
+
                 _buildToolButton(
                   Icons.close,
                   'Remove',
@@ -1061,6 +1063,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                         : BoardEditMode.markTriangle,
                   ),
                 ),
+
                 _buildToolButton(
                   Icons.crop_square,
                   'Square',
@@ -1071,6 +1074,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                         : BoardEditMode.markSquare,
                   ),
                 ),
+
                 _buildToolButton(
                   Icons.radio_button_unchecked,
                   'Circle',
@@ -1081,6 +1085,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                         : BoardEditMode.markCircle,
                   ),
                 ),
+
                 _buildToolButton(
                   Icons.clear,
                   'Cross',
@@ -1091,6 +1096,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                         : BoardEditMode.markCross,
                   ),
                 ),
+
                 _buildToolButton(
                   Icons.text_fields,
                   'Letter',
