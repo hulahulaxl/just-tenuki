@@ -274,21 +274,10 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
-              child: Text(
-                'LOBBY',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black54,
-                  letterSpacing: 1.2,
-                ),
-              ),
-            ),
+            const SizedBox(height: 16),
             _buildMenuTile('New...', Icons.add_box_outlined, true),
             _buildMenuTile('Recent Files', Icons.history, false),
-            _buildMenuTile('Saved Files', Icons.folder_outlined, false),
+            _buildMenuTile('Online Library', Icons.public, false),
           ],
         ),
       ),
@@ -333,13 +322,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                 'Import SGF',
                 'Load a standard .sgf game record to review or play against AI.',
                 Icons.file_download_outlined,
-                onTap: _pickAndLoadSgf,
-              ),
-              const SizedBox(height: 16),
-              _buildDetailCard(
-                'Load .tenuki',
-                'Open a proprietary project containing AI analysis and custom annotations.',
-                Icons.analytics_outlined,
                 onTap: _pickAndLoadSgf,
               ),
             ],
