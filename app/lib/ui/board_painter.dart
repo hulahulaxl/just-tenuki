@@ -137,50 +137,9 @@ class BoardPainter extends CustomPainter {
     // 5. Draw Analysis Overlays (Move Options)
     EngineResponse? activeAnalysis = analysis;
 
-    // --- DUMMY DATA FOR UI TESTING ---
-    activeAnalysis ??= EngineResponse(
-      queryId: 0,
-      rootWinrate: 0.5,
-      rootScoreLead: 0.0,
-      moveOptions: [
-        MoveOption(
-          moveIndex: 300,
-          winrate: 0.55,
-          scoreLead: 0.0,
-          visits: 100,
-          pvIndices: [],
-        ),
-        MoveOption(
-          moveIndex: 288,
-          winrate: 0.54,
-          scoreLead: 0.2,
-          visits: 90,
-          pvIndices: [],
-        ), // Green (+0.2)
-        MoveOption(
-          moveIndex: 72,
-          winrate: 0.50,
-          scoreLead: -0.5,
-          visits: 80,
-          pvIndices: [],
-        ), // Yellow (-0.5)
-        MoveOption(
-          moveIndex: 60,
-          winrate: 0.45,
-          scoreLead: -1.5,
-          visits: 60,
-          pvIndices: [],
-        ), // Yellow (-1.5)
-        MoveOption(
-          moveIndex: 40,
-          winrate: 0.40,
-          scoreLead: -3.0,
-          visits: 40,
-          pvIndices: [],
-        ), // Red (-3.0)
-      ],
-    );
-    // ---------------------------------
+    if (activeAnalysis == null) {
+      return; // Nothing to draw
+    }
 
     for (int i = 0; i < activeAnalysis.moveOptions.length; i++) {
       if (i > 4) break; // Only show top 5
