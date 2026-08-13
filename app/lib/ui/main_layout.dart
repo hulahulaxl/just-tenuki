@@ -374,6 +374,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       GameSession parsedSession = SgfParser.parse(sgfText);
       // Guarantee that the root board state (including setup stones) is physically applied
       parsedSession.first();
+      parsedSession.last();
 
       setState(() {
         _tabs[_activeIndex] = GameTab(parsedSession);
