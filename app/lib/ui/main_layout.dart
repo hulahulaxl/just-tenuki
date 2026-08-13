@@ -61,6 +61,7 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   final List<AppTab> _tabs = [LobbyTab()]; // Start with 1 Lobby tab
   int _activeIndex = 0;
+  int _lobbyMenuIndex = 0; // 0 = New, 1 = Recent, 2 = Online Library
   BoardEditMode _editMode = BoardEditMode.play;
 
   StreamSubscription<EngineResponse>? _analysisSub;
@@ -275,9 +276,9 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 16),
-            _buildMenuTile('New...', Icons.add_box_outlined, true),
-            _buildMenuTile('Recent Files', Icons.history, false),
-            _buildMenuTile('Online Library', Icons.public, false),
+            _buildMenuTile('New...', Icons.add_box_outlined, 0),
+            _buildMenuTile('Recent Files', Icons.history, 1),
+            _buildMenuTile('Online Library', Icons.public, 2),
           ],
         ),
       ),
@@ -288,47 +289,164 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
         child: Container(
           color: Colors.white,
           padding: const EdgeInsets.all(40.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'New Game',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+          child: _lobbyMenuIndex == 2
+              ? _buildOnlineLibraryMock()
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'New Game',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Choose how you want to begin.',
+                      style: TextStyle(fontSize: 16, color: Colors.black54),
+                    ),
+                    const SizedBox(height: 40),
+                    _buildDetailCard(
+                      'Empty Board',
+                      'Start a fresh game on a 9x9, 13x13, or 19x19 board.',
+                      Icons.grid_on,
+                      onTap: () {
+                        setState(() {
+                          _tabs[_activeIndex] = GameTab(GameSession());
+                          _maxScoreScale = 10.0;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildDetailCard(
+                      'Import SGF',
+                      'Load a standard .sgf game record to review or play against AI.',
+                      Icons.file_download_outlined,
+                      onTap: _pickAndLoadSgf,
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Choose how you want to begin.',
-                style: TextStyle(fontSize: 16, color: Colors.black54),
-              ),
-              const SizedBox(height: 40),
-              _buildDetailCard(
-                'Empty Board',
-                'Start a fresh game on a 9x9, 13x13, or 19x19 board.',
-                Icons.grid_on,
-                onTap: () {
-                  setState(() {
-                    // Replace the current LobbyTab with a new GameTab powered by a full GameSession!
-                    _tabs[_activeIndex] = GameTab(GameSession());
-                    _maxScoreScale = 10.0;
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-              _buildDetailCard(
-                'Import SGF',
-                'Load a standard .sgf game record to review or play against AI.',
-                Icons.file_download_outlined,
-                onTap: _pickAndLoadSgf,
-              ),
-            ],
-          ),
         ),
       ),
     ];
+  }
+
+  Widget _buildOnlineLibraryMock() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Online Library (OGS)',
+          style: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Browse millions of professional and amateur games from the Online Go Server.',
+          style: TextStyle(fontSize: 16, color: Colors.black54),
+        ),
+        const SizedBox(height: 40),
+        Row(
+          children: [
+            Expanded(
+              flex: 2,
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Search player name or game ID...',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFFEEEEEE)),
+                  ),
+                  filled: true,
+                  fillColor: const Color(0xFFFAFAFA),
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              flex: 1,
+              child: DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  filled: true,
+                  fillColor: const Color(0xFFFAFAFA),
+                ),
+                initialValue: 'Professional',
+                items: ['Professional', 'Amateur (High Dan)', 'All'].map((
+                  String value,
+                ) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (_) {},
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 32),
+        Expanded(
+          child: ListView.separated(
+            itemCount: 4,
+            separatorBuilder: (context, index) => const Divider(height: 1),
+            itemBuilder: (context, index) {
+              final mockGames = [
+                {'b': 'Lee Sedol (9p)', 'w': 'AlphaGo', 'date': '2016-03-15'},
+                {
+                  'b': 'Shin Jinseo (9p)',
+                  'w': 'Ke Jie (9p)',
+                  'date': '2023-11-20',
+                },
+                {
+                  'b': 'Cho Chikun (9p)',
+                  'w': 'DeepZenGo',
+                  'date': '2016-11-19',
+                },
+                {
+                  'b': 'Iyama Yuta (9p)',
+                  'w': 'Ichiriki Ryo (9p)',
+                  'date': '2024-01-10',
+                },
+              ];
+              final game = mockGames[index];
+              return ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 8,
+                ),
+                leading: const Icon(
+                  Icons.public,
+                  color: Colors.blueAccent,
+                  size: 32,
+                ),
+                title: Text(
+                  '${game['b']} vs ${game['w']}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                subtitle: Text('Played on ${game['date']}'),
+                trailing: ElevatedButton.icon(
+                  onPressed: () {},
+                  icon: const Icon(Icons.cloud_download_outlined, size: 18),
+                  label: const Text('Load Game'),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
   }
 
   Future<void> _pickAndLoadSgf() async {
@@ -1219,27 +1337,38 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildMenuTile(String title, IconData icon, bool isSelected) {
-    return Material(
-      color: isSelected
-          ? Colors.black.withValues(alpha: 0.04)
-          : Colors.transparent,
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 24.0),
-        leading: Icon(
-          icon,
-          color: isSelected ? Colors.black87 : Colors.black54,
-          size: 20,
-        ),
-        title: Text(
-          title,
-          style: TextStyle(
-            color: isSelected ? Colors.black87 : Colors.black54,
-            fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
-            fontSize: 14,
+  Widget _buildMenuTile(String title, IconData icon, int index) {
+    bool isSelected = _lobbyMenuIndex == index;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _lobbyMenuIndex = index;
+        });
+      },
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: Container(
+          color: isSelected ? const Color(0xFFEEEEEE) : Colors.transparent,
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: isSelected ? Colors.blue.shade700 : Colors.black54,
+              ),
+              const SizedBox(width: 16),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  color: isSelected ? Colors.black87 : Colors.black54,
+                ),
+              ),
+            ],
           ),
         ),
-        onTap: () {}, // No functionality yet
       ),
     );
   }
