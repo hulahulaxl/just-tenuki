@@ -566,10 +566,35 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
         : '';
     String whiteName = '$pw$wr';
 
-    String blackTime =
-        session.currentNode.timeLeft[0] ?? session.info.baseTime ?? '--:--';
-    String whiteTime =
-        session.currentNode.timeLeft[1] ?? session.info.baseTime ?? '--:--';
+    String _formatTime(String? timeStr, int player) {
+      if (timeStr == null || timeStr.isEmpty) return '--:--';
+      double? seconds = double.tryParse(timeStr);
+      if (seconds == null) return timeStr; // Return as-is if not a valid number (e.g. some weird format)
+      
+      int totalSeconds = seconds.round();
+      int h = totalSeconds ~/ 3600;
+      int m = (totalSeconds % 3600) ~/ 60;
+      int s = totalSeconds % 60;
+      
+      String formatted;
+      if (h > 0) {
+        formatted = '$h:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+      } else {
+        formatted = '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+      }
+
+      String? otStr = session.getOvertimeLeft(player);
+      if (otStr != null && otStr.isNotEmpty) {
+        // Just append the period counter directly, e.g. (3)
+        formatted += ' ($otStr)';
+      } else if (session.info.overtime != null && session.info.overtime!.isNotEmpty) {
+        formatted += ' + ${session.info.overtime}';
+      }
+      return formatted;
+    }
+
+    String blackTime = _formatTime(session.getTimeLeft(0) ?? session.info.baseTime, 0);
+    String whiteTime = _formatTime(session.getTimeLeft(1) ?? session.info.baseTime, 1);
 
     return Container(
       height: 40,

@@ -148,6 +148,14 @@ class SgfParser {
       node.timeLeft[1] = values[0];
       return;
     }
+    if (key == 'OB') {
+      node.overtimeLeft[0] = values[0];
+      return;
+    }
+    if (key == 'OW') {
+      node.overtimeLeft[1] = values[0];
+      return;
+    }
 
     // 4. Board Annotations (Setup Stones & Marks)
     // SGF properties like AB, AW, TR, SQ can contain multiple values

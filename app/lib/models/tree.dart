@@ -30,6 +30,7 @@ class TreeNode {
 
   // Time management per node (Index 0 = Black, Index 1 = White)
   List<String?> timeLeft = List.filled(2, null);
+  List<String?> overtimeLeft = List.filled(2, null);
 
   /// Explicitly dictates whose turn it is next (used for handicap and Tsumego)
   int? playerToPlay;
@@ -304,5 +305,30 @@ class GameSession {
       curr = curr.children[0];
     }
     jumpTo(curr);
+  }
+
+  /// Traverses backward to find the most recent time left for a given player.
+  /// [player] 0 for Black, 1 for White.
+  String? getTimeLeft(int player) {
+    TreeNode? curr = currentNode;
+    while (curr != null) {
+      if (curr.timeLeft[player] != null) {
+        return curr.timeLeft[player];
+      }
+      curr = curr.parent;
+    }
+    return null;
+  }
+
+  /// Traverses backward to find the most recent overtime left for a given player.
+  String? getOvertimeLeft(int player) {
+    TreeNode? curr = currentNode;
+    while (curr != null) {
+      if (curr.overtimeLeft[player] != null) {
+        return curr.overtimeLeft[player];
+      }
+      curr = curr.parent;
+    }
+    return null;
   }
 }
