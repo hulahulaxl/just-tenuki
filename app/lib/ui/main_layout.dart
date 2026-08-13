@@ -1014,7 +1014,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   Widget _buildToolsTabMock() {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Wrap(
         spacing: 4,
         runSpacing: 4,
