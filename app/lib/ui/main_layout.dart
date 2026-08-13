@@ -69,9 +69,9 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   double _maxScoreScale = 10.0;
 
   bool _showTreePane = true;
-  bool _showAnalysisPane = true;
-  bool _showToolsPane = false;
-  bool _showCommentsPane = true;
+  bool _showToolsPane = true;
+  bool _showAnalysisPane = false;
+  bool _showCommentsPane = false;
 
   // High precision flex values for smooth 1:1 cursor tracking, isolated via ValueNotifier
   final ValueNotifier<List<int>> _paneFlexes = ValueNotifier([
@@ -515,20 +515,20 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             ),
             const SizedBox(height: 8),
             _buildRightToolbarButton(
-              Icons.analytics_outlined,
-              'AI Analysis',
-              _showAnalysisPane,
-              () {
-                setState(() => _showAnalysisPane = !_showAnalysisPane);
-              },
-            ),
-            const SizedBox(height: 8),
-            _buildRightToolbarButton(
               Icons.edit_outlined,
               'Edit Tools',
               _showToolsPane,
               () {
                 setState(() => _showToolsPane = !_showToolsPane);
+              },
+            ),
+            const SizedBox(height: 8),
+            _buildRightToolbarButton(
+              Icons.analytics_outlined,
+              'AI Analysis',
+              _showAnalysisPane,
+              () {
+                setState(() => _showAnalysisPane = !_showAnalysisPane);
               },
             ),
             const SizedBox(height: 8),
@@ -837,8 +837,8 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   ) {
     List<_ActivePane> active = [];
     if (_showTreePane) active.add(_ActivePane(0, _buildTreeTab(tab)));
-    if (_showAnalysisPane) active.add(_ActivePane(1, _buildAnalysisTabMock()));
-    if (_showToolsPane) active.add(_ActivePane(2, _buildToolsTabMock()));
+    if (_showToolsPane) active.add(_ActivePane(1, _buildToolsTabMock()));
+    if (_showAnalysisPane) active.add(_ActivePane(2, _buildAnalysisTabMock()));
     if (_showCommentsPane) active.add(_ActivePane(3, _buildCommentsPane(tab)));
 
     if (active.isEmpty) {
