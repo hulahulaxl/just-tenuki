@@ -470,36 +470,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       ),
       const VerticalDivider(width: 1, thickness: 1, color: Color(0xFFEEEEEE)),
 
-      // Column 3: Active Panes
-      Container(
-        width: 400,
-        color: Colors.white,
-        child: Column(
-          children: [
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return ValueListenableBuilder<List<int>>(
-                    valueListenable: _paneFlexes,
-                    builder: (context, flexes, child) {
-                      return Column(
-                        children: _buildActivePanes(
-                          tab,
-                          constraints.maxHeight,
-                          flexes,
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-      const VerticalDivider(width: 1, thickness: 1, color: Color(0xFFEEEEEE)),
-
-      // Column 4: Right Toolbar
+      // Column 3: Right Toolbar (Edit Tools & Toggles)
       Container(
         width: 49,
         height: double.infinity,
@@ -623,6 +594,35 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
               const SizedBox(height: 24),
             ],
           ),
+        ),
+      ),
+      const VerticalDivider(width: 1, thickness: 1, color: Color(0xFFEEEEEE)),
+
+      // Column 4: Active Panes
+      Container(
+        width: 400,
+        color: Colors.white,
+        child: Column(
+          children: [
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return ValueListenableBuilder<List<int>>(
+                    valueListenable: _paneFlexes,
+                    builder: (context, flexes, child) {
+                      return Column(
+                        children: _buildActivePanes(
+                          tab,
+                          constraints.maxHeight,
+                          flexes,
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     ];
