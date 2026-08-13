@@ -512,63 +512,99 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                 Icons.circle,
                 'Black Stone',
                 isSelected: _editMode == BoardEditMode.addBlack,
-                onTap: () => setState(() => _editMode = _editMode == BoardEditMode.addBlack ? BoardEditMode.play : BoardEditMode.addBlack),
+                onTap: () => setState(
+                  () => _editMode = _editMode == BoardEditMode.addBlack
+                      ? BoardEditMode.play
+                      : BoardEditMode.addBlack,
+                ),
               ),
               const SizedBox(height: 8),
               _buildToolButton(
                 Icons.circle_outlined,
                 'White Stone',
                 isSelected: _editMode == BoardEditMode.addWhite,
-                onTap: () => setState(() => _editMode = _editMode == BoardEditMode.addWhite ? BoardEditMode.play : BoardEditMode.addWhite),
+                onTap: () => setState(
+                  () => _editMode = _editMode == BoardEditMode.addWhite
+                      ? BoardEditMode.play
+                      : BoardEditMode.addWhite,
+                ),
               ),
               const SizedBox(height: 8),
               _buildToolButton(
                 Icons.close,
                 'Remove',
                 isSelected: _editMode == BoardEditMode.remove,
-                onTap: () => setState(() => _editMode = _editMode == BoardEditMode.remove ? BoardEditMode.play : BoardEditMode.remove),
+                onTap: () => setState(
+                  () => _editMode = _editMode == BoardEditMode.remove
+                      ? BoardEditMode.play
+                      : BoardEditMode.remove,
+                ),
               ),
               const SizedBox(height: 8),
               _buildToolButton(
                 Icons.change_history,
                 'Triangle',
                 isSelected: _editMode == BoardEditMode.markTriangle,
-                onTap: () => setState(() => _editMode = _editMode == BoardEditMode.markTriangle ? BoardEditMode.play : BoardEditMode.markTriangle),
+                onTap: () => setState(
+                  () => _editMode = _editMode == BoardEditMode.markTriangle
+                      ? BoardEditMode.play
+                      : BoardEditMode.markTriangle,
+                ),
               ),
               const SizedBox(height: 8),
               _buildToolButton(
                 Icons.crop_square,
                 'Square',
                 isSelected: _editMode == BoardEditMode.markSquare,
-                onTap: () => setState(() => _editMode = _editMode == BoardEditMode.markSquare ? BoardEditMode.play : BoardEditMode.markSquare),
+                onTap: () => setState(
+                  () => _editMode = _editMode == BoardEditMode.markSquare
+                      ? BoardEditMode.play
+                      : BoardEditMode.markSquare,
+                ),
               ),
               const SizedBox(height: 8),
               _buildToolButton(
                 Icons.radio_button_unchecked,
                 'Circle',
                 isSelected: _editMode == BoardEditMode.markCircle,
-                onTap: () => setState(() => _editMode = _editMode == BoardEditMode.markCircle ? BoardEditMode.play : BoardEditMode.markCircle),
+                onTap: () => setState(
+                  () => _editMode = _editMode == BoardEditMode.markCircle
+                      ? BoardEditMode.play
+                      : BoardEditMode.markCircle,
+                ),
               ),
               const SizedBox(height: 8),
               _buildToolButton(
                 Icons.clear,
                 'Cross',
                 isSelected: _editMode == BoardEditMode.markCross,
-                onTap: () => setState(() => _editMode = _editMode == BoardEditMode.markCross ? BoardEditMode.play : BoardEditMode.markCross),
+                onTap: () => setState(
+                  () => _editMode = _editMode == BoardEditMode.markCross
+                      ? BoardEditMode.play
+                      : BoardEditMode.markCross,
+                ),
               ),
               const SizedBox(height: 8),
               _buildToolButton(
                 Icons.text_fields,
                 'Letter',
                 isSelected: _editMode == BoardEditMode.markLetter,
-                onTap: () => setState(() => _editMode = _editMode == BoardEditMode.markLetter ? BoardEditMode.play : BoardEditMode.markLetter),
+                onTap: () => setState(
+                  () => _editMode = _editMode == BoardEditMode.markLetter
+                      ? BoardEditMode.play
+                      : BoardEditMode.markLetter,
+                ),
               ),
               const SizedBox(height: 8),
               _buildToolButton(
                 Icons.numbers,
                 'Number',
                 isSelected: _editMode == BoardEditMode.markNumber,
-                onTap: () => setState(() => _editMode = _editMode == BoardEditMode.markNumber ? BoardEditMode.play : BoardEditMode.markNumber),
+                onTap: () => setState(
+                  () => _editMode = _editMode == BoardEditMode.markNumber
+                      ? BoardEditMode.play
+                      : BoardEditMode.markNumber,
+                ),
               ),
               const SizedBox(height: 16),
               const Divider(height: 1, thickness: 1, color: Color(0xFFEEEEEE)),
@@ -1032,23 +1068,97 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       _commentController.text = tab.session.currentNode.comment;
     }
 
+    var path = <TreeNode>[];
+    TreeNode? curr = tab.session.currentNode;
+    while (curr != null) {
+      path.insert(0, curr);
+      curr = curr.parent;
+    }
+
+    int moveCounter = 0;
+    List<Widget> historyWidgets = [];
+
+    for (var n in path) {
+      if (n.move != null) {
+        moveCounter++;
+      }
+
+      if (n == tab.session.currentNode) {
+        continue;
+      }
+
+      if (n.comment.trim().isNotEmpty) {
+        String header = '[Move $moveCounter]';
+        historyWidgets.add(
+          InkWell(
+            onTap: () {
+              setState(() {
+                tab.session.jumpTo(n);
+                // Also trigger an AI analysis if the tab is active
+                engineClient.analyze(tab.session);
+              });
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4.0),
+                    child: Text(
+                      header,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black54,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    n.comment.trim(),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.black87,
+                      height: 1.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+    }
+
+    String currentHeader = '[Move $moveCounter]';
+
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'COMMENTS',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.black54,
-              letterSpacing: 1.2,
+      child: CustomScrollView(
+        slivers: [
+          if (historyWidgets.isNotEmpty)
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: historyWidgets,
+              ),
+            ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 4.0),
+              child: Text(
+                currentHeader,
+                style: TextStyle(
+                  fontWeight: FontWeight.w900, // Extra bold
+                  color: Colors.blue.shade700,
+                  fontSize: 13,
+                ),
+              ),
             ),
           ),
-          const SizedBox(height: 8),
-          Expanded(
+          SliverFillRemaining(
+            hasScrollBody: false,
             child: TextField(
               controller: _commentController,
               onChanged: (val) {
@@ -1082,8 +1192,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       ),
     );
   }
-
-
 
   Widget _buildToolButton(
     IconData icon,
