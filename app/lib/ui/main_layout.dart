@@ -69,7 +69,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   double _maxScoreScale = 10.0;
 
   bool _showTreePane = true;
-  bool _showToolsPane = true;
   bool _showAnalysisPane = false;
   bool _showCommentsPane = false;
 
@@ -400,10 +399,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                       board: tab.session.currentBoard,
                       currentNode: tab.session.currentNode,
                       onIntersectionTapped: (x, y) {
-                        // Edit tools only work when the Tools pane is visible
-                        BoardEditMode effectiveMode = _showToolsPane
-                            ? _editMode
-                            : BoardEditMode.play;
+                        BoardEditMode effectiveMode = _editMode;
 
                         if (effectiveMode == BoardEditMode.play) {
                           // Let the session manage the move and tree timeline!
@@ -498,10 +494,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                 },
               ),
             ),
-            if (_showToolsPane) ...[
-              const Divider(height: 1, thickness: 1, color: Color(0xFFEEEEEE)),
-              _buildToolsTabMock(),
-            ],
           ],
         ),
       ),
@@ -510,47 +502,127 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       // Column 4: Right Toolbar
       Container(
         width: 49,
+        height: double.infinity,
         color: const Color(0xFFFAFAFA),
-        child: Column(
-          children: [
-            const SizedBox(height: 16),
-            _buildRightToolbarButton(
-              Icons.account_tree_outlined,
-              'Move Tree',
-              _showTreePane,
-              () {
-                setState(() => _showTreePane = !_showTreePane);
-              },
-            ),
-            const SizedBox(height: 8),
-
-            _buildRightToolbarButton(
-              Icons.analytics_outlined,
-              'AI Analysis',
-              _showAnalysisPane,
-              () {
-                setState(() => _showAnalysisPane = !_showAnalysisPane);
-              },
-            ),
-            const SizedBox(height: 8),
-            _buildRightToolbarButton(
-              Icons.chat_bubble_outline,
-              'Comments',
-              _showCommentsPane,
-              () {
-                setState(() => _showCommentsPane = !_showCommentsPane);
-              },
-            ),
-            const SizedBox(height: 8),
-            _buildRightToolbarButton(
-              Icons.edit_outlined,
-              'Edit Tools',
-              _showToolsPane,
-              () {
-                setState(() => _showToolsPane = !_showToolsPane);
-              },
-            ),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              const SizedBox(height: 16),
+              _buildRightToolbarButton(
+                Icons.account_tree_outlined,
+                'Move Tree',
+                _showTreePane,
+                () {
+                  setState(() => _showTreePane = !_showTreePane);
+                },
+              ),
+              const SizedBox(height: 8),
+              _buildRightToolbarButton(
+                Icons.analytics_outlined,
+                'AI Analysis',
+                _showAnalysisPane,
+                () {
+                  setState(() => _showAnalysisPane = !_showAnalysisPane);
+                },
+              ),
+              const SizedBox(height: 8),
+              _buildRightToolbarButton(
+                Icons.chat_bubble_outline,
+                'Comments',
+                _showCommentsPane,
+                () {
+                  setState(() => _showCommentsPane = !_showCommentsPane);
+                },
+              ),
+              const SizedBox(height: 16),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFEEEEEE)),
+              const SizedBox(height: 16),
+              _buildToolButton(
+                Icons.circle,
+                'Black Stone',
+                isSelected: _editMode == BoardEditMode.addBlack,
+                onTap: () => setState(() => _editMode = _editMode == BoardEditMode.addBlack ? BoardEditMode.play : BoardEditMode.addBlack),
+              ),
+              const SizedBox(height: 8),
+              _buildToolButton(
+                Icons.circle_outlined,
+                'White Stone',
+                isSelected: _editMode == BoardEditMode.addWhite,
+                onTap: () => setState(() => _editMode = _editMode == BoardEditMode.addWhite ? BoardEditMode.play : BoardEditMode.addWhite),
+              ),
+              const SizedBox(height: 8),
+              _buildToolButton(
+                Icons.close,
+                'Remove',
+                isSelected: _editMode == BoardEditMode.remove,
+                onTap: () => setState(() => _editMode = _editMode == BoardEditMode.remove ? BoardEditMode.play : BoardEditMode.remove),
+              ),
+              const SizedBox(height: 8),
+              _buildToolButton(
+                Icons.change_history,
+                'Triangle',
+                isSelected: _editMode == BoardEditMode.markTriangle,
+                onTap: () => setState(() => _editMode = _editMode == BoardEditMode.markTriangle ? BoardEditMode.play : BoardEditMode.markTriangle),
+              ),
+              const SizedBox(height: 8),
+              _buildToolButton(
+                Icons.crop_square,
+                'Square',
+                isSelected: _editMode == BoardEditMode.markSquare,
+                onTap: () => setState(() => _editMode = _editMode == BoardEditMode.markSquare ? BoardEditMode.play : BoardEditMode.markSquare),
+              ),
+              const SizedBox(height: 8),
+              _buildToolButton(
+                Icons.radio_button_unchecked,
+                'Circle',
+                isSelected: _editMode == BoardEditMode.markCircle,
+                onTap: () => setState(() => _editMode = _editMode == BoardEditMode.markCircle ? BoardEditMode.play : BoardEditMode.markCircle),
+              ),
+              const SizedBox(height: 8),
+              _buildToolButton(
+                Icons.clear,
+                'Cross',
+                isSelected: _editMode == BoardEditMode.markCross,
+                onTap: () => setState(() => _editMode = _editMode == BoardEditMode.markCross ? BoardEditMode.play : BoardEditMode.markCross),
+              ),
+              const SizedBox(height: 8),
+              _buildToolButton(
+                Icons.text_fields,
+                'Letter',
+                isSelected: _editMode == BoardEditMode.markLetter,
+                onTap: () => setState(() => _editMode = _editMode == BoardEditMode.markLetter ? BoardEditMode.play : BoardEditMode.markLetter),
+              ),
+              const SizedBox(height: 8),
+              _buildToolButton(
+                Icons.numbers,
+                'Number',
+                isSelected: _editMode == BoardEditMode.markNumber,
+                onTap: () => setState(() => _editMode = _editMode == BoardEditMode.markNumber ? BoardEditMode.play : BoardEditMode.markNumber),
+              ),
+              const SizedBox(height: 16),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFEEEEEE)),
+              const SizedBox(height: 16),
+              _buildToolButton(
+                Icons.download,
+                'Export SGF',
+                isSelected: false,
+                backgroundColor: Colors.blue.shade600,
+                iconColor: Colors.white,
+                onTap: () {
+                  if (_tabs[_activeIndex] is GameTab) {
+                    final session = (_tabs[_activeIndex] as GameTab).session;
+                    final sgfString = SgfWriter.write(session);
+                    String p1 = session.info.blackName.replaceAll(' ', '_');
+                    String p2 = session.info.whiteName.replaceAll(' ', '_');
+                    String filename = '${p1}_vs_$p2.sgf';
+                    if (p1.isEmpty && p2.isEmpty) filename = 'game_review.sgf';
+                    downloadTextFile(sgfString, filename);
+                  }
+                },
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
       ),
     ];
@@ -1011,136 +1083,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildToolsTabMock() {
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Wrap(
-        spacing: 4,
-        runSpacing: 4,
-        children: [
-          _buildToolButton(
-            Icons.circle,
-            'Black Stone',
-            isSelected: _editMode == BoardEditMode.addBlack,
-            onTap: () {
-              setState(() {
-                _editMode = _editMode == BoardEditMode.addBlack
-                    ? BoardEditMode.play
-                    : BoardEditMode.addBlack;
-              });
-            },
-          ),
-          _buildToolButton(
-            Icons.circle_outlined,
-            'White Stone',
-            isSelected: _editMode == BoardEditMode.addWhite,
-            onTap: () {
-              setState(() {
-                _editMode = _editMode == BoardEditMode.addWhite
-                    ? BoardEditMode.play
-                    : BoardEditMode.addWhite;
-              });
-            },
-          ),
-          _buildToolButton(
-            Icons.close,
-            'Remove',
-            isSelected: _editMode == BoardEditMode.remove,
-            onTap: () {
-              setState(() {
-                _editMode = _editMode == BoardEditMode.remove
-                    ? BoardEditMode.play
-                    : BoardEditMode.remove;
-              });
-            },
-          ),
-          _buildToolButton(
-            Icons.change_history,
-            'Triangle',
-            isSelected: _editMode == BoardEditMode.markTriangle,
-            onTap: () => setState(
-              () => _editMode = _editMode == BoardEditMode.markTriangle
-                  ? BoardEditMode.play
-                  : BoardEditMode.markTriangle,
-            ),
-          ),
-          _buildToolButton(
-            Icons.crop_square,
-            'Square',
-            isSelected: _editMode == BoardEditMode.markSquare,
-            onTap: () => setState(
-              () => _editMode = _editMode == BoardEditMode.markSquare
-                  ? BoardEditMode.play
-                  : BoardEditMode.markSquare,
-            ),
-          ),
-          _buildToolButton(
-            Icons.radio_button_unchecked,
-            'Circle',
-            isSelected: _editMode == BoardEditMode.markCircle,
-            onTap: () => setState(
-              () => _editMode = _editMode == BoardEditMode.markCircle
-                  ? BoardEditMode.play
-                  : BoardEditMode.markCircle,
-            ),
-          ),
-          _buildToolButton(
-            Icons.clear,
-            'Cross',
-            isSelected: _editMode == BoardEditMode.markCross,
-            onTap: () => setState(
-              () => _editMode = _editMode == BoardEditMode.markCross
-                  ? BoardEditMode.play
-                  : BoardEditMode.markCross,
-            ),
-          ),
-          _buildToolButton(
-            Icons.text_fields,
-            'Letter',
-            isSelected: _editMode == BoardEditMode.markLetter,
-            onTap: () => setState(
-              () => _editMode = _editMode == BoardEditMode.markLetter
-                  ? BoardEditMode.play
-                  : BoardEditMode.markLetter,
-            ),
-          ),
-          _buildToolButton(
-            Icons.numbers,
-            'Number',
-            isSelected: _editMode == BoardEditMode.markNumber,
-            onTap: () => setState(
-              () => _editMode = _editMode == BoardEditMode.markNumber
-                  ? BoardEditMode.play
-                  : BoardEditMode.markNumber,
-            ),
-          ),
 
-          _buildToolButton(
-            Icons.download,
-            'Export SGF',
-            isSelected: false,
-            backgroundColor: Colors.blue.shade600,
-            iconColor: Colors.white,
-            onTap: () {
-              if (_tabs[_activeIndex] is GameTab) {
-                final session = (_tabs[_activeIndex] as GameTab).session;
-                final sgfString = SgfWriter.write(session);
-
-                // Construct a basic filename
-                String p1 = session.info.blackName.replaceAll(' ', '_');
-                String p2 = session.info.whiteName.replaceAll(' ', '_');
-                String filename = '${p1}_vs_$p2.sgf';
-                if (p1.isEmpty && p2.isEmpty) filename = 'game_review.sgf';
-
-                downloadTextFile(sgfString, filename);
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildToolButton(
     IconData icon,
