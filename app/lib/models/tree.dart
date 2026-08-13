@@ -285,9 +285,16 @@ class GameSession {
     }
   }
 
-  /// Jumps to the absolute beginning of the game.
+  /// Jumps to the latest setup node in the current variation.
   void first() {
-    jumpTo(rootNode);
+    TreeNode curr = currentNode;
+    if (curr.parent != null) {
+      curr = curr.parent!;
+    }
+    while (curr.parent != null && curr.move != null) {
+      curr = curr.parent!;
+    }
+    jumpTo(curr);
   }
 
   /// Fast-forwards to the end of the current variation.
