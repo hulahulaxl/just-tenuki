@@ -34,9 +34,10 @@ class BoardPainter extends CustomPainter {
     final int cols = board.columns;
     final int rows = board.rows;
 
-    // We allocate space for (cols - 1) grid squares PLUS 1 full square for margins (0.5 left, 0.5 right)
-    final double cellWidth = size.width / cols;
-    final double cellHeight = size.height / rows;
+    // We allocate space for (cols - 1) grid squares PLUS margin blocks
+    final double marginBlocks = settings.showCoordinates ? 1.8 : 1.0;
+    final double cellWidth = size.width / (cols - 1 + marginBlocks);
+    final double cellHeight = size.height / (rows - 1 + marginBlocks);
     final double cellSize = cellWidth < cellHeight ? cellWidth : cellHeight;
 
     // Center the grid
@@ -70,6 +71,11 @@ class BoardPainter extends CustomPainter {
         Offset(offsetX + gridWidth, y),
         linePaint,
       );
+    }
+
+    // 2.5 Draw Coordinates
+    if (settings.showCoordinates) {
+      _drawCoordinates(canvas, offsetX, offsetY, cellSize, cols, rows);
     }
 
     // 3. Draw star points (hoshi) if 19x19 board
@@ -371,6 +377,92 @@ class BoardPainter extends CustomPainter {
         Offset(
           center.dx - textPainter.width / 2,
           center.dy - textPainter.height / 2,
+        ),
+      );
+    }
+  }
+
+  void _drawCoordinates(
+    Canvas canvas,
+    double offsetX,
+    double offsetY,
+    double cellSize,
+    int cols,
+    int rows,
+  ) {
+    final textStyle = TextStyle(
+      color: Colors.black54,
+      fontSize: cellSize * 0.4, // Scale font with cell size
+      fontWeight: FontWeight.w600,
+    );
+
+    // Draw Column Labels (A, B, C...) at Top and Bottom
+    for (int i = 0; i < cols; i++) {
+      // Skip 'I' (index 8)
+      String letter = String.fromCharCode(
+        'A'.codeUnitAt(0) + i + (i >= 8 ? 1 : 0),
+      );
+      final textSpan = TextSpan(text: letter, style: textStyle);
+      final textPainter = TextPainter(
+        text: textSpan,
+        textDirection: TextDirection.ltr,
+        textAlign: TextAlign.center,
+      );
+      textPainter.layout();
+
+      double x = offsetX + i * cellSize;
+
+      // Top label
+      textPainter.paint(
+        canvas,
+        Offset(
+          x - textPainter.width / 2,
+          offsetY - cellSize * 0.7 - textPainter.height / 2,
+        ),
+      );
+      // Bottom label
+      textPainter.paint(
+        canvas,
+        Offset(
+          x - textPainter.width / 2,
+          offsetY +
+              (rows - 1) * cellSize +
+              cellSize * 0.7 -
+              textPainter.height / 2,
+        ),
+      );
+    }
+
+    // Draw Row Labels (19, 18...) at Left and Right
+    for (int i = 0; i < rows; i++) {
+      String number = (rows - i).toString();
+      final textSpan = TextSpan(text: number, style: textStyle);
+      final textPainter = TextPainter(
+        text: textSpan,
+        textDirection: TextDirection.ltr,
+        textAlign: TextAlign.center,
+      );
+      textPainter.layout();
+
+      double y = offsetY + i * cellSize;
+
+      // Left label
+      textPainter.paint(
+        canvas,
+        Offset(
+          offsetX - cellSize * 0.7 - textPainter.width / 2,
+          y - textPainter.height / 2,
+        ),
+      );
+      // Right label
+      textPainter.paint(
+        canvas,
+        Offset(
+          offsetX +
+              (cols - 1) * cellSize +
+              cellSize * 0.7 -
+              textPainter.width / 2,
+          y - textPainter.height / 2,
         ),
       );
     }
