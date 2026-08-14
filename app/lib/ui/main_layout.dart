@@ -72,9 +72,11 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   bool _showTreePane = true;
   bool _showAnalysisPane = false;
   bool _showCommentsPane = false;
+  bool _showSettingsPane = false;
 
   // High precision flex values for smooth 1:1 cursor tracking, isolated via ValueNotifier
   final ValueNotifier<List<int>> _paneFlexes = ValueNotifier([
+    10000,
     10000,
     10000,
     10000,
@@ -164,8 +166,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
               _activeIndex = _tabs.length - 1;
             });
           }),
-          const SizedBox(height: 8),
-          _buildSidebarButton(Icons.settings_outlined, 'Settings', () {}),
           const SizedBox(height: 16),
         ],
       ),
@@ -603,6 +603,15 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                 _showCommentsPane,
                 () {
                   setState(() => _showCommentsPane = !_showCommentsPane);
+                },
+              ),
+              const SizedBox(height: 8),
+              _buildRightToolbarButton(
+                Icons.settings_outlined,
+                'Settings',
+                _showSettingsPane,
+                () {
+                  setState(() => _showSettingsPane = !_showSettingsPane);
                 },
               ),
               const SizedBox(height: 16),
@@ -1057,6 +1066,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     if (_showTreePane) active.add(_ActivePane(0, _buildTreeTab(tab)));
     if (_showAnalysisPane) active.add(_ActivePane(1, _buildAnalysisTabMock()));
     if (_showCommentsPane) active.add(_ActivePane(2, _buildCommentsPane(tab)));
+    if (_showSettingsPane) active.add(_ActivePane(3, _buildSettingsPaneMock()));
 
     if (active.isEmpty) {
       return const [
@@ -1289,6 +1299,122 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       child: Text(
         'AI Analysis Data (Mock)',
         style: TextStyle(color: Colors.black54),
+      ),
+    );
+  }
+
+  Widget _buildSettingsPaneMock() {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.all(24.0),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Global Settings',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildSettingsDropdown('Theme', ['Light', 'Dark', 'System']),
+            _buildSettingsDropdown('Language', [
+              'English',
+              'Korean',
+              'Japanese',
+            ]),
+            const SizedBox(height: 32),
+            const Text(
+              'Board Preferences',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildSettingsDropdown('Board Color', [
+              'Classic Wood',
+              'Kaya',
+              'Slate',
+              'Minimalist',
+            ]),
+            _buildSettingsDropdown('Stone Style', [
+              'Glass',
+              'Slate & Shell',
+              'Flat',
+            ]),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Show Coordinates',
+                  style: TextStyle(fontSize: 14, color: Colors.black87),
+                ),
+                Switch(
+                  value: true,
+                  onChanged: (_) {},
+                  activeTrackColor: Colors.blue,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Highlight Last Move',
+                  style: TextStyle(fontSize: 14, color: Colors.black87),
+                ),
+                Switch(
+                  value: true,
+                  onChanged: (_) {},
+                  activeTrackColor: Colors.blue,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSettingsDropdown(String label, List<String> options) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontSize: 14, color: Colors.black54),
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            decoration: InputDecoration(
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
+              isDense: true,
+            ),
+            initialValue: options.first,
+            items: options.map((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value, style: const TextStyle(fontSize: 14)),
+              );
+            }).toList(),
+            onChanged: (_) {},
+          ),
+        ],
       ),
     );
   }
