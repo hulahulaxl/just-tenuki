@@ -130,11 +130,12 @@ class BoardPainter extends CustomPainter {
 
         // Draw drop shadow
         if (settings.stoneDropShadow > 0) {
+          final double scaledShadow = settings.stoneDropShadow * (cellSize / 40.0);
           final shadowPaint = Paint()
             ..color = Colors.black.withValues(alpha: 0.3)
-            ..maskFilter = MaskFilter.blur(BlurStyle.normal, settings.stoneDropShadow);
+            ..maskFilter = MaskFilter.blur(BlurStyle.normal, scaledShadow);
           canvas.drawOval(
-              stoneRect.translate(settings.stoneDropShadow / 2, settings.stoneDropShadow / 2),
+              stoneRect.translate(scaledShadow / 2, scaledShadow / 2),
               shadowPaint);
         }
 
@@ -143,10 +144,11 @@ class BoardPainter extends CustomPainter {
 
         // Draw outline
         if (settings.stoneOutlineThickness > 0) {
+          final double scaledOutline = settings.stoneOutlineThickness * (cellSize / 40.0);
           final outlinePaint = Paint()
             ..color = Colors.black87
             ..style = PaintingStyle.stroke
-            ..strokeWidth = settings.stoneOutlineThickness;
+            ..strokeWidth = scaledOutline;
           canvas.drawOval(stoneRect, outlinePaint);
         }
         
