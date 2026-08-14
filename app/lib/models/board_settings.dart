@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
+
 class BoardSettings {
-  final int boardStyleIndex;
+  final Color boardColor;
   final int blackStoneStyleIndex;
   final int whiteStoneStyleIndex;
   final int lineStyleIndex;
@@ -13,7 +15,7 @@ class BoardSettings {
   final double stoneScale;
 
   const BoardSettings({
-    required this.boardStyleIndex,
+    required this.boardColor,
     required this.blackStoneStyleIndex,
     required this.whiteStoneStyleIndex,
     required this.lineStyleIndex,
@@ -28,7 +30,7 @@ class BoardSettings {
   });
 
   const BoardSettings.defaults()
-    : boardStyleIndex = 0,
+    : boardColor = const Color(0xFFDCB35C),
       blackStoneStyleIndex = 0,
       whiteStoneStyleIndex = 0,
       lineStyleIndex = 0,
@@ -42,7 +44,7 @@ class BoardSettings {
       stoneScale = 0.95;
 
   BoardSettings copyWith({
-    int? boardStyleIndex,
+    Color? boardColor,
     int? blackStoneStyleIndex,
     int? whiteStoneStyleIndex,
     int? lineStyleIndex,
@@ -56,7 +58,7 @@ class BoardSettings {
     double? stoneScale,
   }) {
     return BoardSettings(
-      boardStyleIndex: boardStyleIndex ?? this.boardStyleIndex,
+      boardColor: boardColor ?? this.boardColor,
       blackStoneStyleIndex: blackStoneStyleIndex ?? this.blackStoneStyleIndex,
       whiteStoneStyleIndex: whiteStoneStyleIndex ?? this.whiteStoneStyleIndex,
       lineStyleIndex: lineStyleIndex ?? this.lineStyleIndex,

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../models/tree.dart';
 import '../models/board_settings.dart';
 import '../models/board_styles.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 import '../utils/sgf_parser.dart';
 import '../utils/sgf_writer.dart';
@@ -1322,41 +1323,82 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SettingSelector<int>(
+                SettingSelector<Color>(
                   notifier: _globalSettings,
-                  selector: (s) => s.boardStyleIndex,
-                  builder: (context, boardStyleIndex) {
+                  selector: (s) => s.boardColor,
+                  builder: (context, boardColor) {
+                    final int presetIndex = BoardStyles.boardColors.take(6).toList().indexOf(boardColor);
+                    final int selectedIndex = presetIndex != -1 ? presetIndex : 6;
+                    
                     return _buildGridSelector(
-                      itemCount: BoardStyles.boardColors.length,
-                      selectedIndex: boardStyleIndex,
-                      onSelected: (i) => _globalSettings.value = _globalSettings
-                          .value
-                          .copyWith(boardStyleIndex: i),
+                      itemCount: 7, // 6 presets + 1 custom
+                      selectedIndex: selectedIndex,
+                      onSelected: (i) {
+                        if (i == 6) {
+                          Color tempColor = boardColor;
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text('Pick Board Color'),
+                                content: SingleChildScrollView(
+                                  child: ColorPicker(
+                                    pickerColor: tempColor,
+                                    onColorChanged: (color) {
+                                      tempColor = color;
+                                      _globalSettings.value = _globalSettings.value.copyWith(
+                                        boardColor: color,
+                                      );
+                                    },
+                                  ),
+                                ),
+                                actions: [
+                                  ElevatedButton(
+                                    child: const Text('Done'),
+                                    onPressed: () => Navigator.of(context).pop(),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        } else {
+                          _globalSettings.value = _globalSettings.value.copyWith(
+                            boardColor: BoardStyles.boardColors[i],
+                          );
+                        }
+                      },
                       itemBuilder: (context, index, isSelected) {
+                        if (index == 6) {
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: presetIndex == -1 ? boardColor : Colors.white,
+                              borderRadius: BorderRadius.circular(4),
+                              border: isSelected
+                                  ? Border.all(color: Colors.blueAccent, width: 3)
+                                  : Border.all(color: Colors.grey.shade400, width: 1),
+                            ),
+                            child: const Icon(Icons.color_lens, color: Colors.black54),
+                          );
+                        }
+                        
+                        // Board line drawing for thumbnail
                         return Container(
                           decoration: BoxDecoration(
                             color: BoardStyles.boardColors[index],
                             borderRadius: BorderRadius.circular(4),
                             border: isSelected
                                 ? Border.all(color: Colors.blueAccent, width: 3)
-                                : Border.all(
-                                    color: Colors.transparent,
-                                    width: 3,
-                                  ),
+                                : Border.all(color: Colors.transparent, width: 3),
                           ),
                           child: Stack(
                             children: [
                               Positioned(
-                                top: 4,
-                                left: 4,
-                                right: 0,
+                                top: 4, left: 4, right: 0,
                                 child: Center(
                                   child: Text(
                                     'A',
                                     style: TextStyle(
-                                      color: index == 10 || index == 12
-                                          ? Colors.black54
-                                          : Colors.black26,
+                                      color: Colors.black26,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 12,
                                     ),
@@ -1372,15 +1414,11 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                                   decoration: BoxDecoration(
                                     border: Border(
                                       top: BorderSide(
-                                        color: index == 10 || index == 12
-                                            ? Colors.black54
-                                            : Colors.black26,
+                                        color: Colors.black26,
                                         width: 1.5,
                                       ),
                                       left: BorderSide(
-                                        color: index == 10 || index == 12
-                                            ? Colors.black54
-                                            : Colors.black26,
+                                        color: Colors.black26,
                                         width: 1.5,
                                       ),
                                     ),

@@ -22,9 +22,10 @@ class BoardPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // 1. Draw flat wooden color background
-    final bgPaint = Paint()
-      ..color = BoardStyles.boardColors[settings.boardStyleIndex];
+    // 1. Draw board background
+    final Paint bgPaint = Paint()
+      ..color = settings.boardColor
+      ..style = PaintingStyle.fill;
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(0, 0, size.width, size.height),
