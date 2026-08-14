@@ -137,17 +137,120 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Row(
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final bool isPortrait = constraints.maxWidth < constraints.maxHeight;
+
+          if (isPortrait) {
+            return Column(
+              children: [
+                _buildHorizontalTabBar(),
+                const Divider(height: 1, thickness: 1, color: Color(0xFFEEEEEE)),
+                if (activeTab is LobbyTab)
+                  Expanded(child: Row(children: _buildLobbyContent())),
+                if (activeTab is GameTab) ..._buildPortraitGameContent(activeTab),
+              ],
+            );
+          }
+
+          return Row(
+            children: [
+              _buildVerticalTabBar(),
+              const VerticalDivider(
+                width: 1,
+                thickness: 1,
+                color: Color(0xFFEEEEEE),
+              ),
+              if (activeTab is LobbyTab) ..._buildLobbyContent(),
+              if (activeTab is GameTab) ..._buildGameContent(activeTab),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+
+  // Horizontal Tab Bar for Portrait Mode
+  Widget _buildHorizontalTabBar() {
+    return Container(
+      height: 60,
+      color: const Color(0xFFFAFAFA),
+      child: Row(
         children: [
-          _buildVerticalTabBar(),
-          const VerticalDivider(
-            width: 1,
-            thickness: 1,
-            color: Color(0xFFEEEEEE),
-          ),
-          if (activeTab is LobbyTab) ..._buildLobbyContent(),
-          if (activeTab is GameTab) ..._buildGameContent(activeTab),
+          const SizedBox(width: 16),
+          // Dynamically build the tab icons based on open tabs
+          for (int i = 0; i < _tabs.length; i++) ...[
+            _buildHorizontalTabIcon(_tabs[i].icon, i, _tabs[i].tooltip),
+            const SizedBox(width: 8),
+          ],
+          const Spacer(),
+          // Add a new Lobby Tab when clicked
+          _buildHorizontalSidebarButton(Icons.add, 'Add Tab', () {
+            setState(() {
+              _tabs.add(LobbyTab());
+              _activeIndex = _tabs.length - 1;
+            });
+          }),
+          const SizedBox(width: 16),
         ],
+      ),
+    );
+  }
+
+  Widget _buildHorizontalTabIcon(IconData icon, int index, String tooltip) {
+    final isSelected = _activeIndex == index;
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: () {
+          setState(() => _activeIndex = index);
+          if (_tabs[index] is GameTab) {
+            engineClient.analyze((_tabs[index] as GameTab).session);
+          }
+        },
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: Container(
+            width: 48,
+            height: 60,
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: isSelected ? Colors.blue : Colors.transparent,
+                  width: 3,
+                ),
+              ),
+            ),
+            child: Icon(
+              icon,
+              color: isSelected ? Colors.black87 : Colors.black38,
+              size: 26,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHorizontalSidebarButton(
+    IconData icon,
+    String tooltip,
+    VoidCallback onTap,
+  ) {
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: onTap,
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: Container(
+            width: 48,
+            height: 60,
+            alignment: Alignment.center,
+            child: Icon(icon, color: Colors.black54, size: 26),
+          ),
+        ),
       ),
     );
   }
@@ -486,6 +589,56 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
         engineClient.analyze(parsedSession);
       });
     }
+  }
+
+  // Portrait Game / Analysis State
+  List<Widget> _buildPortraitGameContent(GameTab tab) {
+    return [
+      Expanded(
+        child: Container(
+          color: const Color(0xFFF7F7F7),
+          child: Column(
+            children: [
+              // 1. Board wrapped in AspectRatio (no padding/margin)
+              AspectRatio(
+                aspectRatio: 1.0,
+                child: BoardWidget(
+                  board: tab.session.currentBoard,
+                  currentNode: tab.session.currentNode,
+                  settingsNotifier: _globalSettings,
+                  onIntersectionTapped: (x, y) {
+                    if (_editMode == BoardEditMode.play) {
+                      if (tab.session.play(x, y)) {
+                        setState(() {});
+                      }
+                    } else {
+                      // Handle setup stone placement/removal or markups (abridged for portrait)
+                      if (_editMode == BoardEditMode.addBlack) {
+                        tab.session.addSetupStone(x, y, 1);
+                      } else if (_editMode == BoardEditMode.addWhite) {
+                        tab.session.addSetupStone(x, y, 2);
+                      } else if (_editMode == BoardEditMode.remove) {
+                        tab.session.addSetupStone(x, y, 0);
+                      }
+                      setState(() {});
+                    }
+                  },
+                  analysis:
+                      (_lastAnalysisTurn == tab.session.currentBoard.currentTurn)
+                      ? _currentAnalysis
+                      : null,
+                ),
+              ),
+              // 2. Winrate Bar directly beneath
+              _buildWinrateBar(tab.session),
+              const Spacer(),
+              // 3. Navigation Buttons
+              _buildStatusBar(tab.session),
+            ],
+          ),
+        ),
+      ),
+    ];
   }
 
   // Column 2 & 3: Game / Analysis State
