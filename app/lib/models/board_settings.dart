@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 
 class BoardSettings {
   final Color boardColor;
-  final int blackStoneStyleIndex;
-  final int whiteStoneStyleIndex;
+  final Color blackStoneColor;
+  final int blackStoneTextureIndex;
+  final Color whiteStoneColor;
+  final int whiteStoneTextureIndex;
   final int lineStyleIndex;
   final bool showCoordinates;
   final bool highlightLastMove;
@@ -16,8 +18,10 @@ class BoardSettings {
 
   const BoardSettings({
     required this.boardColor,
-    required this.blackStoneStyleIndex,
-    required this.whiteStoneStyleIndex,
+    required this.blackStoneColor,
+    required this.blackStoneTextureIndex,
+    required this.whiteStoneColor,
+    required this.whiteStoneTextureIndex,
     required this.lineStyleIndex,
     required this.showCoordinates,
     required this.highlightLastMove,
@@ -31,8 +35,10 @@ class BoardSettings {
 
   const BoardSettings.defaults()
     : boardColor = const Color(0xFFDCB35C),
-      blackStoneStyleIndex = 0,
-      whiteStoneStyleIndex = 0,
+      blackStoneColor = const Color(0xFF101010),
+      blackStoneTextureIndex = 0,
+      whiteStoneColor = const Color(0xFFFFFFFF),
+      whiteStoneTextureIndex = 0,
       lineStyleIndex = 0,
       showCoordinates = false,
       highlightLastMove = true,
@@ -45,8 +51,10 @@ class BoardSettings {
 
   BoardSettings copyWith({
     Color? boardColor,
-    int? blackStoneStyleIndex,
-    int? whiteStoneStyleIndex,
+    Color? blackStoneColor,
+    int? blackStoneTextureIndex,
+    Color? whiteStoneColor,
+    int? whiteStoneTextureIndex,
     int? lineStyleIndex,
     bool? showCoordinates,
     bool? highlightLastMove,
@@ -59,8 +67,10 @@ class BoardSettings {
   }) {
     return BoardSettings(
       boardColor: boardColor ?? this.boardColor,
-      blackStoneStyleIndex: blackStoneStyleIndex ?? this.blackStoneStyleIndex,
-      whiteStoneStyleIndex: whiteStoneStyleIndex ?? this.whiteStoneStyleIndex,
+      blackStoneColor: blackStoneColor ?? this.blackStoneColor,
+      blackStoneTextureIndex: blackStoneTextureIndex ?? this.blackStoneTextureIndex,
+      whiteStoneColor: whiteStoneColor ?? this.whiteStoneColor,
+      whiteStoneTextureIndex: whiteStoneTextureIndex ?? this.whiteStoneTextureIndex,
       lineStyleIndex: lineStyleIndex ?? this.lineStyleIndex,
       showCoordinates: showCoordinates ?? this.showCoordinates,
       highlightLastMove: highlightLastMove ?? this.highlightLastMove,

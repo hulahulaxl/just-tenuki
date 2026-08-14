@@ -1419,21 +1419,56 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     );
                   },
                 ),
-                const SizedBox(height: 8),
-                SettingSelector<int>(
+                const SizedBox(height: 4),
+                // White Stone Color
+                SettingSelector<Color>(
                   notifier: _globalSettings,
-                  selector: (s) => s.whiteStoneStyleIndex,
-                  builder: (context, whiteStoneStyleIndex) {
+                  selector: (s) => s.whiteStoneColor,
+                  builder: (context, whiteStoneColor) {
+                    final int presetIndex = BoardStyles.whiteStoneColorPresets.take(9).toList().indexOf(whiteStoneColor);
+                    final int selectedIndex = presetIndex != -1 ? presetIndex : 9;
                     return _buildGridSelector(
-                      itemCount: BoardStyles.whiteStones.length,
-                      selectedIndex: whiteStoneStyleIndex,
-                      onSelected: (i) => _globalSettings.value = _globalSettings
-                          .value
-                          .copyWith(whiteStoneStyleIndex: i),
+                      itemCount: 10,
+                      selectedIndex: selectedIndex,
+                      onSelected: (i) {
+                        if (i == 9) {
+                          Color tempColor = whiteStoneColor;
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text('Pick White Stone Color'),
+                                content: SingleChildScrollView(
+                                  child: ColorPicker(
+                                    pickerColor: tempColor,
+                                    onColorChanged: (color) {
+                                      tempColor = color;
+                                      _globalSettings.value = _globalSettings.value.copyWith(
+                                        whiteStoneColor: color,
+                                      );
+                                    },
+                                  ),
+                                ),
+                                actions: [
+                                  ElevatedButton(
+                                    child: const Text('Done'),
+                                    onPressed: () => Navigator.of(context).pop(),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        } else {
+                          _globalSettings.value = _globalSettings.value.copyWith(
+                            whiteStoneColor: BoardStyles.whiteStoneColorPresets[i],
+                          );
+                        }
+                      },
                       itemBuilder: (context, index, isSelected) {
                         return Container(
                           decoration: BoxDecoration(
                             color: const Color(0xFFE8D4B4),
+                            borderRadius: BorderRadius.circular(4),
                             border: isSelected
                                 ? Border.all(color: Colors.blueAccent, width: 3)
                                 : Border.all(
@@ -1445,15 +1480,49 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                             padding: const EdgeInsets.all(4.0),
                             child: Container(
                               decoration: BoxDecoration(
+                                color: index == 9 ? (presetIndex == -1 ? whiteStoneColor : Colors.white) : BoardStyles.whiteStoneColorPresets[index],
                                 shape: BoxShape.circle,
-                                gradient: BoardStyles.whiteStones[index],
                                 boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.2),
-                                    blurRadius: 2,
-                                    offset: const Offset(1, 1),
-                                  ),
+                                  BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 2, offset: const Offset(1, 1)),
                                 ],
+                              ),
+                              child: index == 9 ? const Icon(Icons.color_lens, color: Colors.black54, size: 20) : null,
+                            ),
+                          ),
+                        );
+                      }
+                    );
+                  }
+                ),
+                const SizedBox(height: 4),
+                SettingSelector<int>(
+                  notifier: _globalSettings,
+                  selector: (s) => s.whiteStoneTextureIndex,
+                  builder: (context, whiteStoneTextureIndex) {
+                    return _buildGridSelector(
+                      itemCount: BoardStyles.stoneTextures.length,
+                      selectedIndex: whiteStoneTextureIndex,
+                      onSelected: (i) => _globalSettings.value = _globalSettings
+                          .value
+                          .copyWith(whiteStoneTextureIndex: i),
+                      itemBuilder: (context, index, isSelected) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8D4B4),
+                            borderRadius: BorderRadius.circular(4),
+                            border: isSelected
+                                ? Border.all(color: Colors.blueAccent, width: 3)
+                                : Border.all(
+                                    color: Colors.transparent,
+                                    width: 3,
+                                  ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: CustomPaint(
+                              painter: _StoneThumbnailPainter(
+                                paintFactory: BoardStyles.stoneTextures[index],
+                                baseColor: _globalSettings.value.whiteStoneColor,
                               ),
                             ),
                           ),
@@ -1462,21 +1531,56 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     );
                   },
                 ),
-                const SizedBox(height: 8),
-                SettingSelector<int>(
+                const SizedBox(height: 4),
+                // Black Stone Color
+                SettingSelector<Color>(
                   notifier: _globalSettings,
-                  selector: (s) => s.blackStoneStyleIndex,
-                  builder: (context, blackStoneStyleIndex) {
+                  selector: (s) => s.blackStoneColor,
+                  builder: (context, blackStoneColor) {
+                    final int presetIndex = BoardStyles.blackStoneColorPresets.take(9).toList().indexOf(blackStoneColor);
+                    final int selectedIndex = presetIndex != -1 ? presetIndex : 9;
                     return _buildGridSelector(
-                      itemCount: BoardStyles.blackStones.length,
-                      selectedIndex: blackStoneStyleIndex,
-                      onSelected: (i) => _globalSettings.value = _globalSettings
-                          .value
-                          .copyWith(blackStoneStyleIndex: i),
+                      itemCount: 10,
+                      selectedIndex: selectedIndex,
+                      onSelected: (i) {
+                        if (i == 9) {
+                          Color tempColor = blackStoneColor;
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text('Pick Black Stone Color'),
+                                content: SingleChildScrollView(
+                                  child: ColorPicker(
+                                    pickerColor: tempColor,
+                                    onColorChanged: (color) {
+                                      tempColor = color;
+                                      _globalSettings.value = _globalSettings.value.copyWith(
+                                        blackStoneColor: color,
+                                      );
+                                    },
+                                  ),
+                                ),
+                                actions: [
+                                  ElevatedButton(
+                                    child: const Text('Done'),
+                                    onPressed: () => Navigator.of(context).pop(),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        } else {
+                          _globalSettings.value = _globalSettings.value.copyWith(
+                            blackStoneColor: BoardStyles.blackStoneColorPresets[i],
+                          );
+                        }
+                      },
                       itemBuilder: (context, index, isSelected) {
                         return Container(
                           decoration: BoxDecoration(
                             color: const Color(0xFFE8D4B4),
+                            borderRadius: BorderRadius.circular(4),
                             border: isSelected
                                 ? Border.all(color: Colors.blueAccent, width: 3)
                                 : Border.all(
@@ -1488,15 +1592,49 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                             padding: const EdgeInsets.all(4.0),
                             child: Container(
                               decoration: BoxDecoration(
+                                color: index == 9 ? (presetIndex == -1 ? blackStoneColor : Colors.white) : BoardStyles.blackStoneColorPresets[index],
                                 shape: BoxShape.circle,
-                                gradient: BoardStyles.blackStones[index],
                                 boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.4),
-                                    blurRadius: 2,
-                                    offset: const Offset(1, 1),
-                                  ),
+                                  BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 2, offset: const Offset(1, 1)),
                                 ],
+                              ),
+                              child: index == 9 ? const Icon(Icons.color_lens, color: Colors.black54, size: 20) : null,
+                            ),
+                          ),
+                        );
+                      }
+                    );
+                  }
+                ),
+                const SizedBox(height: 4),
+                SettingSelector<int>(
+                  notifier: _globalSettings,
+                  selector: (s) => s.blackStoneTextureIndex,
+                  builder: (context, blackStoneTextureIndex) {
+                    return _buildGridSelector(
+                      itemCount: BoardStyles.stoneTextures.length,
+                      selectedIndex: blackStoneTextureIndex,
+                      onSelected: (i) => _globalSettings.value = _globalSettings
+                          .value
+                          .copyWith(blackStoneTextureIndex: i),
+                      itemBuilder: (context, index, isSelected) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8D4B4),
+                            borderRadius: BorderRadius.circular(4),
+                            border: isSelected
+                                ? Border.all(color: Colors.blueAccent, width: 3)
+                                : Border.all(
+                                    color: Colors.transparent,
+                                    width: 3,
+                                  ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: CustomPaint(
+                              painter: _StoneThumbnailPainter(
+                                paintFactory: BoardStyles.stoneTextures[index],
+                                baseColor: _globalSettings.value.blackStoneColor,
                               ),
                             ),
                           ),
@@ -1505,7 +1643,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     );
                   },
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 SettingSelector<int>(
                   notifier: _globalSettings,
                   selector: (s) => s.lineStyleIndex,
@@ -1520,6 +1658,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                         return Container(
                           decoration: BoxDecoration(
                             color: const Color(0xFFE8D4B4),
+                            borderRadius: BorderRadius.circular(4),
                             border: isSelected
                                 ? Border.all(color: Colors.blueAccent, width: 3)
                                 : Border.all(
@@ -1549,7 +1688,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     );
                   },
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 8),
                 SettingSelector<bool>(
                   notifier: _globalSettings,
                   selector: (s) => s.showCoordinates,
@@ -1942,5 +2081,36 @@ class _SettingSelectorState<T> extends State<SettingSelector<T>> {
   @override
   Widget build(BuildContext context) {
     return widget.builder(context, _value);
+  }
+}
+
+class _StoneThumbnailPainter extends CustomPainter {
+  final StoneTextureFactory paintFactory;
+  final Color baseColor;
+
+  _StoneThumbnailPainter({
+    required this.paintFactory,
+    required this.baseColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    final paint = paintFactory(rect, baseColor);
+    
+    // Draw shadow
+    final shadowPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.3)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
+    canvas.drawOval(rect.translate(1, 1), shadowPaint);
+
+    // Draw stone
+    canvas.drawOval(rect, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _StoneThumbnailPainter oldDelegate) {
+    return oldDelegate.paintFactory != paintFactory ||
+        oldDelegate.baseColor != baseColor;
   }
 }

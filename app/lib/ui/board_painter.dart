@@ -119,49 +119,37 @@ class BoardPainter extends CustomPainter {
           radius: stoneRadius,
         );
 
-        final Paint stonePaint = Paint();
+        Paint stonePaint;
+        if (player == 1) {
+          stonePaint = BoardStyles.stoneTextures[settings.blackStoneTextureIndex](stoneRect, settings.blackStoneColor);
+        } else if (player == 2) {
+          stonePaint = BoardStyles.stoneTextures[settings.whiteStoneTextureIndex](stoneRect, settings.whiteStoneColor);
+        } else {
+          continue;
+        }
 
         // Draw drop shadow
         if (settings.stoneDropShadow > 0) {
           final shadowPaint = Paint()
             ..color = Colors.black.withValues(alpha: 0.3)
-            ..maskFilter = MaskFilter.blur(
-              BlurStyle.normal,
-              settings.stoneDropShadow,
-            );
-          canvas.drawCircle(
-            Offset(
-              center.dx + settings.stoneDropShadow * 0.5,
-              center.dy + settings.stoneDropShadow * 0.5,
-            ),
-            stoneRadius,
-            shadowPaint,
-          );
+            ..maskFilter = MaskFilter.blur(BlurStyle.normal, settings.stoneDropShadow);
+          canvas.drawOval(
+              stoneRect.translate(settings.stoneDropShadow / 2, settings.stoneDropShadow / 2),
+              shadowPaint);
         }
 
-        if (player == 1) {
-          stonePaint.shader = BoardStyles
-              .blackStones[settings.blackStoneStyleIndex]
-              .createShader(stoneRect);
-        } else if (player == 2) {
-          stonePaint.shader = BoardStyles
-              .whiteStones[settings.whiteStoneStyleIndex]
-              .createShader(stoneRect);
-        } else {
-          stonePaint.color = Colors.red;
-        }
+        // Draw stone
+        canvas.drawOval(stoneRect, stonePaint);
 
-        canvas.drawCircle(center, stoneRadius, stonePaint);
-
-        // Draw base outline
+        // Draw outline
         if (settings.stoneOutlineThickness > 0) {
-          final outlineBasePaint = Paint()
-            ..color = Colors.black87
+          final outlinePaint = Paint()
+            ..color = player == 1 ? Colors.white24 : Colors.black26
             ..style = PaintingStyle.stroke
             ..strokeWidth = settings.stoneOutlineThickness;
-          canvas.drawCircle(center, stoneRadius, outlineBasePaint);
+          canvas.drawOval(stoneRect, outlinePaint);
         }
-
+        
         int? latestMoveX = currentNode.move is Play
             ? (currentNode.move as Play).x
             : null;
