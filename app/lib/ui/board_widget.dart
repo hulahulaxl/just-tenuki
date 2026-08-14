@@ -10,14 +10,14 @@ class BoardWidget extends StatelessWidget {
   final TreeNode currentNode;
   final void Function(int x, int y) onIntersectionTapped;
   final EngineResponse? analysis;
-  final BoardSettings settings;
+  final ValueNotifier<BoardSettings> settingsNotifier;
 
   const BoardWidget({
     super.key,
     required this.board,
     required this.currentNode,
     required this.onIntersectionTapped,
-    required this.settings,
+    required this.settingsNotifier,
     this.analysis,
   });
 
@@ -31,13 +31,18 @@ class BoardWidget extends StatelessWidget {
 
           return GestureDetector(
             onTapUp: (details) => _handleTap(details.localPosition, size),
-            child: CustomPaint(
-              painter: BoardPainter(
-                board: board,
-                currentNode: currentNode,
-                settings: settings,
-                analysis: analysis,
-              ),
+            child: ValueListenableBuilder<BoardSettings>(
+              valueListenable: settingsNotifier,
+              builder: (context, settings, child) {
+                return CustomPaint(
+                  painter: BoardPainter(
+                    board: board,
+                    currentNode: currentNode,
+                    settings: settings,
+                    analysis: analysis,
+                  ),
+                );
+              },
             ),
           );
         },

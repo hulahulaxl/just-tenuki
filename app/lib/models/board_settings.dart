@@ -30,11 +30,11 @@ class BoardSettings {
       blackStoneStyleIndex = 0,
       whiteStoneStyleIndex = 0,
       lineStyleIndex = 0,
-      showCoordinates = true,
+      showCoordinates = false,
       highlightLastMove = true,
       showShadows = true,
       stoneClickVolume = 0.5,
-      lineThickness = 1.0,
+      lineThickness = 0.5,
       starPointThickness = 3.0,
       stoneScale = 0.95;
 

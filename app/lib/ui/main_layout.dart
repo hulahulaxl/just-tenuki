@@ -75,7 +75,9 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   bool _showCommentsPane = false;
   bool _showSettingsPane = false;
 
-  BoardSettings _globalSettings = const BoardSettings.defaults();
+  final ValueNotifier<BoardSettings> _globalSettings = ValueNotifier(
+    const BoardSettings.defaults(),
+  );
 
   // High precision flex values for smooth 1:1 cursor tracking, isolated via ValueNotifier
   final ValueNotifier<List<int>> _paneFlexes = ValueNotifier([
@@ -501,7 +503,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     child: BoardWidget(
                       board: tab.session.currentBoard,
                       currentNode: tab.session.currentNode,
-                      settings: _globalSettings,
+                      settingsNotifier: _globalSettings,
                       onIntersectionTapped: (x, y) {
                         BoardEditMode effectiveMode = _editMode;
 
@@ -1387,298 +1389,271 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.all(16.0),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildGridSelector(
-              itemCount: boardColors.length,
-              selectedIndex: _globalSettings.boardStyleIndex,
-              onSelected: (i) => setState(
-                () => _globalSettings = _globalSettings.copyWith(
-                  boardStyleIndex: i,
-                ),
-              ),
-              itemBuilder: (context, index, isSelected) {
-                return Container(
-                  decoration: BoxDecoration(
-                    color: boardColors[index],
-                    border: isSelected
-                        ? Border.all(color: Colors.blueAccent, width: 3)
-                        : Border.all(color: Colors.transparent, width: 3),
+      child: ValueListenableBuilder<BoardSettings>(
+        valueListenable: _globalSettings,
+        builder: (context, settings, child) {
+          return SliderTheme(
+            data: SliderTheme.of(
+              context,
+            ).copyWith(showValueIndicator: ShowValueIndicator.onDrag),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildGridSelector(
+                    itemCount: boardColors.length,
+                    selectedIndex: settings.boardStyleIndex,
+                    onSelected: (i) => _globalSettings.value = settings
+                        .copyWith(boardStyleIndex: i),
+                    itemBuilder: (context, index, isSelected) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: boardColors[index],
+                          border: isSelected
+                              ? Border.all(color: Colors.blueAccent, width: 3)
+                              : Border.all(color: Colors.transparent, width: 3),
+                        ),
+                        child: Stack(
+                          children: [
+                            Positioned(
+                              top: 4,
+                              left: 4,
+                              right: 0,
+                              child: Center(
+                                child: Text(
+                                  'A',
+                                  style: TextStyle(
+                                    color: index == 10 || index == 12
+                                        ? Colors.black54
+                                        : Colors.black26,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              right: -1,
+                              bottom: -1,
+                              child: Container(
+                                width: 20,
+                                height: 20,
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    top: BorderSide(
+                                      color: index == 10 || index == 12
+                                          ? Colors.black54
+                                          : Colors.black26,
+                                      width: 1.5,
+                                    ),
+                                    left: BorderSide(
+                                      color: index == 10 || index == 12
+                                          ? Colors.black54
+                                          : Colors.black26,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        top: 4,
-                        left: 4,
-                        right: 0,
+                  const SizedBox(height: 8),
+                  _buildGridSelector(
+                    itemCount: whiteStones.length,
+                    selectedIndex: settings.whiteStoneStyleIndex,
+                    onSelected: (i) => _globalSettings.value = settings
+                        .copyWith(whiteStoneStyleIndex: i),
+                    itemBuilder: (context, index, isSelected) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE8D4B4),
+                          border: isSelected
+                              ? Border.all(color: Colors.blueAccent, width: 3)
+                              : Border.all(color: Colors.transparent, width: 3),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: whiteStones[index],
+                              border: index == 0
+                                  ? Border.all(color: Colors.black87, width: 1)
+                                  : null,
+                              boxShadow: [
+                                if (index != 0)
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.2),
+                                    blurRadius: 2,
+                                    offset: const Offset(1, 1),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  _buildGridSelector(
+                    itemCount: blackStones.length,
+                    selectedIndex: settings.blackStoneStyleIndex,
+                    onSelected: (i) => _globalSettings.value = settings
+                        .copyWith(blackStoneStyleIndex: i),
+                    itemBuilder: (context, index, isSelected) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE8D4B4),
+                          border: isSelected
+                              ? Border.all(color: Colors.blueAccent, width: 3)
+                              : Border.all(color: Colors.transparent, width: 3),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: blackStones[index],
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.4),
+                                  blurRadius: 2,
+                                  offset: const Offset(1, 1),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  _buildGridSelector(
+                    itemCount: lineColors.length,
+                    selectedIndex: settings.lineStyleIndex,
+                    onSelected: (i) => _globalSettings.value = settings
+                        .copyWith(lineStyleIndex: i),
+                    itemBuilder: (context, index, isSelected) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFDCB35C),
+                          border: isSelected
+                              ? Border.all(color: Colors.blueAccent, width: 3)
+                              : Border.all(color: Colors.transparent, width: 3),
+                        ),
                         child: Center(
-                          child: Text(
-                            'A',
-                            style: TextStyle(
-                              color: index == 10 || index == 12
-                                  ? Colors.black54
-                                  : Colors.black26,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Container(
+                                width: double.infinity,
+                                height: 2,
+                                color: lineColors[index],
+                              ),
+                              Container(
+                                width: 2,
+                                height: double.infinity,
+                                color: lineColors[index],
+                              ),
+                            ],
                           ),
                         ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Show Coordinates',
+                        style: TextStyle(fontSize: 14, color: Colors.black87),
                       ),
-                      Positioned(
-                        right: -1,
-                        bottom: -1,
-                        child: Container(
-                          width: 20,
-                          height: 20,
-                          decoration: BoxDecoration(
-                            border: Border(
-                              top: BorderSide(
-                                color: index == 10 || index == 12
-                                    ? Colors.black54
-                                    : Colors.black26,
-                                width: 1.5,
-                              ),
-                              left: BorderSide(
-                                color: index == 10 || index == 12
-                                    ? Colors.black54
-                                    : Colors.black26,
-                                width: 1.5,
-                              ),
-                            ),
-                          ),
-                        ),
+                      Switch(
+                        value: settings.showCoordinates,
+                        onChanged: (val) => _globalSettings.value = settings
+                            .copyWith(showCoordinates: val),
+                        activeTrackColor: Colors.blue,
                       ),
                     ],
                   ),
-                );
-              },
-            ),
-            const SizedBox(height: 8),
-            _buildGridSelector(
-              itemCount: whiteStones.length,
-              selectedIndex: _globalSettings.whiteStoneStyleIndex,
-              onSelected: (i) => setState(
-                () => _globalSettings = _globalSettings.copyWith(
-                  whiteStoneStyleIndex: i,
-                ),
-              ),
-              itemBuilder: (context, index, isSelected) {
-                return Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE8D4B4),
-                    border: isSelected
-                        ? Border.all(color: Colors.blueAccent, width: 3)
-                        : Border.all(color: Colors.transparent, width: 3),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: whiteStones[index],
-                        border: index == 0
-                            ? Border.all(color: Colors.black87, width: 1)
-                            : null,
-                        boxShadow: [
-                          if (index != 0)
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
-                              blurRadius: 2,
-                              offset: const Offset(1, 1),
-                            ),
-                        ],
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Highlight Last Move',
+                        style: TextStyle(fontSize: 14, color: Colors.black87),
                       ),
-                    ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 8),
-            _buildGridSelector(
-              itemCount: blackStones.length,
-              selectedIndex: _globalSettings.blackStoneStyleIndex,
-              onSelected: (i) => setState(
-                () => _globalSettings = _globalSettings.copyWith(
-                  blackStoneStyleIndex: i,
-                ),
-              ),
-              itemBuilder: (context, index, isSelected) {
-                return Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE8D4B4),
-                    border: isSelected
-                        ? Border.all(color: Colors.blueAccent, width: 3)
-                        : Border.all(color: Colors.transparent, width: 3),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: blackStones[index],
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.4),
-                            blurRadius: 2,
-                            offset: const Offset(1, 1),
-                          ),
-                        ],
+                      Switch(
+                        value: settings.highlightLastMove,
+                        onChanged: (val) => _globalSettings.value = settings
+                            .copyWith(highlightLastMove: val),
+                        activeTrackColor: Colors.blue,
                       ),
-                    ),
+                    ],
                   ),
-                );
-              },
-            ),
-            const SizedBox(height: 8),
-            _buildGridSelector(
-              itemCount: lineColors.length,
-              selectedIndex: _globalSettings.lineStyleIndex,
-              onSelected: (i) => setState(
-                () => _globalSettings = _globalSettings.copyWith(
-                  lineStyleIndex: i,
-                ),
-              ),
-              itemBuilder: (context, index, isSelected) {
-                return Container(
-                  decoration: BoxDecoration(
-                    color: const Color(
-                      0xFFDCB35C,
-                    ), // Default board color for preview
-                    border: isSelected
-                        ? Border.all(color: Colors.blueAccent, width: 3)
-                        : Border.all(color: Colors.transparent, width: 3),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Line Thickness',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                   ),
-                  child: Center(
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Container(
-                          width: double.infinity,
-                          height: 2,
-                          color: lineColors[index],
-                        ),
-                        Container(
-                          width: 2,
-                          height: double.infinity,
-                          color: lineColors[index],
-                        ),
-                      ],
-                    ),
+                  Slider(
+                    value: settings.lineThickness,
+                    min: 0.5,
+                    max: 2.5,
+                    label: settings.lineThickness.toStringAsFixed(1),
+                    onChanged: (val) => _globalSettings.value = settings
+                        .copyWith(lineThickness: val),
                   ),
-                );
-              },
-            ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Show Coordinates',
-                  style: TextStyle(fontSize: 14, color: Colors.black87),
-                ),
-                Switch(
-                  value: _globalSettings.showCoordinates,
-                  onChanged: (val) => setState(
-                    () => _globalSettings = _globalSettings.copyWith(
-                      showCoordinates: val,
-                    ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Star Point Size',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                   ),
-                  activeTrackColor: Colors.blue,
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Highlight Last Move',
-                  style: TextStyle(fontSize: 14, color: Colors.black87),
-                ),
-                Switch(
-                  value: _globalSettings.highlightLastMove,
-                  onChanged: (val) => setState(
-                    () => _globalSettings = _globalSettings.copyWith(
-                      highlightLastMove: val,
-                    ),
+                  Slider(
+                    value: settings.starPointThickness,
+                    min: 2.0,
+                    max: 6.0,
+                    label: settings.starPointThickness.toStringAsFixed(1),
+                    onChanged: (val) => _globalSettings.value = settings
+                        .copyWith(starPointThickness: val),
                   ),
-                  activeTrackColor: Colors.blue,
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Line Thickness',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-            Slider(
-              value: _globalSettings.lineThickness,
-              min: 0.5,
-              max: 2.5,
-              divisions: 4,
-              label: _globalSettings.lineThickness.toString(),
-              onChanged: (val) => setState(
-                () => _globalSettings = _globalSettings.copyWith(
-                  lineThickness: val,
-                ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Stone Size',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
+                  Slider(
+                    value: settings.stoneScale,
+                    min: 0.8,
+                    max: 1.0,
+                    label: settings.stoneScale.toStringAsFixed(2),
+                    onChanged: (val) => _globalSettings.value = settings
+                        .copyWith(stoneScale: val),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Stone Click Volume',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
+                  Slider(
+                    value: settings.stoneClickVolume,
+                    min: 0.0,
+                    max: 1.0,
+                    label: (settings.stoneClickVolume * 100).round().toString(),
+                    onChanged: (val) => _globalSettings.value = settings
+                        .copyWith(stoneClickVolume: val),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'Star Point Size',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-            Slider(
-              value: _globalSettings.starPointThickness,
-              min: 2.0,
-              max: 6.0,
-              divisions: 4,
-              label: _globalSettings.starPointThickness.toString(),
-              onChanged: (val) => setState(
-                () => _globalSettings = _globalSettings.copyWith(
-                  starPointThickness: val,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Stone Size',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-            Slider(
-              value: _globalSettings.stoneScale,
-              min: 0.8,
-              max: 1.0,
-              divisions: 4,
-              label: _globalSettings.stoneScale.toString(),
-              onChanged: (val) => setState(
-                () =>
-                    _globalSettings = _globalSettings.copyWith(stoneScale: val),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Stone Click Volume',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-            Slider(
-              value: _globalSettings.stoneClickVolume,
-              min: 0.0,
-              max: 1.0,
-              divisions: 10,
-              label: (_globalSettings.stoneClickVolume * 100)
-                  .round()
-                  .toString(),
-              onChanged: (val) => setState(
-                () => _globalSettings = _globalSettings.copyWith(
-                  stoneClickVolume: val,
-                ),
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
