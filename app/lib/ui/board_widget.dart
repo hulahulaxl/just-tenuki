@@ -53,11 +53,13 @@ class BoardWidget extends StatelessWidget {
   }
 
   void _handleTap(Offset localPosition, Size size) {
+    final settings = settingsNotifier.value;
     final int cols = board.columns;
     final int rows = board.rows;
 
-    final double cellWidth = size.width / cols;
-    final double cellHeight = size.height / rows;
+    final double marginBlocks = settings.showCoordinates ? 2.2 : 1.0;
+    final double cellWidth = size.width / (cols - 1 + marginBlocks);
+    final double cellHeight = size.height / (rows - 1 + marginBlocks);
     final double cellSize = cellWidth < cellHeight ? cellWidth : cellHeight;
 
     final double gridWidth = cellSize * (cols - 1);

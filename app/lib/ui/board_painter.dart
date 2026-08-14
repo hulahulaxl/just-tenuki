@@ -35,7 +35,7 @@ class BoardPainter extends CustomPainter {
     final int rows = board.rows;
 
     // We allocate space for (cols - 1) grid squares PLUS margin blocks
-    final double marginBlocks = settings.showCoordinates ? 1.8 : 1.0;
+    final double marginBlocks = settings.showCoordinates ? 2.2 : 1.0;
     final double cellWidth = size.width / (cols - 1 + marginBlocks);
     final double cellHeight = size.height / (rows - 1 + marginBlocks);
     final double cellSize = cellWidth < cellHeight ? cellWidth : cellHeight;
@@ -391,7 +391,7 @@ class BoardPainter extends CustomPainter {
     int rows,
   ) {
     final textStyle = TextStyle(
-      color: Colors.black54,
+      color: Colors.black87,
       fontSize: cellSize * 0.4, // Scale font with cell size
       fontWeight: FontWeight.w600,
     );
@@ -417,7 +417,7 @@ class BoardPainter extends CustomPainter {
         canvas,
         Offset(
           x - textPainter.width / 2,
-          offsetY - cellSize * 0.7 - textPainter.height / 2,
+          offsetY - cellSize * 0.8 - textPainter.height / 2,
         ),
       );
       // Bottom label
@@ -427,7 +427,7 @@ class BoardPainter extends CustomPainter {
           x - textPainter.width / 2,
           offsetY +
               (rows - 1) * cellSize +
-              cellSize * 0.7 -
+              cellSize * 0.8 -
               textPainter.height / 2,
         ),
       );
@@ -450,7 +450,7 @@ class BoardPainter extends CustomPainter {
       textPainter.paint(
         canvas,
         Offset(
-          offsetX - cellSize * 0.7 - textPainter.width / 2,
+          offsetX - cellSize * 0.8 - textPainter.width / 2,
           y - textPainter.height / 2,
         ),
       );
@@ -460,7 +460,7 @@ class BoardPainter extends CustomPainter {
         Offset(
           offsetX +
               (cols - 1) * cellSize +
-              cellSize * 0.7 -
+              cellSize * 0.8 -
               textPainter.width / 2,
           y - textPainter.height / 2,
         ),
