@@ -36,17 +36,17 @@ class BoardSettings {
   const BoardSettings.defaults()
     : boardColor = const Color(0xFFDCB35C),
       blackStoneColor = const Color(0xFF101010),
-      blackStoneTextureIndex = 0,
+      blackStoneTextureIndex = 3,
       whiteStoneColor = const Color(0xFFFFFFFF),
-      whiteStoneTextureIndex = 0,
+      whiteStoneTextureIndex = 5,
       lineColor = const Color(0xDD000000),
-      showCoordinates = false,
+      showCoordinates = true,
       highlightLastMove = true,
-      stoneDropShadow = 2.0,
-      stoneOutlineThickness = 0.0,
+      stoneDropShadow = 3.0,
+      stoneOutlineThickness = 1.2,
       stoneClickVolume = 0.5,
       lineThickness = 0.5,
-      starPointThickness = 3.0,
+      starPointThickness = 2.5,
       stoneScale = 0.95;
 
   BoardSettings copyWith({

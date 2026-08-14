@@ -292,8 +292,7 @@ class BoardPainter extends CustomPainter {
           stoneRadius *
               0.7, // Reduce the background circle size a bit since marks are smaller
           Paint()
-            ..color =
-                const Color(0xFFDCB35C) // Fully opaque board color
+            ..color = settings.boardColor // Fully opaque board color
             ..style = PaintingStyle.fill,
         );
       }
