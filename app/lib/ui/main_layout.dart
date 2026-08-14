@@ -1327,14 +1327,14 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                   notifier: _globalSettings,
                   selector: (s) => s.boardColor,
                   builder: (context, boardColor) {
-                    final int presetIndex = BoardStyles.boardColors.take(6).toList().indexOf(boardColor);
-                    final int selectedIndex = presetIndex != -1 ? presetIndex : 6;
+                    final int presetIndex = BoardStyles.boardColors.take(9).toList().indexOf(boardColor);
+                    final int selectedIndex = presetIndex != -1 ? presetIndex : 9;
                     
                     return _buildGridSelector(
-                      itemCount: 7, // 6 presets + 1 custom
+                      itemCount: 10, // 9 presets + 1 custom
                       selectedIndex: selectedIndex,
                       onSelected: (i) {
-                        if (i == 6) {
+                        if (i == 9) {
                           Color tempColor = boardColor;
                           showDialog(
                             context: context,
@@ -1368,7 +1368,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                         }
                       },
                       itemBuilder: (context, index, isSelected) {
-                        if (index == 6) {
+                        if (index == 9) {
                           return Container(
                             decoration: BoxDecoration(
                               color: presetIndex == -1 ? boardColor : Colors.white,
@@ -1392,19 +1392,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                           ),
                           child: Stack(
                             children: [
-                              Positioned(
-                                top: 4, left: 4, right: 0,
-                                child: Center(
-                                  child: Text(
-                                    'A',
-                                    style: TextStyle(
-                                      color: Colors.black26,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                              ),
                               Positioned(
                                 right: -1,
                                 bottom: -1,
@@ -1742,7 +1729,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 7, // Match the OGS screenshot
+        crossAxisCount: 10,
         crossAxisSpacing: 2,
         mainAxisSpacing: 2,
         childAspectRatio: 1.0,
