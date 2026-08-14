@@ -1503,16 +1503,29 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                       itemBuilder: (context, index, isSelected) {
                         return Container(
                           decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(4),
+                            color: const Color(0xFFE8D4B4),
                             border: isSelected
-                                ? Border.all(color: Colors.blue, width: 2)
-                                : Border.all(color: Colors.grey.shade300),
+                                ? Border.all(color: Colors.blueAccent, width: 3)
+                                : Border.all(
+                                    color: Colors.transparent,
+                                    width: 3,
+                                  ),
                           ),
                           child: Center(
-                            child: Icon(
-                              Icons.add,
-                              color: BoardStyles.lineColors[index],
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Container(
+                                  width: double.infinity,
+                                  height: 2,
+                                  color: BoardStyles.lineColors[index],
+                                ),
+                                Container(
+                                  width: 2,
+                                  height: double.infinity,
+                                  color: BoardStyles.lineColors[index],
+                                ),
+                              ],
                             ),
                           ),
                         );
