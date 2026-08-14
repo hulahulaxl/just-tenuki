@@ -147,7 +147,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                 _buildHorizontalTabBar(),
                 const Divider(height: 1, thickness: 1, color: Color(0xFFEEEEEE)),
                 if (activeTab is LobbyTab)
-                  Expanded(child: Row(children: _buildLobbyContent())),
+                  ..._buildLobbyContentPortrait(),
                 if (activeTab is GameTab) ..._buildPortraitGameContent(activeTab),
               ],
             );
@@ -402,46 +402,88 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
           padding: const EdgeInsets.all(40.0),
           child: _lobbyMenuIndex != 0
               ? _buildComingSoonMock()
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'New Game',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Choose how you want to begin.',
-                      style: TextStyle(fontSize: 16, color: Colors.black54),
-                    ),
-                    const SizedBox(height: 40),
-                    _buildDetailCard(
-                      'Empty Board',
-                      'Start a fresh game on a 9x9, 13x13, or 19x19 board.',
-                      Icons.grid_on,
-                      onTap: () {
-                        setState(() {
-                          _tabs[_activeIndex] = GameTab(GameSession());
-                          _maxScoreScale = 10.0;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _buildDetailCard(
-                      'Import SGF',
-                      'Load a standard .sgf game record to review or play against AI.',
-                      Icons.file_download_outlined,
-                      onTap: _pickAndLoadSgf,
-                    ),
-                  ],
-                ),
+              : _buildNewGameView(),
         ),
       ),
     ];
+  }
+
+  List<Widget> _buildLobbyContentPortrait() {
+    return [
+      Expanded(
+        child: Container(
+          color: Colors.white,
+          padding: const EdgeInsets.all(16.0),
+          child: _lobbyMenuIndex != 0
+              ? _buildComingSoonMock()
+              : _buildNewGameView(),
+        ),
+      ),
+      BottomNavigationBar(
+        currentIndex: _lobbyMenuIndex,
+        onTap: (index) {
+          setState(() {
+            _lobbyMenuIndex = index;
+          });
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_box_outlined),
+            label: 'New',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.history),
+            label: 'Recent',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.public),
+            label: 'Online',
+          ),
+        ],
+      ),
+    ];
+  }
+
+  Widget _buildNewGameView() {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'New Game',
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Choose how you want to begin.',
+            style: TextStyle(fontSize: 16, color: Colors.black54),
+          ),
+          const SizedBox(height: 40),
+          _buildDetailCard(
+            'Empty Board',
+            'Start a fresh game on a 9x9, 13x13, or 19x19 board.',
+            Icons.grid_on,
+            onTap: () {
+              setState(() {
+                _tabs[_activeIndex] = GameTab(GameSession());
+                _maxScoreScale = 10.0;
+              });
+            },
+          ),
+          const SizedBox(height: 16),
+          _buildDetailCard(
+            'Import SGF',
+            'Load a standard .sgf game record to review or play against AI.',
+            Icons.file_download_outlined,
+            onTap: _pickAndLoadSgf,
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildComingSoonMock() {
