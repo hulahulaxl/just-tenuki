@@ -174,11 +174,11 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   // Horizontal Tab Bar for Portrait Mode
   Widget _buildHorizontalTabBar() {
     return Container(
-      height: 60,
+      height: 40,
       color: const Color(0xFFFAFAFA),
       child: Row(
         children: [
-          const SizedBox(width: 16),
+          const SizedBox(width: 8),
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -187,7 +187,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                   // Dynamically build the tab icons based on open tabs
                   for (int i = 0; i < _tabs.length; i++) ...[
                     _buildHorizontalTabIcon(_tabs[i].icon, i, _tabs[i].tooltip),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 2),
                   ],
                 ],
               ),
@@ -200,7 +200,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
               _activeIndex = _tabs.length - 1;
             });
           }),
-          const SizedBox(width: 16),
+          const SizedBox(width: 8),
         ],
       ),
     );
@@ -220,16 +220,9 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
         child: MouseRegion(
           cursor: SystemMouseCursors.click,
           child: Container(
-            width: 48,
-            height: 60,
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: isSelected ? Colors.blue : Colors.transparent,
-                  width: 3,
-                ),
-              ),
-            ),
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
             child: Icon(
               icon,
               color: isSelected ? Colors.black87 : Colors.black38,
@@ -253,8 +246,8 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
         child: MouseRegion(
           cursor: SystemMouseCursors.click,
           child: Container(
-            width: 48,
-            height: 60,
+            width: 40,
+            height: 40,
             alignment: Alignment.center,
             child: Icon(icon, color: Colors.black54, size: 26),
           ),
@@ -313,14 +306,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
           child: Container(
             width: 60,
             height: 48,
-            decoration: BoxDecoration(
-              border: Border(
-                left: BorderSide(
-                  color: isSelected ? Colors.blue : Colors.transparent,
-                  width: 3,
-                ),
-              ),
-            ),
+            alignment: Alignment.center,
             child: Icon(
               icon,
               color: isSelected ? Colors.black87 : Colors.black38,
