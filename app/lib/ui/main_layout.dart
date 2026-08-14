@@ -1522,7 +1522,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                             child: CustomPaint(
                               painter: _StoneThumbnailPainter(
                                 paintFactory: BoardStyles.stoneTextures[index],
-                                baseColor: _globalSettings.value.whiteStoneColor,
+                                baseColor: Colors.white,
                               ),
                             ),
                           ),
@@ -1634,7 +1634,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                             child: CustomPaint(
                               painter: _StoneThumbnailPainter(
                                 paintFactory: BoardStyles.stoneTextures[index],
-                                baseColor: _globalSettings.value.blackStoneColor,
+                                baseColor: Colors.black,
                               ),
                             ),
                           ),
