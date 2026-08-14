@@ -119,6 +119,25 @@ class BoardPainter extends CustomPainter {
         );
 
         final Paint stonePaint = Paint();
+
+        // Draw drop shadow
+        if (settings.stoneDropShadow > 0) {
+          final shadowPaint = Paint()
+            ..color = Colors.black.withValues(alpha: 0.3)
+            ..maskFilter = MaskFilter.blur(
+              BlurStyle.normal,
+              settings.stoneDropShadow,
+            );
+          canvas.drawCircle(
+            Offset(
+              center.dx + settings.stoneDropShadow * 0.5,
+              center.dy + settings.stoneDropShadow * 0.5,
+            ),
+            stoneRadius,
+            shadowPaint,
+          );
+        }
+
         if (player == 1) {
           stonePaint.shader = BoardStyles
               .blackStones[settings.blackStoneStyleIndex]
@@ -129,6 +148,17 @@ class BoardPainter extends CustomPainter {
               .createShader(stoneRect);
         } else {
           stonePaint.color = Colors.red;
+        }
+
+        canvas.drawCircle(center, stoneRadius, stonePaint);
+
+        // Draw base outline
+        if (settings.stoneOutlineThickness > 0) {
+          final outlineBasePaint = Paint()
+            ..color = Colors.black87
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = settings.stoneOutlineThickness;
+          canvas.drawCircle(center, stoneRadius, outlineBasePaint);
         }
 
         int? latestMoveX = currentNode.move is Play
@@ -145,13 +175,13 @@ class BoardPainter extends CustomPainter {
                 x == latestMoveX &&
                 y == latestMoveY);
 
-        final Paint outlinePaint = Paint()
-          ..color = isLatest ? Colors.blue.shade500 : Colors.transparent
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = isLatest ? (cellSize * 0.12).clamp(2.5, 4.5) : 0;
-
-        canvas.drawCircle(center, stoneRadius, stonePaint);
-        canvas.drawCircle(center, stoneRadius, outlinePaint);
+        if (isLatest) {
+          final Paint highlightPaint = Paint()
+            ..color = Colors.blue.shade500
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = (cellSize * 0.12).clamp(2.5, 4.5);
+          canvas.drawCircle(center, stoneRadius, highlightPaint);
+        }
       }
     }
 

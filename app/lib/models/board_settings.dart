@@ -5,7 +5,8 @@ class BoardSettings {
   final int lineStyleIndex;
   final bool showCoordinates;
   final bool highlightLastMove;
-  final bool showShadows;
+  final double stoneDropShadow;
+  final double stoneOutlineThickness;
   final double stoneClickVolume;
   final double lineThickness;
   final double starPointThickness;
@@ -18,7 +19,8 @@ class BoardSettings {
     required this.lineStyleIndex,
     required this.showCoordinates,
     required this.highlightLastMove,
-    required this.showShadows,
+    required this.stoneDropShadow,
+    required this.stoneOutlineThickness,
     required this.stoneClickVolume,
     required this.lineThickness,
     required this.starPointThickness,
@@ -32,7 +34,8 @@ class BoardSettings {
       lineStyleIndex = 0,
       showCoordinates = false,
       highlightLastMove = true,
-      showShadows = true,
+      stoneDropShadow = 2.0,
+      stoneOutlineThickness = 0.0,
       stoneClickVolume = 0.5,
       lineThickness = 0.5,
       starPointThickness = 3.0,
@@ -45,7 +48,8 @@ class BoardSettings {
     int? lineStyleIndex,
     bool? showCoordinates,
     bool? highlightLastMove,
-    bool? showShadows,
+    double? stoneDropShadow,
+    double? stoneOutlineThickness,
     double? stoneClickVolume,
     double? lineThickness,
     double? starPointThickness,
@@ -58,7 +62,9 @@ class BoardSettings {
       lineStyleIndex: lineStyleIndex ?? this.lineStyleIndex,
       showCoordinates: showCoordinates ?? this.showCoordinates,
       highlightLastMove: highlightLastMove ?? this.highlightLastMove,
-      showShadows: showShadows ?? this.showShadows,
+      stoneDropShadow: stoneDropShadow ?? this.stoneDropShadow,
+      stoneOutlineThickness:
+          stoneOutlineThickness ?? this.stoneOutlineThickness,
       stoneClickVolume: stoneClickVolume ?? this.stoneClickVolume,
       lineThickness: lineThickness ?? this.lineThickness,
       starPointThickness: starPointThickness ?? this.starPointThickness,

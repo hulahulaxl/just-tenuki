@@ -1422,21 +1422,12 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 gradient: BoardStyles.whiteStones[index],
-                                border: index == 0
-                                    ? Border.all(
-                                        color: Colors.black87,
-                                        width: 1,
-                                      )
-                                    : null,
                                 boxShadow: [
-                                  if (index != 0)
-                                    BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.2,
-                                      ),
-                                      blurRadius: 2,
-                                      offset: const Offset(1, 1),
-                                    ),
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.2),
+                                    blurRadius: 2,
+                                    offset: const Offset(1, 1),
+                                  ),
                                 ],
                               ),
                             ),
@@ -1634,6 +1625,45 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                       label: stoneScale.toStringAsFixed(2),
                       onChanged: (val) => _globalSettings.value =
                           _globalSettings.value.copyWith(stoneScale: val),
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Stone Outline',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+                SettingSelector<double>(
+                  notifier: _globalSettings,
+                  selector: (s) => s.stoneOutlineThickness,
+                  builder: (context, stoneOutlineThickness) {
+                    return Slider(
+                      value: stoneOutlineThickness,
+                      min: 0.0,
+                      max: 2.0,
+                      label: stoneOutlineThickness.toStringAsFixed(1),
+                      onChanged: (val) =>
+                          _globalSettings.value = _globalSettings.value
+                              .copyWith(stoneOutlineThickness: val),
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Drop Shadow',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+                SettingSelector<double>(
+                  notifier: _globalSettings,
+                  selector: (s) => s.stoneDropShadow,
+                  builder: (context, stoneDropShadow) {
+                    return Slider(
+                      value: stoneDropShadow,
+                      min: 0.0,
+                      max: 4.0,
+                      label: stoneDropShadow.toStringAsFixed(1),
+                      onChanged: (val) => _globalSettings.value =
+                          _globalSettings.value.copyWith(stoneDropShadow: val),
                     );
                   },
                 ),
