@@ -134,7 +134,8 @@ class BoardStyles {
     },
   ];
 
-  static final List<Color> lineColors = [
+  static final List<Color> lineColorPresets = [
+    const Color(0xDD000000), // Default black
     Colors.black87,
     Colors.black54,
     Colors.brown.shade800,
@@ -142,5 +143,6 @@ class BoardStyles {
     Colors.blueGrey.shade800,
     Colors.grey.shade400,
     Colors.white70,
+    Colors.white54,
   ];
 }

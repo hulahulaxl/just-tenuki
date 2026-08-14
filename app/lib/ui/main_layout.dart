@@ -1644,16 +1644,49 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                   },
                 ),
                 const SizedBox(height: 4),
-                SettingSelector<int>(
+                SettingSelector<Color>(
                   notifier: _globalSettings,
-                  selector: (s) => s.lineStyleIndex,
-                  builder: (context, lineStyleIndex) {
+                  selector: (s) => s.lineColor,
+                  builder: (context, lineColor) {
+                    final int presetIndex = BoardStyles.lineColorPresets.take(9).toList().indexOf(lineColor);
+                    final int selectedIndex = presetIndex != -1 ? presetIndex : 9;
                     return _buildGridSelector(
-                      itemCount: BoardStyles.lineColors.length,
-                      selectedIndex: lineStyleIndex,
-                      onSelected: (i) => _globalSettings.value = _globalSettings
-                          .value
-                          .copyWith(lineStyleIndex: i),
+                      itemCount: 10,
+                      selectedIndex: selectedIndex,
+                      onSelected: (i) {
+                        if (i == 9) {
+                          Color tempColor = lineColor;
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text('Pick Line Color'),
+                                content: SingleChildScrollView(
+                                  child: ColorPicker(
+                                    pickerColor: tempColor,
+                                    onColorChanged: (color) {
+                                      tempColor = color;
+                                      _globalSettings.value = _globalSettings.value.copyWith(
+                                        lineColor: color,
+                                      );
+                                    },
+                                  ),
+                                ),
+                                actions: [
+                                  ElevatedButton(
+                                    child: const Text('Done'),
+                                    onPressed: () => Navigator.of(context).pop(),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        } else {
+                          _globalSettings.value = _globalSettings.value.copyWith(
+                            lineColor: BoardStyles.lineColorPresets[i],
+                          );
+                        }
+                      },
                       itemBuilder: (context, index, isSelected) {
                         return Container(
                           decoration: BoxDecoration(
@@ -1667,26 +1700,28 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                                   ),
                           ),
                           child: Center(
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Container(
-                                  width: double.infinity,
-                                  height: 2,
-                                  color: BoardStyles.lineColors[index],
-                                ),
-                                Container(
-                                  width: 2,
-                                  height: double.infinity,
-                                  color: BoardStyles.lineColors[index],
-                                ),
-                              ],
-                            ),
+                            child: index == 9
+                                ? const Icon(Icons.color_lens, color: Colors.black54, size: 20)
+                                : Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      Container(
+                                        width: double.infinity,
+                                        height: 2,
+                                        color: BoardStyles.lineColorPresets[index],
+                                      ),
+                                      Container(
+                                        width: 2,
+                                        height: double.infinity,
+                                        color: BoardStyles.lineColorPresets[index],
+                                      ),
+                                    ],
+                                  ),
                           ),
                         );
-                      },
+                      }
                     );
-                  },
+                  }
                 ),
                 const SizedBox(height: 8),
                 SettingSelector<bool>(

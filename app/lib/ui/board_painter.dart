@@ -53,7 +53,7 @@ class BoardPainter extends CustomPainter {
     final double lineThickness = (cellSize * 0.04 * settings.lineThickness)
         .clamp(0.5, 4.0);
     final linePaint = Paint()
-      ..color = BoardStyles.lineColors[settings.lineStyleIndex]
+      ..color = settings.lineColor
       ..strokeWidth = lineThickness;
 
     // 2. Draw vertical lines
@@ -84,7 +84,7 @@ class BoardPainter extends CustomPainter {
     // 3. Draw star points (hoshi) if 19x19 board
     if (cols == 19 && rows == 19) {
       final hoshiPaint = Paint()
-        ..color = BoardStyles.lineColors[settings.lineStyleIndex];
+        ..color = settings.lineColor;
       final List<int> hoshiPoints = [3, 9, 15]; // 4th, 10th, and 16th lines
       final double hoshiRadius =
           cellSize *

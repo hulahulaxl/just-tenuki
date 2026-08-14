@@ -6,7 +6,7 @@ class BoardSettings {
   final int blackStoneTextureIndex;
   final Color whiteStoneColor;
   final int whiteStoneTextureIndex;
-  final int lineStyleIndex;
+  final Color lineColor;
   final bool showCoordinates;
   final bool highlightLastMove;
   final double stoneDropShadow;
@@ -22,7 +22,7 @@ class BoardSettings {
     required this.blackStoneTextureIndex,
     required this.whiteStoneColor,
     required this.whiteStoneTextureIndex,
-    required this.lineStyleIndex,
+    required this.lineColor,
     required this.showCoordinates,
     required this.highlightLastMove,
     required this.stoneDropShadow,
@@ -39,7 +39,7 @@ class BoardSettings {
       blackStoneTextureIndex = 0,
       whiteStoneColor = const Color(0xFFFFFFFF),
       whiteStoneTextureIndex = 0,
-      lineStyleIndex = 0,
+      lineColor = const Color(0xDD000000),
       showCoordinates = false,
       highlightLastMove = true,
       stoneDropShadow = 2.0,
@@ -55,7 +55,7 @@ class BoardSettings {
     int? blackStoneTextureIndex,
     Color? whiteStoneColor,
     int? whiteStoneTextureIndex,
-    int? lineStyleIndex,
+    Color? lineColor,
     bool? showCoordinates,
     bool? highlightLastMove,
     double? stoneDropShadow,
@@ -71,7 +71,7 @@ class BoardSettings {
       blackStoneTextureIndex: blackStoneTextureIndex ?? this.blackStoneTextureIndex,
       whiteStoneColor: whiteStoneColor ?? this.whiteStoneColor,
       whiteStoneTextureIndex: whiteStoneTextureIndex ?? this.whiteStoneTextureIndex,
-      lineStyleIndex: lineStyleIndex ?? this.lineStyleIndex,
+      lineColor: lineColor ?? this.lineColor,
       showCoordinates: showCoordinates ?? this.showCoordinates,
       highlightLastMove: highlightLastMove ?? this.highlightLastMove,
       stoneDropShadow: stoneDropShadow ?? this.stoneDropShadow,
