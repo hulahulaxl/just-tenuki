@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/board.dart';
 import '../models/tree.dart';
 import '../api/protocol.dart';
+import '../models/board_settings.dart';
 import 'board_painter.dart';
 
 class BoardWidget extends StatelessWidget {
@@ -9,12 +10,14 @@ class BoardWidget extends StatelessWidget {
   final TreeNode currentNode;
   final void Function(int x, int y) onIntersectionTapped;
   final EngineResponse? analysis;
+  final BoardSettings settings;
 
   const BoardWidget({
     super.key,
     required this.board,
     required this.currentNode,
     required this.onIntersectionTapped,
+    required this.settings,
     this.analysis,
   });
 
@@ -32,6 +35,7 @@ class BoardWidget extends StatelessWidget {
               painter: BoardPainter(
                 board: board,
                 currentNode: currentNode,
+                settings: settings,
                 analysis: analysis,
               ),
             ),

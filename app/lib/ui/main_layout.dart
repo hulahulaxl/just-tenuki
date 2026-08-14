@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../models/tree.dart';
+import '../models/board_settings.dart';
 
 import '../utils/sgf_parser.dart';
 import '../utils/sgf_writer.dart';
@@ -74,9 +75,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   bool _showCommentsPane = false;
   bool _showSettingsPane = false;
 
-  int _selectedBoardIndex = 0;
-  int _selectedWhiteStoneIndex = 0;
-  int _selectedBlackStoneIndex = 0;
+  BoardSettings _globalSettings = const BoardSettings.defaults();
 
   // High precision flex values for smooth 1:1 cursor tracking, isolated via ValueNotifier
   final ValueNotifier<List<int>> _paneFlexes = ValueNotifier([
@@ -502,6 +501,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     child: BoardWidget(
                       board: tab.session.currentBoard,
                       currentNode: tab.session.currentNode,
+                      settings: _globalSettings,
                       onIntersectionTapped: (x, y) {
                         BoardEditMode effectiveMode = _editMode;
 
@@ -1325,7 +1325,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       const Color(0xFFB9C2C5),
     ];
 
-    // White stone mock styles (represented by gradients)
     final List<Gradient> whiteStones = [
       const RadialGradient(
         colors: [Color(0xFFFFFFFF), Color(0xFFD0D0D0)],
@@ -1350,7 +1349,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       ), // Pearl
     ];
 
-    // Black stone mock styles
     final List<Gradient> blackStones = [
       const RadialGradient(
         colors: [Color(0xFF404040), Color(0xFF101010)],
@@ -1375,6 +1373,17 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       ), // Very dark
     ];
 
+    // Mock Line Styles (Colors for now, displayed as crossing lines)
+    final List<Color> lineColors = [
+      Colors.black87,
+      Colors.black54,
+      Colors.brown.shade800,
+      Colors.brown.shade600,
+      Colors.blueGrey.shade800,
+      Colors.grey.shade400,
+      Colors.white70,
+    ];
+
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.all(16.0),
@@ -1384,8 +1393,12 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
           children: [
             _buildGridSelector(
               itemCount: boardColors.length,
-              selectedIndex: _selectedBoardIndex,
-              onSelected: (i) => setState(() => _selectedBoardIndex = i),
+              selectedIndex: _globalSettings.boardStyleIndex,
+              onSelected: (i) => setState(
+                () => _globalSettings = _globalSettings.copyWith(
+                  boardStyleIndex: i,
+                ),
+              ),
               itemBuilder: (context, index, isSelected) {
                 return Container(
                   decoration: BoxDecoration(
@@ -1396,7 +1409,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                   ),
                   child: Stack(
                     children: [
-                      // Mock the 'A' and corner line
                       Positioned(
                         top: 4,
                         left: 4,
@@ -1446,12 +1458,16 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             const SizedBox(height: 8),
             _buildGridSelector(
               itemCount: whiteStones.length,
-              selectedIndex: _selectedWhiteStoneIndex,
-              onSelected: (i) => setState(() => _selectedWhiteStoneIndex = i),
+              selectedIndex: _globalSettings.whiteStoneStyleIndex,
+              onSelected: (i) => setState(
+                () => _globalSettings = _globalSettings.copyWith(
+                  whiteStoneStyleIndex: i,
+                ),
+              ),
               itemBuilder: (context, index, isSelected) {
                 return Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE8D4B4), // Beige background
+                    color: const Color(0xFFE8D4B4),
                     border: isSelected
                         ? Border.all(color: Colors.blueAccent, width: 3)
                         : Border.all(color: Colors.transparent, width: 3),
@@ -1463,10 +1479,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                         shape: BoxShape.circle,
                         gradient: whiteStones[index],
                         border: index == 0
-                            ? Border.all(
-                                color: Colors.black87,
-                                width: 1,
-                              ) // First has border
+                            ? Border.all(color: Colors.black87, width: 1)
                             : null,
                         boxShadow: [
                           if (index != 0)
@@ -1485,12 +1498,16 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             const SizedBox(height: 8),
             _buildGridSelector(
               itemCount: blackStones.length,
-              selectedIndex: _selectedBlackStoneIndex,
-              onSelected: (i) => setState(() => _selectedBlackStoneIndex = i),
+              selectedIndex: _globalSettings.blackStoneStyleIndex,
+              onSelected: (i) => setState(
+                () => _globalSettings = _globalSettings.copyWith(
+                  blackStoneStyleIndex: i,
+                ),
+              ),
               itemBuilder: (context, index, isSelected) {
                 return Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE8D4B4), // Beige background
+                    color: const Color(0xFFE8D4B4),
                     border: isSelected
                         ? Border.all(color: Colors.blueAccent, width: 3)
                         : Border.all(color: Colors.transparent, width: 3),
@@ -1514,7 +1531,46 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                 );
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
+            _buildGridSelector(
+              itemCount: lineColors.length,
+              selectedIndex: _globalSettings.lineStyleIndex,
+              onSelected: (i) => setState(
+                () => _globalSettings = _globalSettings.copyWith(
+                  lineStyleIndex: i,
+                ),
+              ),
+              itemBuilder: (context, index, isSelected) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: const Color(
+                      0xFFDCB35C,
+                    ), // Default board color for preview
+                    border: isSelected
+                        ? Border.all(color: Colors.blueAccent, width: 3)
+                        : Border.all(color: Colors.transparent, width: 3),
+                  ),
+                  child: Center(
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          height: 2,
+                          color: lineColors[index],
+                        ),
+                        Container(
+                          width: 2,
+                          height: double.infinity,
+                          color: lineColors[index],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -1523,11 +1579,103 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                   style: TextStyle(fontSize: 14, color: Colors.black87),
                 ),
                 Switch(
-                  value: true,
-                  onChanged: (_) {},
+                  value: _globalSettings.showCoordinates,
+                  onChanged: (val) => setState(
+                    () => _globalSettings = _globalSettings.copyWith(
+                      showCoordinates: val,
+                    ),
+                  ),
                   activeTrackColor: Colors.blue,
                 ),
               ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Highlight Last Move',
+                  style: TextStyle(fontSize: 14, color: Colors.black87),
+                ),
+                Switch(
+                  value: _globalSettings.highlightLastMove,
+                  onChanged: (val) => setState(
+                    () => _globalSettings = _globalSettings.copyWith(
+                      highlightLastMove: val,
+                    ),
+                  ),
+                  activeTrackColor: Colors.blue,
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Line Thickness',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+            Slider(
+              value: _globalSettings.lineThickness,
+              min: 0.5,
+              max: 2.5,
+              divisions: 4,
+              label: _globalSettings.lineThickness.toString(),
+              onChanged: (val) => setState(
+                () => _globalSettings = _globalSettings.copyWith(
+                  lineThickness: val,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Star Point Size',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+            Slider(
+              value: _globalSettings.starPointThickness,
+              min: 2.0,
+              max: 6.0,
+              divisions: 4,
+              label: _globalSettings.starPointThickness.toString(),
+              onChanged: (val) => setState(
+                () => _globalSettings = _globalSettings.copyWith(
+                  starPointThickness: val,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Stone Size',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+            Slider(
+              value: _globalSettings.stoneScale,
+              min: 0.8,
+              max: 1.0,
+              divisions: 4,
+              label: _globalSettings.stoneScale.toString(),
+              onChanged: (val) => setState(
+                () =>
+                    _globalSettings = _globalSettings.copyWith(stoneScale: val),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Stone Click Volume',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+            Slider(
+              value: _globalSettings.stoneClickVolume,
+              min: 0.0,
+              max: 1.0,
+              divisions: 10,
+              label: (_globalSettings.stoneClickVolume * 100)
+                  .round()
+                  .toString(),
+              onChanged: (val) => setState(
+                () => _globalSettings = _globalSettings.copyWith(
+                  stoneClickVolume: val,
+                ),
+              ),
             ),
           ],
         ),

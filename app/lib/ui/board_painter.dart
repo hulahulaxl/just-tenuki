@@ -4,13 +4,20 @@ import '../api/protocol.dart';
 
 import '../../models/tree.dart';
 import '../../models/move.dart';
+import '../models/board_settings.dart';
 
 class BoardPainter extends CustomPainter {
   final Board board;
   final TreeNode currentNode;
   final EngineResponse? analysis;
+  final BoardSettings settings;
 
-  BoardPainter({required this.board, required this.currentNode, this.analysis});
+  BoardPainter({
+    required this.board,
+    required this.currentNode,
+    required this.settings,
+    this.analysis,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -38,8 +45,9 @@ class BoardPainter extends CustomPainter {
     final double offsetX = (size.width - gridWidth) / 2;
     final double offsetY = (size.height - gridHeight) / 2;
 
-    // Scale line thickness based on cell size (between 0.5 and 2.0 pixels)
-    final double lineThickness = (cellSize * 0.04).clamp(0.5, 2.0);
+    // Scale line thickness based on cell size (between 0.5 and 4.0 pixels)
+    final double lineThickness = (cellSize * 0.04 * settings.lineThickness)
+        .clamp(0.5, 4.0);
     final linePaint = Paint()
       ..color = Colors.black
       ..strokeWidth = lineThickness;
@@ -68,7 +76,10 @@ class BoardPainter extends CustomPainter {
     if (cols == 19 && rows == 19) {
       final hoshiPaint = Paint()..color = Colors.black;
       final List<int> hoshiPoints = [3, 9, 15]; // 4th, 10th, and 16th lines
-      final double hoshiRadius = cellSize * 0.1; // Scale hoshi proportionally
+      final double hoshiRadius =
+          cellSize *
+          0.1 *
+          (settings.starPointThickness / 3.0); // Scale hoshi proportionally
 
       for (int x in hoshiPoints) {
         for (int y in hoshiPoints) {
@@ -82,9 +93,7 @@ class BoardPainter extends CustomPainter {
     }
 
     // 4. Draw stones
-    final double stoneRadius =
-        cellSize *
-        0.46; // Leaves a proper gap (including the stroke width) between adjacent stones
+    final double stoneRadius = cellSize * 0.5 * settings.stoneScale;
 
     for (int y = 0; y < rows; y++) {
       for (int x = 0; x < cols; x++) {
@@ -108,10 +117,11 @@ class BoardPainter extends CustomPainter {
             : null;
 
         bool isLatest =
+            settings.highlightLastMove &&
             (latestMoveX != null &&
-            latestMoveY != null &&
-            x == latestMoveX &&
-            y == latestMoveY);
+                latestMoveY != null &&
+                x == latestMoveX &&
+                y == latestMoveY);
 
         final Paint stonePaint = Paint()..color = stoneColor;
         final Paint outlinePaint = Paint()
