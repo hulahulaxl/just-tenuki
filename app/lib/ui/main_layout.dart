@@ -74,6 +74,10 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   bool _showCommentsPane = false;
   bool _showSettingsPane = false;
 
+  int _selectedBoardIndex = 0;
+  int _selectedWhiteStoneIndex = 0;
+  int _selectedBlackStoneIndex = 0;
+
   // High precision flex values for smooth 1:1 cursor tracking, isolated via ValueNotifier
   final ValueNotifier<List<int>> _paneFlexes = ValueNotifier([
     10000,
@@ -1304,49 +1308,212 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   }
 
   Widget _buildSettingsPaneMock() {
+    final List<Color> boardColors = [
+      const Color(0xFFDCB35C),
+      const Color(0xFFE6D0A7),
+      const Color(0xFFE1D0AB),
+      const Color(0xFFECD2B2),
+      const Color(0xFFDFC49C),
+      const Color(0xFFE8E0C0),
+      const Color(0xFFDED3BC),
+      const Color(0xFFBFA192),
+      const Color(0xFFC0C3C2),
+      const Color(0xFF909392),
+      const Color(0xFF9CF0FF),
+      const Color(0xFF75818C),
+      const Color(0xFFFFFFFF),
+      const Color(0xFFB9C2C5),
+    ];
+
+    // White stone mock styles (represented by gradients)
+    final List<Gradient> whiteStones = [
+      const RadialGradient(
+        colors: [Color(0xFFFFFFFF), Color(0xFFD0D0D0)],
+      ), // Simple
+      const RadialGradient(
+        colors: [Color(0xFFFFFFFF), Color(0xFFE0E0E0)],
+      ), // Soft
+      const RadialGradient(
+        colors: [Color(0xFFFFFFFF), Color(0xFFF0F0F0)],
+      ), // Glossy
+      const LinearGradient(
+        colors: [Color(0xFFFFFFFF), Color(0xFFDDDDDD)],
+      ), // Brushed
+      const RadialGradient(
+        colors: [Color(0xFFFFFFFF), Color(0xFFFFFFFF)],
+      ), // Flat white
+      const RadialGradient(
+        colors: [Color(0xFFE0E0E0), Color(0xFFB0B0B0)],
+      ), // Grayish
+      const RadialGradient(
+        colors: [Color(0xFFF5FFE8), Color(0xFFD0E0D0)],
+      ), // Pearl
+    ];
+
+    // Black stone mock styles
+    final List<Gradient> blackStones = [
+      const RadialGradient(
+        colors: [Color(0xFF404040), Color(0xFF101010)],
+      ), // Simple
+      const RadialGradient(
+        colors: [Color(0xFF606060), Color(0xFF303030)],
+      ), // Soft
+      const RadialGradient(
+        colors: [Color(0xFF707070), Color(0xFF404040)],
+      ), // Glossy
+      const RadialGradient(
+        colors: [Color(0xFF505050), Color(0xFF505050)],
+      ), // Matte
+      const RadialGradient(
+        colors: [Color(0xFF555555), Color(0xFF222222)],
+      ), // Smooth
+      const RadialGradient(
+        colors: [Color(0xFF454545), Color(0xFF252525)],
+      ), // Dark gray
+      const RadialGradient(
+        colors: [Color(0xFF353535), Color(0xFF151515)],
+      ), // Very dark
+    ];
+
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(16.0),
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Global Settings',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
+            _buildGridSelector(
+              itemCount: boardColors.length,
+              selectedIndex: _selectedBoardIndex,
+              onSelected: (i) => setState(() => _selectedBoardIndex = i),
+              itemBuilder: (context, index, isSelected) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: boardColors[index],
+                    border: isSelected
+                        ? Border.all(color: Colors.blueAccent, width: 3)
+                        : Border.all(color: Colors.transparent, width: 3),
+                  ),
+                  child: Stack(
+                    children: [
+                      // Mock the 'A' and corner line
+                      Positioned(
+                        top: 4,
+                        left: 4,
+                        right: 0,
+                        child: Center(
+                          child: Text(
+                            'A',
+                            style: TextStyle(
+                              color: index == 10 || index == 12
+                                  ? Colors.black54
+                                  : Colors.black26,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        right: -1,
+                        bottom: -1,
+                        child: Container(
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            border: Border(
+                              top: BorderSide(
+                                color: index == 10 || index == 12
+                                    ? Colors.black54
+                                    : Colors.black26,
+                                width: 1.5,
+                              ),
+                              left: BorderSide(
+                                color: index == 10 || index == 12
+                                    ? Colors.black54
+                                    : Colors.black26,
+                                width: 1.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
-            const SizedBox(height: 16),
-            _buildSettingsDropdown('Theme', ['Light', 'Dark', 'System']),
-            _buildSettingsDropdown('Language', [
-              'English',
-              'Korean',
-              'Japanese',
-            ]),
-            const SizedBox(height: 32),
-            const Text(
-              'Board Preferences',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
+            const SizedBox(height: 8),
+            _buildGridSelector(
+              itemCount: whiteStones.length,
+              selectedIndex: _selectedWhiteStoneIndex,
+              onSelected: (i) => setState(() => _selectedWhiteStoneIndex = i),
+              itemBuilder: (context, index, isSelected) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8D4B4), // Beige background
+                    border: isSelected
+                        ? Border.all(color: Colors.blueAccent, width: 3)
+                        : Border.all(color: Colors.transparent, width: 3),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: whiteStones[index],
+                        border: index == 0
+                            ? Border.all(
+                                color: Colors.black87,
+                                width: 1,
+                              ) // First has border
+                            : null,
+                        boxShadow: [
+                          if (index != 0)
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 2,
+                              offset: const Offset(1, 1),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
-            const SizedBox(height: 16),
-            _buildSettingsDropdown('Board Color', [
-              'Classic Wood',
-              'Kaya',
-              'Slate',
-              'Minimalist',
-            ]),
-            _buildSettingsDropdown('Stone Style', [
-              'Glass',
-              'Slate & Shell',
-              'Flat',
-            ]),
+            const SizedBox(height: 8),
+            _buildGridSelector(
+              itemCount: blackStones.length,
+              selectedIndex: _selectedBlackStoneIndex,
+              onSelected: (i) => setState(() => _selectedBlackStoneIndex = i),
+              itemBuilder: (context, index, isSelected) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8D4B4), // Beige background
+                    border: isSelected
+                        ? Border.all(color: Colors.blueAccent, width: 3)
+                        : Border.all(color: Colors.transparent, width: 3),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: blackStones[index],
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.4),
+                            blurRadius: 2,
+                            offset: const Offset(1, 1),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1362,60 +1529,38 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Highlight Last Move',
-                  style: TextStyle(fontSize: 14, color: Colors.black87),
-                ),
-                Switch(
-                  value: true,
-                  onChanged: (_) {},
-                  activeTrackColor: Colors.blue,
-                ),
-              ],
-            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSettingsDropdown(String label, List<String> options) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 14, color: Colors.black54),
-          ),
-          const SizedBox(height: 8),
-          DropdownButtonFormField<String>(
-            decoration: InputDecoration(
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
-              isDense: true,
-            ),
-            initialValue: options.first,
-            items: options.map((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value, style: const TextStyle(fontSize: 14)),
-              );
-            }).toList(),
-            onChanged: (_) {},
-          ),
-        ],
+  Widget _buildGridSelector({
+    required int itemCount,
+    required int selectedIndex,
+    required ValueChanged<int> onSelected,
+    required Widget Function(BuildContext, int, bool) itemBuilder,
+  }) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 7, // Match the OGS screenshot
+        crossAxisSpacing: 2,
+        mainAxisSpacing: 2,
+        childAspectRatio: 1.0,
       ),
+      itemCount: itemCount,
+      itemBuilder: (context, index) {
+        final isSelected = index == selectedIndex;
+        return GestureDetector(
+          onTap: () => onSelected(index),
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: itemBuilder(context, index, isSelected),
+          ),
+        );
+      },
     );
   }
 
