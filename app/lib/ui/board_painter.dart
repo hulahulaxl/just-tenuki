@@ -144,7 +144,7 @@ class BoardPainter extends CustomPainter {
         // Draw outline
         if (settings.stoneOutlineThickness > 0) {
           final outlinePaint = Paint()
-            ..color = player == 1 ? Colors.white24 : Colors.black26
+            ..color = Colors.black87
             ..style = PaintingStyle.stroke
             ..strokeWidth = settings.stoneOutlineThickness;
           canvas.drawOval(stoneRect, outlinePaint);
