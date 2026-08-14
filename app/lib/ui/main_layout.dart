@@ -400,8 +400,8 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
         child: Container(
           color: Colors.white,
           padding: const EdgeInsets.all(40.0),
-          child: _lobbyMenuIndex == 2
-              ? _buildOnlineLibraryMock()
+          child: _lobbyMenuIndex != 0
+              ? _buildComingSoonMock()
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -444,118 +444,23 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     ];
   }
 
-  Widget _buildOnlineLibraryMock() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Online Library (OGS)',
-          style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Browse millions of professional and amateur games from the Online Go Server.',
-          style: TextStyle(fontSize: 16, color: Colors.black54),
-        ),
-        const SizedBox(height: 40),
-        Row(
-          children: [
-            Expanded(
-              flex: 2,
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search player name or game ID...',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFFEEEEEE)),
-                  ),
-                  filled: true,
-                  fillColor: const Color(0xFFFAFAFA),
-                ),
-              ),
+  Widget _buildComingSoonMock() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.construction, size: 64, color: Colors.black26),
+          SizedBox(height: 16),
+          Text(
+            'Coming Soon',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
+              color: Colors.black54,
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              flex: 1,
-              child: DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  filled: true,
-                  fillColor: const Color(0xFFFAFAFA),
-                ),
-                items: ['Professional', 'Amateur (High Dan)', 'All'].map((
-                  String value,
-                ) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (_) {},
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 32),
-        Expanded(
-          child: ListView.separated(
-            itemCount: 4,
-            separatorBuilder: (context, index) => const Divider(height: 1),
-            itemBuilder: (context, index) {
-              final mockGames = [
-                {'b': 'Lee Sedol (9p)', 'w': 'AlphaGo', 'date': '2016-03-15'},
-                {
-                  'b': 'Shin Jinseo (9p)',
-                  'w': 'Ke Jie (9p)',
-                  'date': '2023-11-20',
-                },
-                {
-                  'b': 'Cho Chikun (9p)',
-                  'w': 'DeepZenGo',
-                  'date': '2016-11-19',
-                },
-                {
-                  'b': 'Iyama Yuta (9p)',
-                  'w': 'Ichiriki Ryo (9p)',
-                  'date': '2024-01-10',
-                },
-              ];
-              final game = mockGames[index];
-              return ListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: 8,
-                ),
-                leading: const Icon(
-                  Icons.public,
-                  color: Colors.blueAccent,
-                  size: 32,
-                ),
-                title: Text(
-                  '${game['b']} vs ${game['w']}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                subtitle: Text('Played on ${game['date']}'),
-                trailing: ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.cloud_download_outlined, size: 18),
-                  label: const Text('Load Game'),
-                ),
-              );
-            },
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
