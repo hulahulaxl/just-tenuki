@@ -34,12 +34,14 @@ class BoardWidget extends StatelessWidget {
             child: ValueListenableBuilder<BoardSettings>(
               valueListenable: settingsNotifier,
               builder: (context, settings, child) {
-                return CustomPaint(
-                  painter: BoardPainter(
-                    board: board,
-                    currentNode: currentNode,
-                    settings: settings,
-                    analysis: analysis,
+                return RepaintBoundary(
+                  child: CustomPaint(
+                    painter: BoardPainter(
+                      board: board,
+                      currentNode: currentNode,
+                      settings: settings,
+                      analysis: analysis,
+                    ),
                   ),
                 );
               },

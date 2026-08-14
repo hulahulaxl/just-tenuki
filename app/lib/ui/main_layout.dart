@@ -1386,274 +1386,355 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       Colors.white70,
     ];
 
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.all(16.0),
-      child: ValueListenableBuilder<BoardSettings>(
-        valueListenable: _globalSettings,
-        builder: (context, settings, child) {
-          return SliderTheme(
-            data: SliderTheme.of(
-              context,
-            ).copyWith(showValueIndicator: ShowValueIndicator.onDrag),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildGridSelector(
-                    itemCount: boardColors.length,
-                    selectedIndex: settings.boardStyleIndex,
-                    onSelected: (i) => _globalSettings.value = settings
-                        .copyWith(boardStyleIndex: i),
-                    itemBuilder: (context, index, isSelected) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: boardColors[index],
-                          border: isSelected
-                              ? Border.all(color: Colors.blueAccent, width: 3)
-                              : Border.all(color: Colors.transparent, width: 3),
-                        ),
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              top: 4,
-                              left: 4,
-                              right: 0,
-                              child: Center(
-                                child: Text(
-                                  'A',
-                                  style: TextStyle(
-                                    color: index == 10 || index == 12
-                                        ? Colors.black54
-                                        : Colors.black26,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
+    return RepaintBoundary(
+      child: Container(
+        color: Colors.white,
+        padding: const EdgeInsets.all(16.0),
+        child: SliderTheme(
+          data: SliderTheme.of(
+            context,
+          ).copyWith(showValueIndicator: ShowValueIndicator.onDrag),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SettingSelector<int>(
+                  notifier: _globalSettings,
+                  selector: (s) => s.boardStyleIndex,
+                  builder: (context, boardStyleIndex) {
+                    return _buildGridSelector(
+                      itemCount: boardColors.length,
+                      selectedIndex: boardStyleIndex,
+                      onSelected: (i) => _globalSettings.value = _globalSettings
+                          .value
+                          .copyWith(boardStyleIndex: i),
+                      itemBuilder: (context, index, isSelected) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: boardColors[index],
+                            border: isSelected
+                                ? Border.all(color: Colors.blueAccent, width: 3)
+                                : Border.all(
+                                    color: Colors.transparent,
+                                    width: 3,
                                   ),
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              right: -1,
-                              bottom: -1,
-                              child: Container(
-                                width: 20,
-                                height: 20,
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    top: BorderSide(
-                                      color: index == 10 || index == 12
-                                          ? Colors.black54
-                                          : Colors.black26,
-                                      width: 1.5,
-                                    ),
-                                    left: BorderSide(
-                                      color: index == 10 || index == 12
-                                          ? Colors.black54
-                                          : Colors.black26,
-                                      width: 1.5,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  _buildGridSelector(
-                    itemCount: whiteStones.length,
-                    selectedIndex: settings.whiteStoneStyleIndex,
-                    onSelected: (i) => _globalSettings.value = settings
-                        .copyWith(whiteStoneStyleIndex: i),
-                    itemBuilder: (context, index, isSelected) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE8D4B4),
-                          border: isSelected
-                              ? Border.all(color: Colors.blueAccent, width: 3)
-                              : Border.all(color: Colors.transparent, width: 3),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: whiteStones[index],
-                              border: index == 0
-                                  ? Border.all(color: Colors.black87, width: 1)
-                                  : null,
-                              boxShadow: [
-                                if (index != 0)
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.2),
-                                    blurRadius: 2,
-                                    offset: const Offset(1, 1),
-                                  ),
-                              ],
-                            ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  _buildGridSelector(
-                    itemCount: blackStones.length,
-                    selectedIndex: settings.blackStoneStyleIndex,
-                    onSelected: (i) => _globalSettings.value = settings
-                        .copyWith(blackStoneStyleIndex: i),
-                    itemBuilder: (context, index, isSelected) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE8D4B4),
-                          border: isSelected
-                              ? Border.all(color: Colors.blueAccent, width: 3)
-                              : Border.all(color: Colors.transparent, width: 3),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: blackStones[index],
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.4),
-                                  blurRadius: 2,
-                                  offset: const Offset(1, 1),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  _buildGridSelector(
-                    itemCount: lineColors.length,
-                    selectedIndex: settings.lineStyleIndex,
-                    onSelected: (i) => _globalSettings.value = settings
-                        .copyWith(lineStyleIndex: i),
-                    itemBuilder: (context, index, isSelected) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFDCB35C),
-                          border: isSelected
-                              ? Border.all(color: Colors.blueAccent, width: 3)
-                              : Border.all(color: Colors.transparent, width: 3),
-                        ),
-                        child: Center(
                           child: Stack(
-                            alignment: Alignment.center,
                             children: [
-                              Container(
-                                width: double.infinity,
-                                height: 2,
-                                color: lineColors[index],
+                              Positioned(
+                                top: 4,
+                                left: 4,
+                                right: 0,
+                                child: Center(
+                                  child: Text(
+                                    'A',
+                                    style: TextStyle(
+                                      color: index == 10 || index == 12
+                                          ? Colors.black54
+                                          : Colors.black26,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
                               ),
-                              Container(
-                                width: 2,
-                                height: double.infinity,
-                                color: lineColors[index],
+                              Positioned(
+                                right: -1,
+                                bottom: -1,
+                                child: Container(
+                                  width: 20,
+                                  height: 20,
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      top: BorderSide(
+                                        color: index == 10 || index == 12
+                                            ? Colors.black54
+                                            : Colors.black26,
+                                        width: 1.5,
+                                      ),
+                                      left: BorderSide(
+                                        color: index == 10 || index == 12
+                                            ? Colors.black54
+                                            : Colors.black26,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ],
                           ),
+                        );
+                      },
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+                SettingSelector<int>(
+                  notifier: _globalSettings,
+                  selector: (s) => s.whiteStoneStyleIndex,
+                  builder: (context, whiteStoneStyleIndex) {
+                    return _buildGridSelector(
+                      itemCount: whiteStones.length,
+                      selectedIndex: whiteStoneStyleIndex,
+                      onSelected: (i) => _globalSettings.value = _globalSettings
+                          .value
+                          .copyWith(whiteStoneStyleIndex: i),
+                      itemBuilder: (context, index, isSelected) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8D4B4),
+                            border: isSelected
+                                ? Border.all(color: Colors.blueAccent, width: 3)
+                                : Border.all(
+                                    color: Colors.transparent,
+                                    width: 3,
+                                  ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: whiteStones[index],
+                                border: index == 0
+                                    ? Border.all(
+                                        color: Colors.black87,
+                                        width: 1,
+                                      )
+                                    : null,
+                                boxShadow: [
+                                  if (index != 0)
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.2,
+                                      ),
+                                      blurRadius: 2,
+                                      offset: const Offset(1, 1),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+                SettingSelector<int>(
+                  notifier: _globalSettings,
+                  selector: (s) => s.blackStoneStyleIndex,
+                  builder: (context, blackStoneStyleIndex) {
+                    return _buildGridSelector(
+                      itemCount: blackStones.length,
+                      selectedIndex: blackStoneStyleIndex,
+                      onSelected: (i) => _globalSettings.value = _globalSettings
+                          .value
+                          .copyWith(blackStoneStyleIndex: i),
+                      itemBuilder: (context, index, isSelected) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8D4B4),
+                            border: isSelected
+                                ? Border.all(color: Colors.blueAccent, width: 3)
+                                : Border.all(
+                                    color: Colors.transparent,
+                                    width: 3,
+                                  ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: blackStones[index],
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.4),
+                                    blurRadius: 2,
+                                    offset: const Offset(1, 1),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+                SettingSelector<int>(
+                  notifier: _globalSettings,
+                  selector: (s) => s.lineStyleIndex,
+                  builder: (context, lineStyleIndex) {
+                    return _buildGridSelector(
+                      itemCount: lineColors.length,
+                      selectedIndex: lineStyleIndex,
+                      onSelected: (i) => _globalSettings.value = _globalSettings
+                          .value
+                          .copyWith(lineStyleIndex: i),
+                      itemBuilder: (context, index, isSelected) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFDCB35C),
+                            border: isSelected
+                                ? Border.all(color: Colors.blueAccent, width: 3)
+                                : Border.all(
+                                    color: Colors.transparent,
+                                    width: 3,
+                                  ),
+                          ),
+                          child: Center(
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Container(
+                                  width: double.infinity,
+                                  height: 2,
+                                  color: lineColors[index],
+                                ),
+                                Container(
+                                  width: 2,
+                                  height: double.infinity,
+                                  color: lineColors[index],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+                const SizedBox(height: 24),
+                SettingSelector<bool>(
+                  notifier: _globalSettings,
+                  selector: (s) => s.showCoordinates,
+                  builder: (context, showCoordinates) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Show Coordinates',
+                          style: TextStyle(fontSize: 14, color: Colors.black87),
                         ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Show Coordinates',
-                        style: TextStyle(fontSize: 14, color: Colors.black87),
-                      ),
-                      Switch(
-                        value: settings.showCoordinates,
-                        onChanged: (val) => _globalSettings.value = settings
-                            .copyWith(showCoordinates: val),
-                        activeTrackColor: Colors.blue,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Highlight Last Move',
-                        style: TextStyle(fontSize: 14, color: Colors.black87),
-                      ),
-                      Switch(
-                        value: settings.highlightLastMove,
-                        onChanged: (val) => _globalSettings.value = settings
-                            .copyWith(highlightLastMove: val),
-                        activeTrackColor: Colors.blue,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Line Thickness',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                  ),
-                  Slider(
-                    value: settings.lineThickness,
-                    min: 0.5,
-                    max: 2.5,
-                    label: settings.lineThickness.toStringAsFixed(1),
-                    onChanged: (val) => _globalSettings.value = settings
-                        .copyWith(lineThickness: val),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Star Point Size',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                  ),
-                  Slider(
-                    value: settings.starPointThickness,
-                    min: 2.0,
-                    max: 6.0,
-                    label: settings.starPointThickness.toStringAsFixed(1),
-                    onChanged: (val) => _globalSettings.value = settings
-                        .copyWith(starPointThickness: val),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Stone Size',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                  ),
-                  Slider(
-                    value: settings.stoneScale,
-                    min: 0.8,
-                    max: 1.0,
-                    label: settings.stoneScale.toStringAsFixed(2),
-                    onChanged: (val) => _globalSettings.value = settings
-                        .copyWith(stoneScale: val),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Stone Click Volume',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                  ),
-                  Slider(
-                    value: settings.stoneClickVolume,
-                    min: 0.0,
-                    max: 1.0,
-                    label: (settings.stoneClickVolume * 100).round().toString(),
-                    onChanged: (val) => _globalSettings.value = settings
-                        .copyWith(stoneClickVolume: val),
-                  ),
-                ],
-              ),
+                        Switch(
+                          value: showCoordinates,
+                          onChanged: (val) =>
+                              _globalSettings.value = _globalSettings.value
+                                  .copyWith(showCoordinates: val),
+                          activeTrackColor: Colors.blue,
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+                SettingSelector<bool>(
+                  notifier: _globalSettings,
+                  selector: (s) => s.highlightLastMove,
+                  builder: (context, highlightLastMove) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Highlight Last Move',
+                          style: TextStyle(fontSize: 14, color: Colors.black87),
+                        ),
+                        Switch(
+                          value: highlightLastMove,
+                          onChanged: (val) =>
+                              _globalSettings.value = _globalSettings.value
+                                  .copyWith(highlightLastMove: val),
+                          activeTrackColor: Colors.blue,
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Line Thickness',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+                SettingSelector<double>(
+                  notifier: _globalSettings,
+                  selector: (s) => s.lineThickness,
+                  builder: (context, lineThickness) {
+                    return Slider(
+                      value: lineThickness,
+                      min: 0.5,
+                      max: 2.5,
+                      label: lineThickness.toStringAsFixed(1),
+                      onChanged: (val) => _globalSettings.value =
+                          _globalSettings.value.copyWith(lineThickness: val),
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Star Point Size',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+                SettingSelector<double>(
+                  notifier: _globalSettings,
+                  selector: (s) => s.starPointThickness,
+                  builder: (context, starPointThickness) {
+                    return Slider(
+                      value: starPointThickness,
+                      min: 2.0,
+                      max: 6.0,
+                      label: starPointThickness.toStringAsFixed(1),
+                      onChanged: (val) =>
+                          _globalSettings.value = _globalSettings.value
+                              .copyWith(starPointThickness: val),
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Stone Size',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+                SettingSelector<double>(
+                  notifier: _globalSettings,
+                  selector: (s) => s.stoneScale,
+                  builder: (context, stoneScale) {
+                    return Slider(
+                      value: stoneScale,
+                      min: 0.8,
+                      max: 1.0,
+                      label: stoneScale.toStringAsFixed(2),
+                      onChanged: (val) => _globalSettings.value =
+                          _globalSettings.value.copyWith(stoneScale: val),
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Stone Click Volume',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+                SettingSelector<double>(
+                  notifier: _globalSettings,
+                  selector: (s) => s.stoneClickVolume,
+                  builder: (context, stoneClickVolume) {
+                    return Slider(
+                      value: stoneClickVolume,
+                      min: 0.0,
+                      max: 1.0,
+                      label: (stoneClickVolume * 100).round().toString(),
+                      onChanged: (val) => _globalSettings.value =
+                          _globalSettings.value.copyWith(stoneClickVolume: val),
+                    );
+                  },
+                ),
+              ],
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
@@ -1835,4 +1916,51 @@ class _ActivePane {
   final int index;
   final Widget widget;
   _ActivePane(this.index, this.widget);
+}
+
+class SettingSelector<T> extends StatefulWidget {
+  final ValueNotifier<BoardSettings> notifier;
+  final T Function(BoardSettings settings) selector;
+  final Widget Function(BuildContext context, T value) builder;
+
+  const SettingSelector({
+    super.key,
+    required this.notifier,
+    required this.selector,
+    required this.builder,
+  });
+
+  @override
+  State<SettingSelector<T>> createState() => _SettingSelectorState<T>();
+}
+
+class _SettingSelectorState<T> extends State<SettingSelector<T>> {
+  late T _value;
+
+  @override
+  void initState() {
+    super.initState();
+    _value = widget.selector(widget.notifier.value);
+    widget.notifier.addListener(_listener);
+  }
+
+  @override
+  void dispose() {
+    widget.notifier.removeListener(_listener);
+    super.dispose();
+  }
+
+  void _listener() {
+    final newValue = widget.selector(widget.notifier.value);
+    if (newValue != _value) {
+      setState(() {
+        _value = newValue;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.builder(context, _value);
+  }
 }
