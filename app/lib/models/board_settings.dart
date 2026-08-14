@@ -11,7 +11,6 @@ class BoardSettings {
   final bool highlightLastMove;
   final double stoneDropShadow;
   final double stoneOutlineThickness;
-  final double stoneClickVolume;
   final double lineThickness;
   final double starPointThickness;
   final double stoneScale;
@@ -27,7 +26,6 @@ class BoardSettings {
     required this.highlightLastMove,
     required this.stoneDropShadow,
     required this.stoneOutlineThickness,
-    required this.stoneClickVolume,
     required this.lineThickness,
     required this.starPointThickness,
     required this.stoneScale,
@@ -44,7 +42,6 @@ class BoardSettings {
       highlightLastMove = true,
       stoneDropShadow = 3.0,
       stoneOutlineThickness = 1.2,
-      stoneClickVolume = 0.5,
       lineThickness = 0.5,
       starPointThickness = 2.5,
       stoneScale = 0.95;
@@ -60,7 +57,6 @@ class BoardSettings {
     bool? highlightLastMove,
     double? stoneDropShadow,
     double? stoneOutlineThickness,
-    double? stoneClickVolume,
     double? lineThickness,
     double? starPointThickness,
     double? stoneScale,
@@ -77,7 +73,6 @@ class BoardSettings {
       stoneDropShadow: stoneDropShadow ?? this.stoneDropShadow,
       stoneOutlineThickness:
           stoneOutlineThickness ?? this.stoneOutlineThickness,
-      stoneClickVolume: stoneClickVolume ?? this.stoneClickVolume,
       lineThickness: lineThickness ?? this.lineThickness,
       starPointThickness: starPointThickness ?? this.starPointThickness,
       stoneScale: stoneScale ?? this.stoneScale,

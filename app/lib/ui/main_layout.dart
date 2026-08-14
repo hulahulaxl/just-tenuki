@@ -1866,25 +1866,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     );
                   },
                 ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Stone Click Volume',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                ),
-                SettingSelector<double>(
-                  notifier: _globalSettings,
-                  selector: (s) => s.stoneClickVolume,
-                  builder: (context, stoneClickVolume) {
-                    return Slider(
-                      value: stoneClickVolume,
-                      min: 0.0,
-                      max: 1.0,
-                      label: (stoneClickVolume * 100).round().toString(),
-                      onChanged: (val) => _globalSettings.value =
-                          _globalSettings.value.copyWith(stoneClickVolume: val),
-                    );
-                  },
-                ),
               ],
             ),
           ),
