@@ -179,12 +179,20 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       child: Row(
         children: [
           const SizedBox(width: 16),
-          // Dynamically build the tab icons based on open tabs
-          for (int i = 0; i < _tabs.length; i++) ...[
-            _buildHorizontalTabIcon(_tabs[i].icon, i, _tabs[i].tooltip),
-            const SizedBox(width: 8),
-          ],
-          const Spacer(),
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  // Dynamically build the tab icons based on open tabs
+                  for (int i = 0; i < _tabs.length; i++) ...[
+                    _buildHorizontalTabIcon(_tabs[i].icon, i, _tabs[i].tooltip),
+                    const SizedBox(width: 8),
+                  ],
+                ],
+              ),
+            ),
+          ),
           // Add a new Lobby Tab when clicked
           _buildHorizontalSidebarButton(Icons.add, 'Add Tab', () {
             setState(() {
@@ -263,12 +271,19 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       child: Column(
         children: [
           const SizedBox(height: 16),
-          // Dynamically build the tab icons based on open tabs
-          for (int i = 0; i < _tabs.length; i++) ...[
-            _buildTabIcon(_tabs[i].icon, i, _tabs[i].tooltip),
-            const SizedBox(height: 8),
-          ],
-          const Spacer(),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  // Dynamically build the tab icons based on open tabs
+                  for (int i = 0; i < _tabs.length; i++) ...[
+                    _buildTabIcon(_tabs[i].icon, i, _tabs[i].tooltip),
+                    const SizedBox(height: 8),
+                  ],
+                ],
+              ),
+            ),
+          ),
           // Add a new Lobby Tab when clicked
           _buildSidebarButton(Icons.add, 'Add Tab', () {
             setState(() {
