@@ -5,6 +5,7 @@ import '../api/protocol.dart';
 import '../../models/tree.dart';
 import '../../models/move.dart';
 import '../models/board_settings.dart';
+import '../models/board_styles.dart';
 
 class BoardPainter extends CustomPainter {
   final Board board;
@@ -22,7 +23,8 @@ class BoardPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     // 1. Draw flat wooden color background
-    final bgPaint = Paint()..color = const Color(0xFFDCB35C);
+    final bgPaint = Paint()
+      ..color = BoardStyles.boardColors[settings.boardStyleIndex];
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(0, 0, size.width, size.height),
@@ -50,7 +52,7 @@ class BoardPainter extends CustomPainter {
     final double lineThickness = (cellSize * 0.04 * settings.lineThickness)
         .clamp(0.5, 4.0);
     final linePaint = Paint()
-      ..color = Colors.black
+      ..color = BoardStyles.lineColors[settings.lineStyleIndex]
       ..strokeWidth = lineThickness;
 
     // 2. Draw vertical lines
@@ -80,7 +82,8 @@ class BoardPainter extends CustomPainter {
 
     // 3. Draw star points (hoshi) if 19x19 board
     if (cols == 19 && rows == 19) {
-      final hoshiPaint = Paint()..color = Colors.black;
+      final hoshiPaint = Paint()
+        ..color = BoardStyles.lineColors[settings.lineStyleIndex];
       final List<int> hoshiPoints = [3, 9, 15]; // 4th, 10th, and 16th lines
       final double hoshiRadius =
           cellSize *
@@ -106,13 +109,26 @@ class BoardPainter extends CustomPainter {
         final int player = board.grid[y * cols + x];
         if (player == 0) continue;
 
-        Color stoneColor;
+        final Offset center = Offset(
+          offsetX + x * cellSize,
+          offsetY + y * cellSize,
+        );
+        final Rect stoneRect = Rect.fromCircle(
+          center: center,
+          radius: stoneRadius,
+        );
+
+        final Paint stonePaint = Paint();
         if (player == 1) {
-          stoneColor = Colors.black;
+          stonePaint.shader = BoardStyles
+              .blackStones[settings.blackStoneStyleIndex]
+              .createShader(stoneRect);
         } else if (player == 2) {
-          stoneColor = Colors.white;
+          stonePaint.shader = BoardStyles
+              .whiteStones[settings.whiteStoneStyleIndex]
+              .createShader(stoneRect);
         } else {
-          stoneColor = Colors.red;
+          stonePaint.color = Colors.red;
         }
 
         int? latestMoveX = currentNode.move is Play
@@ -129,18 +145,10 @@ class BoardPainter extends CustomPainter {
                 x == latestMoveX &&
                 y == latestMoveY);
 
-        final Paint stonePaint = Paint()..color = stoneColor;
         final Paint outlinePaint = Paint()
-          ..color = isLatest ? Colors.blue.shade500 : Colors.black
+          ..color = isLatest ? Colors.blue.shade500 : Colors.transparent
           ..style = PaintingStyle.stroke
-          ..strokeWidth = isLatest
-              ? (cellSize * 0.12).clamp(2.5, 4.5)
-              : (cellSize * 0.05).clamp(0.5, 1.5);
-
-        final Offset center = Offset(
-          offsetX + x * cellSize,
-          offsetY + y * cellSize,
-        );
+          ..strokeWidth = isLatest ? (cellSize * 0.12).clamp(2.5, 4.5) : 0;
 
         canvas.drawCircle(center, stoneRadius, stonePaint);
         canvas.drawCircle(center, stoneRadius, outlinePaint);

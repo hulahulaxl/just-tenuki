@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../models/tree.dart';
 import '../models/board_settings.dart';
+import '../models/board_styles.dart';
 
 import '../utils/sgf_parser.dart';
 import '../utils/sgf_writer.dart';
@@ -384,7 +385,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                   filled: true,
                   fillColor: const Color(0xFFFAFAFA),
                 ),
-                initialValue: 'Professional',
                 items: ['Professional', 'Amateur (High Dan)', 'All'].map((
                   String value,
                 ) {
@@ -1310,82 +1310,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   }
 
   Widget _buildSettingsPaneMock() {
-    final List<Color> boardColors = [
-      const Color(0xFFDCB35C),
-      const Color(0xFFE6D0A7),
-      const Color(0xFFE1D0AB),
-      const Color(0xFFECD2B2),
-      const Color(0xFFDFC49C),
-      const Color(0xFFE8E0C0),
-      const Color(0xFFDED3BC),
-      const Color(0xFFBFA192),
-      const Color(0xFFC0C3C2),
-      const Color(0xFF909392),
-      const Color(0xFF9CF0FF),
-      const Color(0xFF75818C),
-      const Color(0xFFFFFFFF),
-      const Color(0xFFB9C2C5),
-    ];
-
-    final List<Gradient> whiteStones = [
-      const RadialGradient(
-        colors: [Color(0xFFFFFFFF), Color(0xFFD0D0D0)],
-      ), // Simple
-      const RadialGradient(
-        colors: [Color(0xFFFFFFFF), Color(0xFFE0E0E0)],
-      ), // Soft
-      const RadialGradient(
-        colors: [Color(0xFFFFFFFF), Color(0xFFF0F0F0)],
-      ), // Glossy
-      const LinearGradient(
-        colors: [Color(0xFFFFFFFF), Color(0xFFDDDDDD)],
-      ), // Brushed
-      const RadialGradient(
-        colors: [Color(0xFFFFFFFF), Color(0xFFFFFFFF)],
-      ), // Flat white
-      const RadialGradient(
-        colors: [Color(0xFFE0E0E0), Color(0xFFB0B0B0)],
-      ), // Grayish
-      const RadialGradient(
-        colors: [Color(0xFFF5FFE8), Color(0xFFD0E0D0)],
-      ), // Pearl
-    ];
-
-    final List<Gradient> blackStones = [
-      const RadialGradient(
-        colors: [Color(0xFF404040), Color(0xFF101010)],
-      ), // Simple
-      const RadialGradient(
-        colors: [Color(0xFF606060), Color(0xFF303030)],
-      ), // Soft
-      const RadialGradient(
-        colors: [Color(0xFF707070), Color(0xFF404040)],
-      ), // Glossy
-      const RadialGradient(
-        colors: [Color(0xFF505050), Color(0xFF505050)],
-      ), // Matte
-      const RadialGradient(
-        colors: [Color(0xFF555555), Color(0xFF222222)],
-      ), // Smooth
-      const RadialGradient(
-        colors: [Color(0xFF454545), Color(0xFF252525)],
-      ), // Dark gray
-      const RadialGradient(
-        colors: [Color(0xFF353535), Color(0xFF151515)],
-      ), // Very dark
-    ];
-
-    // Mock Line Styles (Colors for now, displayed as crossing lines)
-    final List<Color> lineColors = [
-      Colors.black87,
-      Colors.black54,
-      Colors.brown.shade800,
-      Colors.brown.shade600,
-      Colors.blueGrey.shade800,
-      Colors.grey.shade400,
-      Colors.white70,
-    ];
-
     return RepaintBoundary(
       child: Container(
         color: Colors.white,
@@ -1403,7 +1327,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                   selector: (s) => s.boardStyleIndex,
                   builder: (context, boardStyleIndex) {
                     return _buildGridSelector(
-                      itemCount: boardColors.length,
+                      itemCount: BoardStyles.boardColors.length,
                       selectedIndex: boardStyleIndex,
                       onSelected: (i) => _globalSettings.value = _globalSettings
                           .value
@@ -1411,7 +1335,8 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                       itemBuilder: (context, index, isSelected) {
                         return Container(
                           decoration: BoxDecoration(
-                            color: boardColors[index],
+                            color: BoardStyles.boardColors[index],
+                            borderRadius: BorderRadius.circular(4),
                             border: isSelected
                                 ? Border.all(color: Colors.blueAccent, width: 3)
                                 : Border.all(
@@ -1475,7 +1400,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                   selector: (s) => s.whiteStoneStyleIndex,
                   builder: (context, whiteStoneStyleIndex) {
                     return _buildGridSelector(
-                      itemCount: whiteStones.length,
+                      itemCount: BoardStyles.whiteStones.length,
                       selectedIndex: whiteStoneStyleIndex,
                       onSelected: (i) => _globalSettings.value = _globalSettings
                           .value
@@ -1496,7 +1421,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                             child: Container(
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                gradient: whiteStones[index],
+                                gradient: BoardStyles.whiteStones[index],
                                 border: index == 0
                                     ? Border.all(
                                         color: Colors.black87,
@@ -1527,7 +1452,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                   selector: (s) => s.blackStoneStyleIndex,
                   builder: (context, blackStoneStyleIndex) {
                     return _buildGridSelector(
-                      itemCount: blackStones.length,
+                      itemCount: BoardStyles.blackStones.length,
                       selectedIndex: blackStoneStyleIndex,
                       onSelected: (i) => _globalSettings.value = _globalSettings
                           .value
@@ -1548,7 +1473,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                             child: Container(
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                gradient: blackStones[index],
+                                gradient: BoardStyles.blackStones[index],
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.4),
@@ -1570,7 +1495,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                   selector: (s) => s.lineStyleIndex,
                   builder: (context, lineStyleIndex) {
                     return _buildGridSelector(
-                      itemCount: lineColors.length,
+                      itemCount: BoardStyles.lineColors.length,
                       selectedIndex: lineStyleIndex,
                       onSelected: (i) => _globalSettings.value = _globalSettings
                           .value
@@ -1578,29 +1503,16 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                       itemBuilder: (context, index, isSelected) {
                         return Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFFDCB35C),
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(4),
                             border: isSelected
-                                ? Border.all(color: Colors.blueAccent, width: 3)
-                                : Border.all(
-                                    color: Colors.transparent,
-                                    width: 3,
-                                  ),
+                                ? Border.all(color: Colors.blue, width: 2)
+                                : Border.all(color: Colors.grey.shade300),
                           ),
                           child: Center(
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Container(
-                                  width: double.infinity,
-                                  height: 2,
-                                  color: lineColors[index],
-                                ),
-                                Container(
-                                  width: 2,
-                                  height: double.infinity,
-                                  color: lineColors[index],
-                                ),
-                              ],
+                            child: Icon(
+                              Icons.add,
+                              color: BoardStyles.lineColors[index],
                             ),
                           ),
                         );
