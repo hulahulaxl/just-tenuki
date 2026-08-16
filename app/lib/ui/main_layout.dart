@@ -577,7 +577,17 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
               ),
               // 2. Winrate Bar directly beneath
               _buildWinrateBar(tab.session, isPortrait: true),
-              const Spacer(),
+              
+              // Active Pane
+              if (_showTreePane)
+                Expanded(child: _buildTreeTab(tab)),
+              if (_showAnalysisPane)
+                Expanded(child: _buildAnalysisTabMock()),
+              if (_showCommentsPane)
+                Expanded(child: _buildCommentsPane(tab)),
+              if (!_showTreePane && !_showAnalysisPane && !_showCommentsPane)
+                const Spacer(),
+
               // 3. Navigation Buttons
               _buildStatusBar(tab.session, isPortrait: true),
             ],
@@ -896,19 +906,40 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
               children: [
                 _buildNavButton(Icons.edit_outlined, () {
                   // TODO: Toggle Mark Menu
-                }),
+                }, isActive: false),
                 const SizedBox(width: 4),
                 _buildNavButton(Icons.account_tree_outlined, () {
-                  setState(() => _showTreePane = !_showTreePane);
-                }),
+                  setState(() {
+                    bool wasActive = _showTreePane;
+                    _showTreePane = !wasActive;
+                    if (_showTreePane) {
+                      _showAnalysisPane = false;
+                      _showCommentsPane = false;
+                    }
+                  });
+                }, isActive: _showTreePane),
                 const SizedBox(width: 4),
                 _buildNavButton(Icons.analytics_outlined, () {
-                  setState(() => _showAnalysisPane = !_showAnalysisPane);
-                }),
+                  setState(() {
+                    bool wasActive = _showAnalysisPane;
+                    _showAnalysisPane = !wasActive;
+                    if (_showAnalysisPane) {
+                      _showTreePane = false;
+                      _showCommentsPane = false;
+                    }
+                  });
+                }, isActive: _showAnalysisPane),
                 const SizedBox(width: 4),
                 _buildNavButton(Icons.chat_bubble_outline, () {
-                  setState(() => _showCommentsPane = !_showCommentsPane);
-                }),
+                  setState(() {
+                    bool wasActive = _showCommentsPane;
+                    _showCommentsPane = !wasActive;
+                    if (_showCommentsPane) {
+                      _showTreePane = false;
+                      _showAnalysisPane = false;
+                    }
+                  });
+                }, isActive: _showCommentsPane),
               ],
             ),
             // Right Side: Navigation
@@ -1118,7 +1149,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildNavButton(IconData icon, VoidCallback onTap) {
+  Widget _buildNavButton(IconData icon, VoidCallback onTap, {bool isActive = false}) {
     return GestureDetector(
       onTap: onTap,
       child: MouseRegion(
@@ -1127,7 +1158,15 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
           width: 32,
           height: 32,
           alignment: Alignment.center,
-          child: Icon(icon, color: Colors.black54, size: 20),
+          decoration: BoxDecoration(
+            color: isActive ? Colors.blue.withValues(alpha: 0.1) : Colors.transparent,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Icon(
+            icon, 
+            color: isActive ? Colors.blue.shade700 : Colors.black54, 
+            size: 20
+          ),
         ),
       ),
     );
