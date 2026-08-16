@@ -145,10 +145,14 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             return Column(
               children: [
                 _buildHorizontalTabBar(),
-                const Divider(height: 1, thickness: 1, color: Color(0xFFEEEEEE)),
-                if (activeTab is LobbyTab)
-                  ..._buildLobbyContentPortrait(),
-                if (activeTab is GameTab) ..._buildPortraitGameContent(activeTab),
+                const Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: Color(0xFFEEEEEE),
+                ),
+                if (activeTab is LobbyTab) ..._buildLobbyContentPortrait(),
+                if (activeTab is GameTab)
+                  ..._buildPortraitGameContent(activeTab),
               ],
             );
           }
@@ -169,7 +173,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       ),
     );
   }
-
 
   // Horizontal Tab Bar for Portrait Mode
   Widget _buildHorizontalTabBar() {
@@ -431,14 +434,8 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             icon: Icon(Icons.add_box_outlined),
             label: 'New',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: 'Recent',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.public),
-            label: 'Online',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Recent'),
+          BottomNavigationBarItem(icon: Icon(Icons.public), label: 'Online'),
         ],
       ),
     ];
@@ -572,13 +569,14 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     }
                   },
                   analysis:
-                      (_lastAnalysisTurn == tab.session.currentBoard.currentTurn)
+                      (_lastAnalysisTurn ==
+                          tab.session.currentBoard.currentTurn)
                       ? _currentAnalysis
                       : null,
                 ),
               ),
               // 2. Winrate Bar directly beneath
-              _buildWinrateBar(tab.session),
+              _buildWinrateBar(tab.session, isPortrait: true),
               const Spacer(),
               // 3. Navigation Buttons
               _buildStatusBar(tab.session),
@@ -1075,13 +1073,14 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildWinrateBar(GameSession session) {
-    if (_currentAnalysis == null) {
-      return const SizedBox(height: 24);
-    }
+  Widget _buildWinrateBar(GameSession session, {bool isPortrait = false}) {
+    double winrate = 50.0;
+    double scoreLead = 0.0;
 
-    double winrate = _currentAnalysis!.rootWinrate;
-    double scoreLead = _currentAnalysis!.rootScoreLead;
+    if (_currentAnalysis != null) {
+      winrate = _currentAnalysis!.rootWinrate;
+      scoreLead = _currentAnalysis!.rootScoreLead;
+    }
 
     // KataGo returns values relative to the player to move.
     // Convert to absolute values (Black's perspective)
@@ -1106,19 +1105,16 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     Alignment textAlignment;
     Color textColor;
 
-    if (scoreLead > 0) {
+    if (scoreLead >= 0) {
       textAlignment = Alignment.centerLeft;
       textColor = Colors.white;
-    } else if (scoreLead < 0) {
+    } else {
       textAlignment = Alignment.centerRight;
       textColor = Colors.black87;
-    } else {
-      textAlignment = Alignment.center;
-      textColor = Colors.black45;
     }
 
     return Container(
-      height: 24,
+      height: isPortrait ? 16 : 24,
       color: Colors.white,
       child: TweenAnimationBuilder<double>(
         tween: Tween<double>(begin: 0.5, end: targetBlackShare),
@@ -1149,7 +1145,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                   child: Text(
                     scoreStr,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: isPortrait ? 10 : 12,
                       fontWeight: FontWeight.bold,
                       color: textColor,
                     ),
@@ -1428,9 +1424,14 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                   notifier: _globalSettings,
                   selector: (s) => s.boardColor,
                   builder: (context, boardColor) {
-                    final int presetIndex = BoardStyles.boardColors.take(9).toList().indexOf(boardColor);
-                    final int selectedIndex = presetIndex != -1 ? presetIndex : 9;
-                    
+                    final int presetIndex = BoardStyles.boardColors
+                        .take(9)
+                        .toList()
+                        .indexOf(boardColor);
+                    final int selectedIndex = presetIndex != -1
+                        ? presetIndex
+                        : 9;
+
                     return _buildGridSelector(
                       itemCount: 10, // 9 presets + 1 custom
                       selectedIndex: selectedIndex,
@@ -1447,41 +1448,52 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                                     pickerColor: tempColor,
                                     onColorChanged: (color) {
                                       tempColor = color;
-                                      _globalSettings.value = _globalSettings.value.copyWith(
-                                        boardColor: color,
-                                      );
+                                      _globalSettings.value = _globalSettings
+                                          .value
+                                          .copyWith(boardColor: color);
                                     },
                                   ),
                                 ),
                                 actions: [
                                   ElevatedButton(
                                     child: const Text('Done'),
-                                    onPressed: () => Navigator.of(context).pop(),
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
                                   ),
                                 ],
                               );
                             },
                           );
                         } else {
-                          _globalSettings.value = _globalSettings.value.copyWith(
-                            boardColor: BoardStyles.boardColors[i],
-                          );
+                          _globalSettings.value = _globalSettings.value
+                              .copyWith(boardColor: BoardStyles.boardColors[i]);
                         }
                       },
                       itemBuilder: (context, index, isSelected) {
                         if (index == 9) {
                           return Container(
                             decoration: BoxDecoration(
-                              color: presetIndex == -1 ? boardColor : Colors.white,
+                              color: presetIndex == -1
+                                  ? boardColor
+                                  : Colors.white,
                               borderRadius: BorderRadius.circular(4),
                               border: isSelected
-                                  ? Border.all(color: Colors.blueAccent, width: 3)
-                                  : Border.all(color: Colors.grey.shade400, width: 1),
+                                  ? Border.all(
+                                      color: Colors.blueAccent,
+                                      width: 3,
+                                    )
+                                  : Border.all(
+                                      color: Colors.grey.shade400,
+                                      width: 1,
+                                    ),
                             ),
-                            child: const Icon(Icons.color_lens, color: Colors.black54),
+                            child: const Icon(
+                              Icons.color_lens,
+                              color: Colors.black54,
+                            ),
                           );
                         }
-                        
+
                         // Board line drawing for thumbnail
                         return Container(
                           decoration: BoxDecoration(
@@ -1489,7 +1501,10 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                             borderRadius: BorderRadius.circular(4),
                             border: isSelected
                                 ? Border.all(color: Colors.blueAccent, width: 3)
-                                : Border.all(color: Colors.transparent, width: 3),
+                                : Border.all(
+                                    color: Colors.transparent,
+                                    width: 3,
+                                  ),
                           ),
                           child: Stack(
                             children: [
@@ -1526,8 +1541,13 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                   notifier: _globalSettings,
                   selector: (s) => s.whiteStoneColor,
                   builder: (context, whiteStoneColor) {
-                    final int presetIndex = BoardStyles.whiteStoneColorPresets.take(9).toList().indexOf(whiteStoneColor);
-                    final int selectedIndex = presetIndex != -1 ? presetIndex : 9;
+                    final int presetIndex = BoardStyles.whiteStoneColorPresets
+                        .take(9)
+                        .toList()
+                        .indexOf(whiteStoneColor);
+                    final int selectedIndex = presetIndex != -1
+                        ? presetIndex
+                        : 9;
                     return _buildGridSelector(
                       itemCount: 10,
                       selectedIndex: selectedIndex,
@@ -1544,25 +1564,28 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                                     pickerColor: tempColor,
                                     onColorChanged: (color) {
                                       tempColor = color;
-                                      _globalSettings.value = _globalSettings.value.copyWith(
-                                        whiteStoneColor: color,
-                                      );
+                                      _globalSettings.value = _globalSettings
+                                          .value
+                                          .copyWith(whiteStoneColor: color);
                                     },
                                   ),
                                 ),
                                 actions: [
                                   ElevatedButton(
                                     child: const Text('Done'),
-                                    onPressed: () => Navigator.of(context).pop(),
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
                                   ),
                                 ],
                               );
                             },
                           );
                         } else {
-                          _globalSettings.value = _globalSettings.value.copyWith(
-                            whiteStoneColor: BoardStyles.whiteStoneColorPresets[i],
-                          );
+                          _globalSettings.value = _globalSettings.value
+                              .copyWith(
+                                whiteStoneColor:
+                                    BoardStyles.whiteStoneColorPresets[i],
+                              );
                         }
                       },
                       itemBuilder: (context, index, isSelected) {
@@ -1581,19 +1604,33 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                             padding: const EdgeInsets.all(4.0),
                             child: Container(
                               decoration: BoxDecoration(
-                                color: index == 9 ? (presetIndex == -1 ? whiteStoneColor : Colors.white) : BoardStyles.whiteStoneColorPresets[index],
+                                color: index == 9
+                                    ? (presetIndex == -1
+                                          ? whiteStoneColor
+                                          : Colors.white)
+                                    : BoardStyles.whiteStoneColorPresets[index],
                                 shape: BoxShape.circle,
                                 boxShadow: [
-                                  BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 2, offset: const Offset(1, 1)),
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.2),
+                                    blurRadius: 2,
+                                    offset: const Offset(1, 1),
+                                  ),
                                 ],
                               ),
-                              child: index == 9 ? const Icon(Icons.color_lens, color: Colors.black54, size: 20) : null,
+                              child: index == 9
+                                  ? const Icon(
+                                      Icons.color_lens,
+                                      color: Colors.black54,
+                                      size: 20,
+                                    )
+                                  : null,
                             ),
                           ),
                         );
-                      }
+                      },
                     );
-                  }
+                  },
                 ),
                 const SizedBox(height: 4),
                 SettingSelector<int>(
@@ -1638,8 +1675,13 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                   notifier: _globalSettings,
                   selector: (s) => s.blackStoneColor,
                   builder: (context, blackStoneColor) {
-                    final int presetIndex = BoardStyles.blackStoneColorPresets.take(9).toList().indexOf(blackStoneColor);
-                    final int selectedIndex = presetIndex != -1 ? presetIndex : 9;
+                    final int presetIndex = BoardStyles.blackStoneColorPresets
+                        .take(9)
+                        .toList()
+                        .indexOf(blackStoneColor);
+                    final int selectedIndex = presetIndex != -1
+                        ? presetIndex
+                        : 9;
                     return _buildGridSelector(
                       itemCount: 10,
                       selectedIndex: selectedIndex,
@@ -1656,25 +1698,28 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                                     pickerColor: tempColor,
                                     onColorChanged: (color) {
                                       tempColor = color;
-                                      _globalSettings.value = _globalSettings.value.copyWith(
-                                        blackStoneColor: color,
-                                      );
+                                      _globalSettings.value = _globalSettings
+                                          .value
+                                          .copyWith(blackStoneColor: color);
                                     },
                                   ),
                                 ),
                                 actions: [
                                   ElevatedButton(
                                     child: const Text('Done'),
-                                    onPressed: () => Navigator.of(context).pop(),
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
                                   ),
                                 ],
                               );
                             },
                           );
                         } else {
-                          _globalSettings.value = _globalSettings.value.copyWith(
-                            blackStoneColor: BoardStyles.blackStoneColorPresets[i],
-                          );
+                          _globalSettings.value = _globalSettings.value
+                              .copyWith(
+                                blackStoneColor:
+                                    BoardStyles.blackStoneColorPresets[i],
+                              );
                         }
                       },
                       itemBuilder: (context, index, isSelected) {
@@ -1693,19 +1738,33 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                             padding: const EdgeInsets.all(4.0),
                             child: Container(
                               decoration: BoxDecoration(
-                                color: index == 9 ? (presetIndex == -1 ? blackStoneColor : Colors.white) : BoardStyles.blackStoneColorPresets[index],
+                                color: index == 9
+                                    ? (presetIndex == -1
+                                          ? blackStoneColor
+                                          : Colors.white)
+                                    : BoardStyles.blackStoneColorPresets[index],
                                 shape: BoxShape.circle,
                                 boxShadow: [
-                                  BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 2, offset: const Offset(1, 1)),
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.2),
+                                    blurRadius: 2,
+                                    offset: const Offset(1, 1),
+                                  ),
                                 ],
                               ),
-                              child: index == 9 ? const Icon(Icons.color_lens, color: Colors.black54, size: 20) : null,
+                              child: index == 9
+                                  ? const Icon(
+                                      Icons.color_lens,
+                                      color: Colors.black54,
+                                      size: 20,
+                                    )
+                                  : null,
                             ),
                           ),
                         );
-                      }
+                      },
                     );
-                  }
+                  },
                 ),
                 const SizedBox(height: 4),
                 SettingSelector<int>(
@@ -1749,8 +1808,13 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                   notifier: _globalSettings,
                   selector: (s) => s.lineColor,
                   builder: (context, lineColor) {
-                    final int presetIndex = BoardStyles.lineColorPresets.take(9).toList().indexOf(lineColor);
-                    final int selectedIndex = presetIndex != -1 ? presetIndex : 9;
+                    final int presetIndex = BoardStyles.lineColorPresets
+                        .take(9)
+                        .toList()
+                        .indexOf(lineColor);
+                    final int selectedIndex = presetIndex != -1
+                        ? presetIndex
+                        : 9;
                     return _buildGridSelector(
                       itemCount: 10,
                       selectedIndex: selectedIndex,
@@ -1767,25 +1831,27 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                                     pickerColor: tempColor,
                                     onColorChanged: (color) {
                                       tempColor = color;
-                                      _globalSettings.value = _globalSettings.value.copyWith(
-                                        lineColor: color,
-                                      );
+                                      _globalSettings.value = _globalSettings
+                                          .value
+                                          .copyWith(lineColor: color);
                                     },
                                   ),
                                 ),
                                 actions: [
                                   ElevatedButton(
                                     child: const Text('Done'),
-                                    onPressed: () => Navigator.of(context).pop(),
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
                                   ),
                                 ],
                               );
                             },
                           );
                         } else {
-                          _globalSettings.value = _globalSettings.value.copyWith(
-                            lineColor: BoardStyles.lineColorPresets[i],
-                          );
+                          _globalSettings.value = _globalSettings.value
+                              .copyWith(
+                                lineColor: BoardStyles.lineColorPresets[i],
+                              );
                         }
                       },
                       itemBuilder: (context, index, isSelected) {
@@ -1802,27 +1868,33 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                           ),
                           child: Center(
                             child: index == 9
-                                ? const Icon(Icons.color_lens, color: Colors.black54, size: 20)
+                                ? const Icon(
+                                    Icons.color_lens,
+                                    color: Colors.black54,
+                                    size: 20,
+                                  )
                                 : Stack(
                                     alignment: Alignment.center,
                                     children: [
                                       Container(
                                         width: double.infinity,
                                         height: 2,
-                                        color: BoardStyles.lineColorPresets[index],
+                                        color:
+                                            BoardStyles.lineColorPresets[index],
                                       ),
                                       Container(
                                         width: 2,
                                         height: double.infinity,
-                                        color: BoardStyles.lineColorPresets[index],
+                                        color:
+                                            BoardStyles.lineColorPresets[index],
                                       ),
                                     ],
                                   ),
                           ),
                         );
-                      }
+                      },
                     );
-                  }
+                  },
                 ),
                 const SizedBox(height: 8),
                 SettingSelector<bool>(
@@ -2205,16 +2277,13 @@ class _StoneThumbnailPainter extends CustomPainter {
   final StoneTextureFactory paintFactory;
   final Color baseColor;
 
-  _StoneThumbnailPainter({
-    required this.paintFactory,
-    required this.baseColor,
-  });
+  _StoneThumbnailPainter({required this.paintFactory, required this.baseColor});
 
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Rect.fromLTWH(0, 0, size.width, size.height);
     final paint = paintFactory(rect, baseColor);
-    
+
     // Draw shadow
     final shadowPaint = Paint()
       ..color = Colors.black.withValues(alpha: 0.3)
