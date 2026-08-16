@@ -585,7 +585,9 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                 Expanded(child: _buildAnalysisTabMock()),
               if (_showCommentsPane)
                 Expanded(child: _buildCommentsPane(tab)),
-              if (!_showTreePane && !_showAnalysisPane && !_showCommentsPane)
+              if (_showSettingsPane)
+                Expanded(child: _buildSettingsPaneMock()),
+              if (!_showTreePane && !_showAnalysisPane && !_showCommentsPane && !_showSettingsPane)
                 const Spacer(),
 
               // 3. Navigation Buttons
@@ -915,6 +917,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     if (_showTreePane) {
                       _showAnalysisPane = false;
                       _showCommentsPane = false;
+                      _showSettingsPane = false;
                     }
                   });
                 }, isActive: _showTreePane),
@@ -926,6 +929,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     if (_showAnalysisPane) {
                       _showTreePane = false;
                       _showCommentsPane = false;
+                      _showSettingsPane = false;
                     }
                   });
                 }, isActive: _showAnalysisPane),
@@ -937,9 +941,22 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     if (_showCommentsPane) {
                       _showTreePane = false;
                       _showAnalysisPane = false;
+                      _showSettingsPane = false;
                     }
                   });
                 }, isActive: _showCommentsPane),
+                const SizedBox(width: 4),
+                _buildNavButton(Icons.settings_outlined, () {
+                  setState(() {
+                    bool wasActive = _showSettingsPane;
+                    _showSettingsPane = !wasActive;
+                    if (_showSettingsPane) {
+                      _showTreePane = false;
+                      _showAnalysisPane = false;
+                      _showCommentsPane = false;
+                    }
+                  });
+                }, isActive: _showSettingsPane),
               ],
             ),
             // Right Side: Navigation
