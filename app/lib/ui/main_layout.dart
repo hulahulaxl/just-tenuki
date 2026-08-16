@@ -1514,12 +1514,13 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
           const SizedBox(height: 8),
           const Divider(height: 1, thickness: 1, color: Color(0xFFEEEEEE)),
           Expanded(
-            child: SingleChildScrollView(
+            child: GridView.count(
+              crossAxisCount: 8,
               padding: const EdgeInsets.all(16.0),
-              child: Wrap(
-                spacing: 16,
-                runSpacing: 16,
-                children: [
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              childAspectRatio: 1.0,
+              children: [
                   _buildToolButton(
                     Icons.circle,
                     'Black Stone',
@@ -1629,7 +1630,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                 ],
               ),
             ),
-          ),
         ],
       ),
     );
