@@ -1517,8 +1517,8 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             child: GridView.count(
               crossAxisCount: 8,
               padding: const EdgeInsets.all(16.0),
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
+              mainAxisSpacing: 4,
+              crossAxisSpacing: 4,
               childAspectRatio: 1.0,
               children: [
                   _buildToolButton(
