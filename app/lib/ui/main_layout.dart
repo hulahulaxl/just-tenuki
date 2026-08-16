@@ -1225,13 +1225,12 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   }
 
   Widget _buildWinrateBar(GameSession session, {bool isPortrait = false}) {
-    double winrate = 50.0;
-    double scoreLead = 0.0;
-
-    if (_currentAnalysis != null) {
-      winrate = _currentAnalysis!.rootWinrate;
-      scoreLead = _currentAnalysis!.rootScoreLead;
+    if (_currentAnalysis == null) {
+      return const SizedBox.shrink();
     }
+
+    double winrate = _currentAnalysis!.rootWinrate;
+    double scoreLead = _currentAnalysis!.rootScoreLead;
 
     // KataGo returns values relative to the player to move.
     // Convert to absolute values (Black's perspective)
@@ -1759,12 +1758,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   }
 
   Widget _buildAnalysisTabMock() {
-    return const Center(
-      child: Text(
-        'AI Analysis Data (Mock)',
-        style: TextStyle(color: Colors.black54),
-      ),
-    );
+    return _buildComingSoonMock();
   }
 
   Widget _buildSettingsPaneMock() {
