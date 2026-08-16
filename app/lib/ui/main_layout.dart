@@ -579,7 +579,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
               _buildWinrateBar(tab.session, isPortrait: true),
               const Spacer(),
               // 3. Navigation Buttons
-              _buildStatusBar(tab.session),
+              _buildStatusBar(tab.session, isPortrait: true),
             ],
           ),
         ),
@@ -879,7 +879,67 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     ];
   }
 
-  Widget _buildStatusBar(GameSession session) {
+  Widget _buildStatusBar(GameSession session, {bool isPortrait = false}) {
+    if (isPortrait) {
+      return Container(
+        height: 48,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: Color(0xFFEEEEEE))),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Left Side: Tools
+            Row(
+              children: [
+                _buildNavButton(Icons.edit_outlined, () {
+                  // TODO: Toggle Mark Menu
+                }),
+                const SizedBox(width: 4),
+                _buildNavButton(Icons.account_tree_outlined, () {
+                  setState(() => _showTreePane = !_showTreePane);
+                }),
+                const SizedBox(width: 4),
+                _buildNavButton(Icons.analytics_outlined, () {
+                  setState(() => _showAnalysisPane = !_showAnalysisPane);
+                }),
+                const SizedBox(width: 4),
+                _buildNavButton(Icons.chat_bubble_outline, () {
+                  setState(() => _showCommentsPane = !_showCommentsPane);
+                }),
+              ],
+            ),
+            // Right Side: Navigation
+            Row(
+              children: [
+                _buildNavButton(Icons.first_page, () {
+                  setState(() => session.first());
+                  engineClient.analyze(session);
+                }),
+                const SizedBox(width: 2),
+                _buildNavButton(Icons.navigate_before, () {
+                  setState(() => session.undo());
+                  engineClient.analyze(session);
+                }),
+                const SizedBox(width: 2),
+                _buildNavButton(Icons.navigate_next, () {
+                  setState(() => session.next());
+                  engineClient.analyze(session);
+                }),
+                const SizedBox(width: 2),
+                _buildNavButton(Icons.last_page, () {
+                  setState(() => session.last());
+                  engineClient.analyze(session);
+                }),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
     int blackCaptures = session.currentBoard.captures.isNotEmpty
         ? session.currentBoard.captures[0]
         : 0;
