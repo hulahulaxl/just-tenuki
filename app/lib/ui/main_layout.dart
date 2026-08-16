@@ -76,6 +76,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   bool _showAnalysisPane = false;
   bool _showCommentsPane = false;
   bool _showSettingsPane = false;
+  bool _showMarkPane = false; // Add state for mobile Mark Pane
 
   final ValueNotifier<BoardSettings> _globalSettings = ValueNotifier(
     const BoardSettings.defaults(),
@@ -557,13 +558,32 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                         setState(() {});
                       }
                     } else {
-                      // Handle setup stone placement/removal or markups (abridged for portrait)
+                      // Handle setup stone placement/removal or markups
                       if (_editMode == BoardEditMode.addBlack) {
                         tab.session.addSetupStone(x, y, 1);
                       } else if (_editMode == BoardEditMode.addWhite) {
                         tab.session.addSetupStone(x, y, 2);
                       } else if (_editMode == BoardEditMode.remove) {
                         tab.session.addSetupStone(x, y, 0);
+                      } else {
+                        MarkupType? mType;
+                        if (_editMode == BoardEditMode.markTriangle) {
+                          mType = MarkupType.triangle;
+                        } else if (_editMode == BoardEditMode.markSquare) {
+                          mType = MarkupType.square;
+                        } else if (_editMode == BoardEditMode.markCircle) {
+                          mType = MarkupType.circle;
+                        } else if (_editMode == BoardEditMode.markCross) {
+                          mType = MarkupType.cross;
+                        } else if (_editMode == BoardEditMode.markLetter) {
+                          mType = MarkupType.letter;
+                        } else if (_editMode == BoardEditMode.markNumber) {
+                          mType = MarkupType.number;
+                        }
+
+                        if (mType != null) {
+                          tab.session.toggleMarkup(x, y, mType);
+                        }
                       }
                       setState(() {});
                     }
@@ -579,6 +599,8 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
               _buildWinrateBar(tab.session, isPortrait: true),
               
               // Active Pane
+              if (_showMarkPane)
+                Expanded(child: _buildMarkPaneMobile(tab)),
               if (_showTreePane)
                 Expanded(child: _buildTreeTab(tab)),
               if (_showAnalysisPane)
@@ -587,7 +609,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                 Expanded(child: _buildCommentsPane(tab)),
               if (_showSettingsPane)
                 Expanded(child: _buildSettingsPaneMock()),
-              if (!_showTreePane && !_showAnalysisPane && !_showCommentsPane && !_showSettingsPane)
+              if (!_showMarkPane && !_showTreePane && !_showAnalysisPane && !_showCommentsPane && !_showSettingsPane)
                 const Spacer(),
 
               // 3. Navigation Buttons
@@ -907,14 +929,24 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             Row(
               children: [
                 _buildNavButton(Icons.edit_outlined, () {
-                  // TODO: Toggle Mark Menu
-                }, isActive: false),
+                  setState(() {
+                    bool wasActive = _showMarkPane;
+                    _showMarkPane = !wasActive;
+                    if (_showMarkPane) {
+                      _showTreePane = false;
+                      _showAnalysisPane = false;
+                      _showCommentsPane = false;
+                      _showSettingsPane = false;
+                    }
+                  });
+                }, isActive: _showMarkPane),
                 const SizedBox(width: 4),
                 _buildNavButton(Icons.account_tree_outlined, () {
                   setState(() {
                     bool wasActive = _showTreePane;
                     _showTreePane = !wasActive;
                     if (_showTreePane) {
+                      _showMarkPane = false;
                       _showAnalysisPane = false;
                       _showCommentsPane = false;
                       _showSettingsPane = false;
@@ -927,6 +959,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     bool wasActive = _showAnalysisPane;
                     _showAnalysisPane = !wasActive;
                     if (_showAnalysisPane) {
+                      _showMarkPane = false;
                       _showTreePane = false;
                       _showCommentsPane = false;
                       _showSettingsPane = false;
@@ -939,6 +972,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     bool wasActive = _showCommentsPane;
                     _showCommentsPane = !wasActive;
                     if (_showCommentsPane) {
+                      _showMarkPane = false;
                       _showTreePane = false;
                       _showAnalysisPane = false;
                       _showSettingsPane = false;
@@ -951,6 +985,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     bool wasActive = _showSettingsPane;
                     _showSettingsPane = !wasActive;
                     if (_showSettingsPane) {
+                      _showMarkPane = false;
                       _showTreePane = false;
                       _showAnalysisPane = false;
                       _showCommentsPane = false;
@@ -1387,6 +1422,215 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       child: TreeGraphWidget(
         session: tab.session,
         onNodeSelected: () => setState(() {}),
+      ),
+    );
+  }
+
+  Widget _buildPlayerInfoRow(GameSession session, int player) {
+    int captures = session.currentBoard.captures.isNotEmpty
+        ? session.currentBoard.captures[player]
+        : 0;
+    String name = player == 0 ? session.info.blackName : session.info.whiteName;
+    String? rank = player == 0 ? session.info.blackRank : session.info.whiteRank;
+    String displayName = rank != null && rank.isNotEmpty ? '$name [$rank]' : name;
+
+    String formatTime(String? timeStr) {
+      if (timeStr == null || timeStr.isEmpty) return '--:--';
+      double? seconds = double.tryParse(timeStr);
+      if (seconds == null) return timeStr;
+      int totalSeconds = seconds.round();
+      int h = totalSeconds ~/ 3600;
+      int m = (totalSeconds % 3600) ~/ 60;
+      int s = totalSeconds % 60;
+
+      String formatted = h > 0
+          ? '$h:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}'
+          : '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+
+      String? otStr = session.getOvertimeLeft(player);
+      if (otStr != null && otStr.isNotEmpty) {
+        formatted += ' ($otStr)';
+      } else if (session.info.overtime != null && session.info.overtime!.isNotEmpty) {
+        formatted += ' + ${session.info.overtime}';
+      }
+      return formatted;
+    }
+
+    String timeStr = formatTime(session.getTimeLeft(player) ?? session.info.baseTime);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              if (player == 0)
+                const Icon(Icons.circle, color: Colors.black87, size: 16)
+              else
+                Container(
+                  width: 14,
+                  height: 14,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    border: Border.all(color: Colors.black45, width: 1.5),
+                  ),
+                ),
+              const SizedBox(width: 8),
+              Text(
+                displayName,
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Text(
+                'Caps: $captures',
+                style: const TextStyle(color: Colors.black54, fontSize: 13),
+              ),
+              const SizedBox(width: 16),
+              Text(
+                timeStr,
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMarkPaneMobile(GameTab tab) {
+    return Container(
+      color: const Color(0xFFFAFAFA),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: 8),
+          _buildPlayerInfoRow(tab.session, 0), // Black
+          _buildPlayerInfoRow(tab.session, 1), // White
+          const SizedBox(height: 8),
+          const Divider(height: 1, thickness: 1, color: Color(0xFFEEEEEE)),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Wrap(
+                spacing: 16,
+                runSpacing: 16,
+                children: [
+                  _buildToolButton(
+                    Icons.circle,
+                    'Black Stone',
+                    isSelected: _editMode == BoardEditMode.addBlack,
+                    onTap: () => setState(
+                      () => _editMode = _editMode == BoardEditMode.addBlack
+                          ? BoardEditMode.play
+                          : BoardEditMode.addBlack,
+                    ),
+                  ),
+                  _buildToolButton(
+                    Icons.circle_outlined,
+                    'White Stone',
+                    isSelected: _editMode == BoardEditMode.addWhite,
+                    onTap: () => setState(
+                      () => _editMode = _editMode == BoardEditMode.addWhite
+                          ? BoardEditMode.play
+                          : BoardEditMode.addWhite,
+                    ),
+                  ),
+                  _buildToolButton(
+                    Icons.close,
+                    'Remove',
+                    isSelected: _editMode == BoardEditMode.remove,
+                    onTap: () => setState(
+                      () => _editMode = _editMode == BoardEditMode.remove
+                          ? BoardEditMode.play
+                          : BoardEditMode.remove,
+                    ),
+                  ),
+                  _buildToolButton(
+                    Icons.change_history,
+                    'Triangle',
+                    isSelected: _editMode == BoardEditMode.markTriangle,
+                    onTap: () => setState(
+                      () => _editMode = _editMode == BoardEditMode.markTriangle
+                          ? BoardEditMode.play
+                          : BoardEditMode.markTriangle,
+                    ),
+                  ),
+                  _buildToolButton(
+                    Icons.crop_square,
+                    'Square',
+                    isSelected: _editMode == BoardEditMode.markSquare,
+                    onTap: () => setState(
+                      () => _editMode = _editMode == BoardEditMode.markSquare
+                          ? BoardEditMode.play
+                          : BoardEditMode.markSquare,
+                    ),
+                  ),
+                  _buildToolButton(
+                    Icons.radio_button_unchecked,
+                    'Circle',
+                    isSelected: _editMode == BoardEditMode.markCircle,
+                    onTap: () => setState(
+                      () => _editMode = _editMode == BoardEditMode.markCircle
+                          ? BoardEditMode.play
+                          : BoardEditMode.markCircle,
+                    ),
+                  ),
+                  _buildToolButton(
+                    Icons.clear,
+                    'Cross',
+                    isSelected: _editMode == BoardEditMode.markCross,
+                    onTap: () => setState(
+                      () => _editMode = _editMode == BoardEditMode.markCross
+                          ? BoardEditMode.play
+                          : BoardEditMode.markCross,
+                    ),
+                  ),
+                  _buildToolButton(
+                    Icons.text_fields,
+                    'Letter',
+                    isSelected: _editMode == BoardEditMode.markLetter,
+                    onTap: () => setState(
+                      () => _editMode = _editMode == BoardEditMode.markLetter
+                          ? BoardEditMode.play
+                          : BoardEditMode.markLetter,
+                    ),
+                  ),
+                  _buildToolButton(
+                    Icons.numbers,
+                    'Number',
+                    isSelected: _editMode == BoardEditMode.markNumber,
+                    onTap: () => setState(
+                      () => _editMode = _editMode == BoardEditMode.markNumber
+                          ? BoardEditMode.play
+                          : BoardEditMode.markNumber,
+                    ),
+                  ),
+                  _buildToolButton(
+                    Icons.download,
+                    'Export SGF',
+                    isSelected: false,
+                    backgroundColor: Colors.blue.shade600,
+                    iconColor: Colors.white,
+                    onTap: () {
+                      final session = tab.session;
+                      final sgfString = SgfWriter.write(session);
+                      String p1 = session.info.blackName.replaceAll(' ', '_');
+                      String p2 = session.info.whiteName.replaceAll(' ', '_');
+                      String filename = '${p1}_vs_$p2.sgf';
+                      if (p1.isEmpty && p2.isEmpty) filename = 'game_review.sgf';
+                      downloadTextFile(sgfString, filename);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
