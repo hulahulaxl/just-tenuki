@@ -251,6 +251,52 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     );
   }
 
+  Future<void> _promptCloseTab(int index) async {
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Close Tab?'),
+          content: const Text('This game session will be permanently removed.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm == true && mounted) {
+      setState(() {
+        final tabId = _tabs[index].id;
+        _tabs.removeAt(index);
+        SettingsService.removeTab(tabId);
+
+        if (_tabs.isEmpty) {
+          _tabs.add(LobbyTab());
+          _activeIndex = 0;
+        } else if (_activeIndex > index) {
+          _activeIndex--;
+        } else if (_activeIndex >= _tabs.length) {
+          _activeIndex = _tabs.length - 1;
+        }
+
+        if (_tabs[_activeIndex] is GameTab) {
+          engineClient.analyze((_tabs[_activeIndex] as GameTab).session);
+        }
+
+        _saveSessions();
+      });
+    }
+  }
+
   // Horizontal Tab Bar for Portrait Mode
   Widget _buildHorizontalTabBar() {
     return Container(
@@ -303,11 +349,36 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
           child: Container(
             width: 48,
             height: 48,
-            alignment: Alignment.center,
-            child: Icon(
-              icon,
-              color: isSelected ? Colors.black87 : Colors.black38,
-              size: 24,
+            child: Stack(
+              children: [
+                Center(
+                  child: Icon(
+                    icon,
+                    color: isSelected ? Colors.black87 : Colors.black38,
+                    size: 24,
+                  ),
+                ),
+                if (isSelected)
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: GestureDetector(
+                      onTap: () => _promptCloseTab(index),
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: const BoxDecoration(
+                          color: Colors.redAccent,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          size: 10,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ),
@@ -392,11 +463,36 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
           child: Container(
             width: 60,
             height: 48,
-            alignment: Alignment.center,
-            child: Icon(
-              icon,
-              color: isSelected ? Colors.black87 : Colors.black38,
-              size: 26,
+            child: Stack(
+              children: [
+                Center(
+                  child: Icon(
+                    icon,
+                    color: isSelected ? Colors.black87 : Colors.black38,
+                    size: 26,
+                  ),
+                ),
+                if (isSelected)
+                  Positioned(
+                    top: 8,
+                    right: 12,
+                    child: GestureDetector(
+                      onTap: () => _promptCloseTab(index),
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: const BoxDecoration(
+                          color: Colors.redAccent,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          size: 10,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ),

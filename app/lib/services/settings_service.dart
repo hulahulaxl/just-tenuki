@@ -101,4 +101,8 @@ class SettingsService {
   static Future<void> saveTab(String id, Map<dynamic, dynamic> tabJson) async {
     await _gamesBox.put('tab_$id', tabJson);
   }
+
+  static Future<void> removeTab(String id) async {
+    await _gamesBox.delete('tab_$id');
+  }
 }
