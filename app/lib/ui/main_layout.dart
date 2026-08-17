@@ -79,7 +79,9 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     }
     SettingsService.saveGameSessions(tabsJson);
   }
-  int _activeIndex = 0;
+  int get _activeIndex => SettingsService.getActiveTabIndex();
+  set _activeIndex(int value) => SettingsService.setActiveTabIndex(value);
+  
   int _lobbyMenuIndex = 0; // 0 = New, 1 = Recent, 2 = Online Library
   BoardEditMode _editMode = BoardEditMode.play;
 
@@ -144,7 +146,9 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       }
       if (_tabs.isEmpty) {
         _tabs.add(LobbyTab());
-      } else {
+      }
+      // Ensure the active index is within bounds (in case some tabs failed to load or were removed)
+      if (_activeIndex >= _tabs.length) {
         _activeIndex = _tabs.length - 1;
       }
     }

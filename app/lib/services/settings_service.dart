@@ -64,6 +64,11 @@ class SettingsService {
 
   static Future<void> setPaneFlexes(List<int> flexes) => _box.put(_paneFlexesKey, flexes);
 
+  // --- Active Tab Index ---
+  static const String _activeTabIndexKey = 'activeTabIndex';
+  static int getActiveTabIndex() => _box.get(_activeTabIndexKey, defaultValue: 0) as int;
+  static Future<void> setActiveTabIndex(int index) => _box.put(_activeTabIndexKey, index);
+
   // --- Game Sessions Persistence ---
   static const String _gamesBoxName = 'gamesBox';
   static late Box _gamesBox;
