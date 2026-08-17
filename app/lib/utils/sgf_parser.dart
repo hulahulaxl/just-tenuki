@@ -2,7 +2,6 @@ import '../models/tree.dart';
 import '../models/move.dart';
 
 class SgfParser {
-  /// Parses an SGF string and returns a GameSession
   static GameSession parse(String sgfText) {
     GameSession session = GameSession();
     List<TreeNode> stack = [];
@@ -28,8 +27,9 @@ class SgfParser {
           isFirstNode = false;
         } else {
           // Create a new child node
-          TreeNode child = TreeNode(parent: currentNode);
-          currentNode.children.add(child);
+          TreeNode child = TreeNode(id: session.nextNodeId++, parentId: currentNode.id);
+          session.nodes[child.id] = child;
+          currentNode.childIds.add(child.id);
           currentNode = child;
         }
         i++;

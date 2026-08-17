@@ -1660,7 +1660,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     TreeNode? curr = tab.session.currentNode;
     while (curr != null) {
       path.insert(0, curr);
-      curr = curr.parent;
+      curr = tab.session.getParent(curr);
     }
 
     int moveCounter = 0;

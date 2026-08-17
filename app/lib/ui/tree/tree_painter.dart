@@ -4,11 +4,13 @@ import '../../models/move.dart';
 
 class TreePainter extends CustomPainter {
   final Map<TreeNode, Offset> layout;
+  final GameSession session;
   final TreeNode currentNode;
   final int maxRow;
 
   TreePainter({
     required this.layout,
+    required this.session,
     required this.currentNode,
     required this.maxRow,
   });
@@ -75,7 +77,8 @@ class TreePainter extends CustomPainter {
       // CULLING: Skip if start node is completely off-screen
       if (!cullRect.contains(start)) continue;
 
-      for (var child in node.children) {
+      for (var childId in node.childIds) {
+        final child = session.nodes[childId]!;
         final end = layout[child];
         if (end != null) {
           canvas.drawLine(start, end, linePaint);

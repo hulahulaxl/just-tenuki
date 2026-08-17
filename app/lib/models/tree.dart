@@ -5,14 +5,12 @@ enum MarkupType { triangle, square, circle, cross, letter, number }
 
 /// Represents a single moment/state in the game. Extremely lightweight.
 class TreeNode {
+  final int id;
+  final int? parentId;
+  final List<int> childIds = [];
+
   /// The move that resulted in this node. Null if this is the root/setup node.
   Move? move;
-
-  /// The parent node to traverse backward.
-  final TreeNode? parent;
-
-  /// All possible continuations/variations from this point.
-  final List<TreeNode> children = [];
 
   // --- Domain-Specific Properties ---
   String comment = ''; // C property (node comment)
@@ -35,13 +33,67 @@ class TreeNode {
   /// Explicitly dictates whose turn it is next (used for handicap and Tsumego)
   int? playerToPlay;
 
-  TreeNode({this.move, this.parent});
+  TreeNode({required this.id, this.parentId, this.move});
 
-  /// Adds a new variation (child node) based on a move.
-  TreeNode addChild(Move newMove) {
-    var child = TreeNode(move: newMove, parent: this);
-    children.add(child);
-    return child;
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'parentId': parentId,
+      'childIds': childIds,
+      'move': move != null ? {'type': move is Play ? 'Play' : 'Pass', 'player': move!.playerId, 'x': move is Play ? (move as Play).x : null, 'y': move is Play ? (move as Play).y : null} : null,
+      'comment': comment,
+      'nodeName': nodeName,
+      'setupBlackStones': setupBlackStones,
+      'setupWhiteStones': setupWhiteStones,
+      'setupEmptyStones': setupEmptyStones,
+      'triangleMarks': triangleMarks,
+      'squareMarks': squareMarks,
+      'circleMarks': circleMarks,
+      'crossMarks': crossMarks,
+      'labels': labels.map((k, v) => MapEntry(k.toString(), v)),
+      'timeLeft': timeLeft,
+      'overtimeLeft': overtimeLeft,
+      'playerToPlay': playerToPlay,
+    };
+  }
+
+  factory TreeNode.fromJson(Map<dynamic, dynamic> json) {
+    TreeNode node = TreeNode(
+      id: json['id'] as int,
+      parentId: json['parentId'] as int?,
+      move: json['move'] != null ? (json['move']['type'] == 'Play' ? Play(json['move']['player'], json['move']['x'], json['move']['y']) : Pass(json['move']['player'])) : null,
+    );
+    
+    if (json['childIds'] != null) {
+      node.childIds.addAll((json['childIds'] as List).cast<int>());
+    }
+    
+    node.comment = json['comment'] ?? '';
+    node.nodeName = json['nodeName'];
+    node.setupBlackStones = (json['setupBlackStones'] as List?)?.cast<int>() ?? [];
+    node.setupWhiteStones = (json['setupWhiteStones'] as List?)?.cast<int>() ?? [];
+    node.setupEmptyStones = (json['setupEmptyStones'] as List?)?.cast<int>() ?? [];
+    node.triangleMarks = (json['triangleMarks'] as List?)?.cast<int>() ?? [];
+    node.squareMarks = (json['squareMarks'] as List?)?.cast<int>() ?? [];
+    node.circleMarks = (json['circleMarks'] as List?)?.cast<int>() ?? [];
+    node.crossMarks = (json['crossMarks'] as List?)?.cast<int>() ?? [];
+    
+    if (json['labels'] != null) {
+      (json['labels'] as Map).forEach((k, v) {
+        node.labels[int.parse(k.toString())] = v.toString();
+      });
+    }
+
+    if (json['timeLeft'] != null) {
+      node.timeLeft = (json['timeLeft'] as List).map((e) => e as String?).toList();
+    }
+    if (json['overtimeLeft'] != null) {
+      node.overtimeLeft = (json['overtimeLeft'] as List).map((e) => e as String?).toList();
+    }
+    
+    node.playerToPlay = json['playerToPlay'] as int?;
+    
+    return node;
   }
 }
 
@@ -64,19 +116,33 @@ class GameSession {
   /// The physical state currently displayed on screen.
   Board currentBoard;
 
+  /// The centralized normalized map of all nodes.
+  Map<int, TreeNode> nodes = {};
+  
+  int nextNodeId = 0;
+
   /// The absolute start of the timeline.
-  late final TreeNode rootNode;
+  late final int rootNodeId;
 
   /// Where the user currently is in the timeline.
-  late TreeNode currentNode;
+  late int currentNodeId;
 
   /// Strongly-typed metadata for the game
   GameInfo info = GameInfo();
 
   GameSession() : currentBoard = Board() {
-    rootNode = TreeNode();
-    currentNode = rootNode;
+    TreeNode rootNode = TreeNode(id: nextNodeId++);
+    nodes[rootNode.id] = rootNode;
+    rootNodeId = rootNode.id;
+    currentNodeId = rootNode.id;
   }
+
+  TreeNode get rootNode => nodes[rootNodeId]!;
+  TreeNode get currentNode => nodes[currentNodeId]!;
+  set currentNode(TreeNode node) => currentNodeId = node.id;
+
+  TreeNode? getParent(TreeNode node) => node.parentId != null ? nodes[node.parentId!] : null;
+  List<TreeNode> getChildren(TreeNode node) => node.childIds.map((id) => nodes[id]!).toList();
 
   /// Attempts to play a move on the physical board.
   /// If successful, adds the move to the tree and advances the timeline.
@@ -93,13 +159,15 @@ class GameSession {
 
       // 2. Create the new node and link it
       TreeNode newNode = TreeNode(
+        id: nextNodeId++,
+        parentId: currentNodeId,
         move: Play(playedTurn, x, y),
-        parent: currentNode,
       );
-      currentNode.children.add(newNode);
+      nodes[newNode.id] = newNode;
+      currentNode.childIds.add(newNode.id);
 
       // 3. Advance timeline
-      currentNode = newNode;
+      currentNodeId = newNode.id;
       return true;
     }
     return false; // Illegal move
@@ -124,7 +192,7 @@ class GameSession {
     TreeNode? curr = node;
     while (curr != null) {
       path.insert(0, curr);
-      curr = curr.parent;
+      curr = getParent(curr);
     }
 
     // 3. Replay all moves sequentially
@@ -168,10 +236,11 @@ class GameSession {
     // Standard editor behavior: if the current node has a regular move,
     // OR if it's a setup node that already has children (to avoid altering history),
     // placing setup stones branches into a new "setup node".
-    if (currentNode.move != null || currentNode.children.isNotEmpty) {
-      TreeNode newNode = TreeNode(parent: currentNode);
-      currentNode.children.add(newNode);
-      currentNode = newNode;
+    if (currentNode.move != null || currentNode.childIds.isNotEmpty) {
+      TreeNode newNode = TreeNode(id: nextNodeId++, parentId: currentNodeId);
+      nodes[newNode.id] = newNode;
+      currentNode.childIds.add(newNode.id);
+      currentNodeId = newNode.id;
     }
 
     int index = currentBoard.getIndex(x, y);
@@ -273,27 +342,27 @@ class GameSession {
 
   /// Traverses exactly one step backward using Event Sourcing.
   void undo() {
-    if (currentNode.parent != null) {
-      jumpTo(currentNode.parent!);
+    if (currentNode.parentId != null) {
+      jumpTo(getParent(currentNode)!);
     }
   }
 
   /// Traverses to the next variation. Defaults to the main line (index 0).
   void next({int branchIndex = 0}) {
-    if (currentNode.children.isNotEmpty &&
-        branchIndex < currentNode.children.length) {
-      jumpTo(currentNode.children[branchIndex]);
+    if (currentNode.childIds.isNotEmpty &&
+        branchIndex < currentNode.childIds.length) {
+      jumpTo(nodes[currentNode.childIds[branchIndex]]!);
     }
   }
 
   /// Jumps to the latest setup node in the current variation.
   void first() {
     TreeNode curr = currentNode;
-    if (curr.parent != null) {
-      curr = curr.parent!;
+    if (curr.parentId != null) {
+      curr = getParent(curr)!;
     }
-    while (curr.parent != null && curr.move != null) {
-      curr = curr.parent!;
+    while (curr.parentId != null && curr.move != null) {
+      curr = getParent(curr)!;
     }
     jumpTo(curr);
   }
@@ -301,8 +370,8 @@ class GameSession {
   /// Fast-forwards to the end of the current variation.
   void last() {
     TreeNode curr = currentNode;
-    while (curr.children.isNotEmpty) {
-      curr = curr.children[0];
+    while (curr.childIds.isNotEmpty) {
+      curr = nodes[curr.childIds[0]]!;
     }
     jumpTo(curr);
   }
@@ -315,7 +384,7 @@ class GameSession {
       if (curr.timeLeft[player] != null) {
         return curr.timeLeft[player];
       }
-      curr = curr.parent;
+      curr = getParent(curr);
     }
     return null;
   }
@@ -327,8 +396,61 @@ class GameSession {
       if (curr.overtimeLeft[player] != null) {
         return curr.overtimeLeft[player];
       }
-      curr = curr.parent;
+      curr = getParent(curr);
     }
     return null;
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'rootNodeId': rootNodeId,
+      'currentNodeId': currentNodeId,
+      'nextNodeId': nextNodeId,
+      'info': {
+        'blackName': info.blackName,
+        'whiteName': info.whiteName,
+        'blackRank': info.blackRank,
+        'whiteRank': info.whiteRank,
+        'date': info.date,
+        'result': info.result,
+        'event': info.event,
+        'komi': info.komi,
+        'rules': info.rules,
+        'baseTime': info.baseTime,
+        'overtime': info.overtime,
+      },
+      'nodes': nodes.map((k, v) => MapEntry(k.toString(), v.toJson())),
+    };
+  }
+
+  factory GameSession.fromJson(Map<dynamic, dynamic> json) {
+    GameSession session = GameSession();
+    session.rootNodeId = json['rootNodeId'] as int;
+    session.currentNodeId = json['currentNodeId'] as int;
+    session.nextNodeId = json['nextNodeId'] as int;
+    
+    if (json['info'] != null) {
+      session.info.blackName = json['info']['blackName'] ?? 'Black';
+      session.info.whiteName = json['info']['whiteName'] ?? 'White';
+      session.info.blackRank = json['info']['blackRank'];
+      session.info.whiteRank = json['info']['whiteRank'];
+      session.info.date = json['info']['date'];
+      session.info.result = json['info']['result'];
+      session.info.event = json['info']['event'];
+      session.info.komi = json['info']['komi'] ?? '6.5';
+      session.info.rules = json['info']['rules'] ?? 'Japanese';
+      session.info.baseTime = json['info']['baseTime'];
+      session.info.overtime = json['info']['overtime'];
+    }
+
+    if (json['nodes'] != null) {
+      session.nodes.clear();
+      (json['nodes'] as Map).forEach((k, v) {
+        int id = int.parse(k.toString());
+        session.nodes[id] = TreeNode.fromJson(v as Map<dynamic, dynamic>);
+      });
+    }
+
+    return session;
   }
 }

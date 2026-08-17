@@ -79,7 +79,7 @@ class BinaryProtocol {
     TreeNode? curr = session.currentNode;
     while (curr != null) {
       if (curr.move != null) path.insert(0, curr.move!);
-      curr = curr.parent;
+      curr = session.getParent(curr);
     }
 
     // Move Count (uint16)

@@ -47,32 +47,32 @@ class SgfWriter {
     _writeNodeProperties(session.rootNode, buffer);
 
     // Write all children
-    _writeChildren(session.rootNode, buffer);
+    _writeChildren(session, session.rootNode, buffer);
 
     buffer.write(')');
     return buffer.toString();
   }
 
-  static void _writeChildren(TreeNode node, StringBuffer buffer) {
-    if (node.children.isEmpty) return;
+  static void _writeChildren(GameSession session, TreeNode node, StringBuffer buffer) {
+    if (node.childIds.isEmpty) return;
 
-    if (node.children.length == 1) {
+    if (node.childIds.length == 1) {
       // Single variation: just continue normally with a new node delimiter
       buffer.write('\n;');
-      _writeNode(node.children.first, buffer);
+      _writeNode(session, session.nodes[node.childIds.first]!, buffer);
     } else {
       // Multiple variations: wrap each in parentheses
-      for (var child in node.children) {
+      for (var childId in node.childIds) {
         buffer.write('\n(;');
-        _writeNode(child, buffer);
+        _writeNode(session, session.nodes[childId]!, buffer);
         buffer.write(')');
       }
     }
   }
 
-  static void _writeNode(TreeNode node, StringBuffer buffer) {
+  static void _writeNode(GameSession session, TreeNode node, StringBuffer buffer) {
     _writeNodeProperties(node, buffer);
-    _writeChildren(node, buffer);
+    _writeChildren(session, node, buffer);
   }
 
   static void _writeNodeProperties(TreeNode node, StringBuffer buffer) {

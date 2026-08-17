@@ -37,7 +37,7 @@ class _TreeGraphWidgetState extends State<TreeGraphWidget>
       duration: const Duration(milliseconds: 250),
     );
     _lastNode = widget.session.currentNode;
-    _layoutEngine.computeLayout(widget.session.rootNode);
+    _layoutEngine.computeLayout(widget.session);
 
     // Jump to initial node immediately (no animation)
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -55,7 +55,7 @@ class _TreeGraphWidgetState extends State<TreeGraphWidget>
   void didUpdateWidget(TreeGraphWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Always recompute in case nodes were added/removed
-    _layoutEngine.computeLayout(widget.session.rootNode);
+    _layoutEngine.computeLayout(widget.session);
 
     if (_lastNode != widget.session.currentNode && _viewportSize != Size.zero) {
       _lastNode = widget.session.currentNode;
@@ -181,6 +181,7 @@ class _TreeGraphWidgetState extends State<TreeGraphWidget>
               size: _layoutEngine.totalSize,
               painter: TreePainter(
                 layout: _layoutEngine.positions,
+                session: widget.session,
                 currentNode: widget.session.currentNode,
                 maxRow: _layoutEngine.maxRow,
               ),
