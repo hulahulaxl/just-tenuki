@@ -254,7 +254,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   // Horizontal Tab Bar for Portrait Mode
   Widget _buildHorizontalTabBar() {
     return Container(
-      height: 56,
+      height: 48,
       color: const Color(0xFFFAFAFA),
       child: Row(
         children: [
@@ -301,13 +301,13 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
         child: MouseRegion(
           cursor: SystemMouseCursors.click,
           child: Container(
-            width: 56,
-            height: 56,
+            width: 48,
+            height: 48,
             alignment: Alignment.center,
             child: Icon(
               icon,
               color: isSelected ? Colors.black87 : Colors.black38,
-              size: 28,
+              size: 24,
             ),
           ),
         ),
@@ -330,7 +330,11 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             width: 48,
             height: 48,
             alignment: Alignment.center,
-            child: Icon(icon, color: Colors.black54, size: 30),
+            child: Icon(
+              icon,
+              color: Colors.black87,
+              size: 24,
+            ),
           ),
         ),
       ),
