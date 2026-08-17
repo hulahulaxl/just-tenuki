@@ -16,6 +16,7 @@ class SettingsService {
   static Future<void> init() async {
     await Hive.initFlutter();
     _box = await Hive.openBox(_boxName);
+    await _initGamesBox();
   }
 
   // --- Board Settings ---
@@ -62,4 +63,24 @@ class SettingsService {
   }
 
   static Future<void> setPaneFlexes(List<int> flexes) => _box.put(_paneFlexesKey, flexes);
+
+  // --- Game Sessions Persistence ---
+  static const String _gamesBoxName = 'gamesBox';
+  static late Box _gamesBox;
+
+  static Future<void> _initGamesBox() async {
+    _gamesBox = await Hive.openBox(_gamesBoxName);
+  }
+
+  static List<Map<dynamic, dynamic>> loadGameSessions() {
+    final data = _gamesBox.get('sessions');
+    if (data is List) {
+      return data.cast<Map<dynamic, dynamic>>();
+    }
+    return [];
+  }
+
+  static Future<void> saveGameSessions(List<Map<dynamic, dynamic>> sessionsJson) async {
+    await _gamesBox.put('sessions', sessionsJson);
+  }
 }

@@ -1,5 +1,6 @@
 import 'board.dart';
 import 'move.dart';
+import 'package:flutter/foundation.dart';
 
 enum MarkupType { triangle, square, circle, cross, letter, number }
 
@@ -122,13 +123,16 @@ class GameSession {
   int nextNodeId = 0;
 
   /// The absolute start of the timeline.
-  late final int rootNodeId;
+  late int rootNodeId;
 
   /// Where the user currently is in the timeline.
   late int currentNodeId;
 
   /// Strongly-typed metadata for the game
   GameInfo info = GameInfo();
+
+  /// Callback fired when the session state changes
+  VoidCallback? onStateChanged;
 
   GameSession() : currentBoard = Board() {
     TreeNode rootNode = TreeNode(id: nextNodeId++);
@@ -168,6 +172,7 @@ class GameSession {
 
       // 3. Advance timeline
       currentNodeId = newNode.id;
+      onStateChanged?.call();
       return true;
     }
     return false; // Illegal move
@@ -217,6 +222,7 @@ class GameSession {
 
     // 4. Update the timeline pointer
     currentNode = node;
+    onStateChanged?.call();
   }
 
   void _applySetupStones(int player, List<int> indices) {
@@ -344,6 +350,7 @@ class GameSession {
   void undo() {
     if (currentNode.parentId != null) {
       jumpTo(getParent(currentNode)!);
+      onStateChanged?.call();
     }
   }
 
@@ -352,6 +359,7 @@ class GameSession {
     if (currentNode.childIds.isNotEmpty &&
         branchIndex < currentNode.childIds.length) {
       jumpTo(nodes[currentNode.childIds[branchIndex]]!);
+      onStateChanged?.call();
     }
   }
 
@@ -449,6 +457,10 @@ class GameSession {
         int id = int.parse(k.toString());
         session.nodes[id] = TreeNode.fromJson(v as Map<dynamic, dynamic>);
       });
+    }
+
+    if (session.nodes.containsKey(session.currentNodeId)) {
+      session.jumpTo(session.nodes[session.currentNodeId]!);
     }
 
     return session;

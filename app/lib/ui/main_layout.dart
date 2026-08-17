@@ -64,6 +64,16 @@ class MainLayout extends StatefulWidget {
 
 class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   final List<AppTab> _tabs = [LobbyTab()]; // Start with 1 Lobby tab
+
+  void _saveSessions() {
+    List<Map<dynamic, dynamic>> sessionsJson = [];
+    for (var tab in _tabs) {
+      if (tab is GameTab) {
+        sessionsJson.add(tab.session.toJson());
+      }
+    }
+    SettingsService.saveGameSessions(sessionsJson);
+  }
   int _activeIndex = 0;
   int _lobbyMenuIndex = 0; // 0 = New, 1 = Recent, 2 = Online Library
   BoardEditMode _editMode = BoardEditMode.play;
@@ -107,6 +117,23 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    final savedGames = SettingsService.loadGameSessions();
+    if (savedGames.isNotEmpty) {
+      _tabs.clear();
+      _tabs.add(LobbyTab());
+      for (var json in savedGames) {
+        try {
+          var session = GameSession.fromJson(json);
+          session.onStateChanged = _saveSessions;
+          _tabs.add(GameTab(session));
+        } catch (e) {
+          debugPrint('Error loading game session: $e');
+        }
+      }
+      if (_tabs.length > 1) {
+        _activeIndex = 1; // Focus the first loaded game
+      }
+    }
     _commentController = TextEditingController();
     _globalSettings.addListener(() {
       SettingsService.saveBoardSettings(_globalSettings.value);
@@ -476,7 +503,10 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             Icons.grid_on,
             onTap: () {
               setState(() {
-                _tabs[_activeIndex] = GameTab(GameSession());
+                var newSession = GameSession();
+                newSession.onStateChanged = _saveSessions;
+                _tabs[_activeIndex] = GameTab(newSession);
+                _saveSessions();
                 _maxScoreScale = 10.0;
               });
             },
@@ -539,7 +569,9 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       parsedSession.last();
 
       setState(() {
+        parsedSession.onStateChanged = _saveSessions;
         _tabs[_activeIndex] = GameTab(parsedSession);
+        _saveSessions();
         _maxScoreScale = 10.0;
         engineClient.analyze(parsedSession);
       });
@@ -1751,6 +1783,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
               controller: _commentController,
               onChanged: (val) {
                 tab.session.currentNode.comment = val;
+                tab.session.onStateChanged?.call();
               },
               maxLines: null, // Unlimited lines
               expands: true,
