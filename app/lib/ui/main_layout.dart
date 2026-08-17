@@ -1630,12 +1630,71 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     );
   }
 
+  Future<void> _promptDeleteNode(GameTab tab) async {
+    if (tab.session.currentNode.id == tab.session.rootNodeId) return;
+
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Delete Node?'),
+          content: const Text('This node and all its variations will be permanently deleted.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm == true && mounted) {
+      setState(() {
+        tab.session.deleteCurrentNode();
+        _saveSessions();
+      });
+    }
+  }
+
   Widget _buildTreeTab(GameTab tab) {
     return Container(
       color: const Color(0xFFFAFAFA),
-      child: TreeGraphWidget(
-        session: tab.session,
-        onNodeSelected: () => setState(() {}),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: TreeGraphWidget(
+              session: tab.session,
+              onNodeSelected: () => setState(() {}),
+            ),
+          ),
+          if (tab.session.currentNode.id != tab.session.rootNodeId)
+            Positioned(
+              top: 12,
+              right: 12,
+              child: Material(
+                color: Colors.white.withValues(alpha: 0.9),
+                elevation: 2,
+                borderRadius: BorderRadius.circular(24),
+                child: Tooltip(
+                  message: 'Delete Node',
+                  child: InkWell(
+                    onTap: () => _promptDeleteNode(tab),
+                    borderRadius: BorderRadius.circular(24),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      child: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

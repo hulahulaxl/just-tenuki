@@ -178,6 +178,31 @@ class GameSession {
     return false; // Illegal move
   }
 
+  /// Deletes the current node (and all its descendants) and jumps to its parent.
+  /// The root node cannot be deleted.
+  void deleteCurrentNode() {
+    if (currentNodeId == rootNodeId) return; // Cannot delete root node
+
+    TreeNode? parent = getParent(currentNode);
+    if (parent == null) return;
+
+    // Remove from parent's children
+    parent.childIds.remove(currentNodeId);
+
+    // Recursively remove from nodes map
+    void deleteSubtree(int id) {
+      final node = nodes[id];
+      if (node == null) return;
+      for (int childId in node.childIds.toList()) {
+        deleteSubtree(childId);
+      }
+      nodes.remove(id);
+    }
+    
+    deleteSubtree(currentNodeId);
+    jumpTo(parent); // This updates currentNode, board state, and fires onStateChanged
+  }
+
   /// Re-calculates the physical board state via Pure Event Sourcing.
   void jumpTo(TreeNode node) {
     // 1. Reset physical board to starting state
