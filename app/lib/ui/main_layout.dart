@@ -33,11 +33,16 @@ enum BoardEditMode {
 }
 
 abstract class AppTab {
+  final String id;
+  AppTab({String? id}) : id = id ?? DateTime.now().microsecondsSinceEpoch.toString();
+
   IconData get icon;
   String get tooltip;
 }
 
 class LobbyTab extends AppTab {
+  LobbyTab({super.id});
+
   @override
   IconData get icon => Icons.space_dashboard_outlined;
   @override
@@ -46,7 +51,7 @@ class LobbyTab extends AppTab {
 
 class GameTab extends AppTab {
   final GameSession session;
-  GameTab(this.session);
+  GameTab(this.session, {super.id});
 
   @override
   IconData get icon => Icons.grid_4x4_outlined;
@@ -66,18 +71,30 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   final List<AppTab> _tabs = [LobbyTab()]; // Start with 1 Lobby tab
 
   void _saveSessions() {
-    List<Map<dynamic, dynamic>> tabsJson = [];
+    List<String> tabIds = [];
     for (var tab in _tabs) {
+      tabIds.add(tab.id);
       if (tab is LobbyTab) {
-        tabsJson.add({'type': 'lobby'});
+        SettingsService.saveTab(tab.id, {'type': 'lobby', 'id': tab.id});
       } else if (tab is GameTab) {
-        tabsJson.add({
+        SettingsService.saveTab(tab.id, {
           'type': 'game',
+          'id': tab.id,
           'session': tab.session.toJson(),
         });
       }
     }
-    SettingsService.saveGameSessions(tabsJson);
+    SettingsService.saveTabList(tabIds);
+  }
+
+  void _saveSingleTab(AppTab tab) {
+    if (tab is GameTab) {
+      SettingsService.saveTab(tab.id, {
+        'type': 'game',
+        'id': tab.id,
+        'session': tab.session.toJson(),
+      });
+    }
   }
   int get _activeIndex => SettingsService.getActiveTabIndex();
   set _activeIndex(int value) => SettingsService.setActiveTabIndex(value);
@@ -124,20 +141,22 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    final savedTabs = SettingsService.loadGameSessions();
+    final savedTabs = SettingsService.loadTabs();
     if (savedTabs.isNotEmpty) {
       _tabs.clear();
       for (var json in savedTabs) {
+        final tabId = json['id'] as String?;
         if (json['type'] == 'lobby') {
-          _tabs.add(LobbyTab());
+          _tabs.add(LobbyTab(id: tabId));
         } else {
           try {
             // Support both old and new format during migration
             final sessionData = json.containsKey('type') ? json['session'] : json;
             if (sessionData != null) {
               var session = GameSession.fromJson(sessionData);
-              session.onStateChanged = _saveSessions;
-              _tabs.add(GameTab(session));
+              var gameTab = GameTab(session, id: tabId);
+              session.onStateChanged = () => _saveSingleTab(gameTab);
+              _tabs.add(gameTab);
             }
           } catch (e) {
             debugPrint('Error loading game session: $e');
@@ -147,11 +166,23 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       if (_tabs.isEmpty) {
         _tabs.add(LobbyTab());
       }
-      // Ensure the active index is within bounds (in case some tabs failed to load or were removed)
-      if (_activeIndex >= _tabs.length) {
-        _activeIndex = _tabs.length - 1;
+      
+      // If we migrated from old sessions, save to the new format right away
+      if (SettingsService.hasOldSessions()) {
+        _saveSessions();
       }
+    } else {
+      // Very first run or cleared data
+      _tabs.clear();
+      _tabs.add(LobbyTab());
     }
+    
+    // Ensure the active index is within bounds
+    if (_activeIndex >= _tabs.length) {
+      _activeIndex = _tabs.length - 1;
+    }
+    
+    SettingsService.clearOldSessions();
     _commentController = TextEditingController();
     _globalSettings.addListener(() {
       SettingsService.saveBoardSettings(_globalSettings.value);
@@ -524,8 +555,9 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             onTap: () {
               setState(() {
                 var newSession = GameSession();
-                newSession.onStateChanged = _saveSessions;
-                _tabs[_activeIndex] = GameTab(newSession);
+                var newTab = GameTab(newSession);
+                newSession.onStateChanged = () => _saveSingleTab(newTab);
+                _tabs[_activeIndex] = newTab;
                 _saveSessions();
                 _maxScoreScale = 10.0;
               });
@@ -589,8 +621,9 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       parsedSession.last();
 
       setState(() {
-        parsedSession.onStateChanged = _saveSessions;
-        _tabs[_activeIndex] = GameTab(parsedSession);
+        var newTab = GameTab(parsedSession);
+        parsedSession.onStateChanged = () => _saveSingleTab(newTab);
+        _tabs[_activeIndex] = newTab;
         _saveSessions();
         _maxScoreScale = 10.0;
         engineClient.analyze(parsedSession);

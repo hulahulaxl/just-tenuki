@@ -77,15 +77,42 @@ class SettingsService {
     _gamesBox = await Hive.openBox(_gamesBoxName);
   }
 
-  static List<Map<dynamic, dynamic>> loadGameSessions() {
-    final data = _gamesBox.get('sessions');
-    if (data is List) {
-      return data.cast<Map<dynamic, dynamic>>();
+  static List<Map<dynamic, dynamic>> loadTabs() {
+    // Migration: Check if old 'sessions' key exists
+    final oldData = _gamesBox.get('sessions');
+    if (oldData != null && oldData is List) {
+      return oldData.cast<Map<dynamic, dynamic>>();
     }
-    return [];
+
+    // New format
+    final tabIdsData = _gamesBox.get('tabIds');
+    List<String> tabIds = [];
+    if (tabIdsData is List) {
+      tabIds = tabIdsData.cast<String>();
+    }
+
+    List<Map<dynamic, dynamic>> tabs = [];
+    for (String id in tabIds) {
+      final tabData = _gamesBox.get('tab_$id');
+      if (tabData != null) {
+        tabs.add(tabData);
+      }
+    }
+    return tabs;
   }
 
-  static Future<void> saveGameSessions(List<Map<dynamic, dynamic>> sessionsJson) async {
-    await _gamesBox.put('sessions', sessionsJson);
+  static Future<void> saveTabList(List<String> tabIds) async {
+    await _gamesBox.put('tabIds', tabIds);
+  }
+
+  static Future<void> saveTab(String id, Map<dynamic, dynamic> tabJson) async {
+    await _gamesBox.put('tab_$id', tabJson);
+  }
+
+  // Clear out old data if necessary
+  static bool hasOldSessions() => _gamesBox.containsKey('sessions');
+  
+  static Future<void> clearOldSessions() async {
+    await _gamesBox.delete('sessions');
   }
 }
