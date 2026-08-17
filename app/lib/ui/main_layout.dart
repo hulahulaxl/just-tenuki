@@ -724,8 +724,8 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             _tabs[_activeIndex] = newTab;
             engineClient.analyze(parsedSession);
           } else {
-            // Append the rest as new tabs
-            _tabs.add(newTab);
+            // Insert the rest right after the active tab
+            _tabs.insert(_activeIndex + i, newTab);
           }
         }
         
