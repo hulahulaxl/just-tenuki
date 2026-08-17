@@ -35,7 +35,8 @@ enum BoardEditMode {
 abstract class AppTab {
   static int _idCounter = 0;
   final String id;
-  AppTab({String? id}) : id = id ?? '${DateTime.now().microsecondsSinceEpoch}_${_idCounter++}';
+  AppTab({String? id})
+    : id = id ?? '${DateTime.now().microsecondsSinceEpoch}_${_idCounter++}';
 
   IconData get icon;
   String get tooltip;
@@ -97,14 +98,15 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       });
     }
   }
+
   int get _activeIndex => SettingsService.getActiveTabIndex();
   set _activeIndex(int value) => SettingsService.setActiveTabIndex(value);
-  
+
   int _lobbyMenuIndex = 0; // 0 = New, 1 = Recent, 2 = Online Library
   BoardEditMode _editMode = BoardEditMode.play;
-  
+
   double _maxScreenHeight = 0;
-  
+
   // State for Export Tab
   bool _showExportPage = false;
   final Set<String> _selectedExportTabIds = {};
@@ -118,13 +120,16 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   set _showTreePane(bool value) => SettingsService.setShowTreePane(value);
 
   bool get _showAnalysisPane => SettingsService.showAnalysisPane;
-  set _showAnalysisPane(bool value) => SettingsService.setShowAnalysisPane(value);
+  set _showAnalysisPane(bool value) =>
+      SettingsService.setShowAnalysisPane(value);
 
   bool get _showCommentsPane => SettingsService.showCommentsPane;
-  set _showCommentsPane(bool value) => SettingsService.setShowCommentsPane(value);
+  set _showCommentsPane(bool value) =>
+      SettingsService.setShowCommentsPane(value);
 
   bool get _showSettingsPane => SettingsService.showSettingsPane;
-  set _showSettingsPane(bool value) => SettingsService.setShowSettingsPane(value);
+  set _showSettingsPane(bool value) =>
+      SettingsService.setShowSettingsPane(value);
 
   bool get _showMarkPane => SettingsService.showMarkPane;
   set _showMarkPane(bool value) => SettingsService.setShowMarkPane(value);
@@ -174,7 +179,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       _tabs.clear();
       _tabs.add(LobbyTab());
     }
-    
+
     // Ensure the active index is within bounds
     if (_activeIndex >= _tabs.length) {
       _activeIndex = _tabs.length - 1;
@@ -232,8 +237,10 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                   thickness: 1,
                   color: Color(0xFFEEEEEE),
                 ),
-                if (_showExportPage) ..._buildExportTab()
-                else if (activeTab is LobbyTab) ..._buildLobbyContentPortrait()
+                if (_showExportPage)
+                  ..._buildExportTab()
+                else if (activeTab is LobbyTab)
+                  ..._buildLobbyContentPortrait()
                 else if (activeTab is GameTab)
                   ..._buildPortraitGameContent(activeTab),
               ],
@@ -248,9 +255,12 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                 thickness: 1,
                 color: Color(0xFFEEEEEE),
               ),
-              if (_showExportPage) ..._buildExportTab()
-              else if (activeTab is LobbyTab) ..._buildLobbyContent()
-              else if (activeTab is GameTab) ..._buildGameContent(activeTab),
+              if (_showExportPage)
+                ..._buildExportTab()
+              else if (activeTab is LobbyTab)
+                ..._buildLobbyContent()
+              else if (activeTab is GameTab)
+                ..._buildGameContent(activeTab),
             ],
           );
         },
@@ -337,11 +347,16 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             });
           }),
           // Add a new Export Tab when clicked
-          _buildHorizontalSidebarButton(Icons.file_download_outlined, 'Export Games', () {
-            setState(() {
-              _showExportPage = true;
-            });
-          }, isSelected: _showExportPage),
+          _buildHorizontalSidebarButton(
+            Icons.file_download_outlined,
+            'Export Games',
+            () {
+              setState(() {
+                _showExportPage = true;
+              });
+            },
+            isSelected: _showExportPage,
+          ),
           const SizedBox(width: 8),
         ],
       ),
@@ -364,7 +379,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
         },
         child: MouseRegion(
           cursor: SystemMouseCursors.click,
-          child: Container(
+          child: SizedBox(
             width: 48,
             height: 48,
             child: Stack(
@@ -462,11 +477,16 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             });
           }),
           // Add a new Export Tab when clicked
-          _buildSidebarButton(Icons.file_download_outlined, 'Export Games', () {
-            setState(() {
-              _showExportPage = true;
-            });
-          }, isSelected: _showExportPage),
+          _buildSidebarButton(
+            Icons.file_download_outlined,
+            'Export Games',
+            () {
+              setState(() {
+                _showExportPage = true;
+              });
+            },
+            isSelected: _showExportPage,
+          ),
           const SizedBox(height: 16),
         ],
       ),
@@ -489,7 +509,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
         },
         child: MouseRegion(
           cursor: SystemMouseCursors.click,
-          child: Container(
+          child: SizedBox(
             width: 60,
             height: 48,
             child: Stack(
@@ -581,7 +601,11 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             width: 60,
             height: 48,
             alignment: Alignment.center,
-            child: Icon(icon, color: isSelected ? Colors.blue : Colors.black54, size: 26),
+            child: Icon(
+              icon,
+              color: isSelected ? Colors.blue : Colors.black54,
+              size: 26,
+            ),
           ),
         ),
       ),
@@ -645,7 +669,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                 style: TextStyle(fontSize: 16, color: Colors.black54),
               ),
               const SizedBox(height: 24),
-              
+
               Row(
                 children: [
                   ElevatedButton.icon(
@@ -670,7 +694,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                 ],
               ),
               const SizedBox(height: 16),
-              
+
               Expanded(
                 child: Material(
                   color: Colors.white,
@@ -681,14 +705,21 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                   clipBehavior: Clip.antiAlias,
                   child: ListView.separated(
                     itemCount: gameTabs.length,
-                    separatorBuilder: (context, index) => const Divider(height: 1),
+                    separatorBuilder: (context, index) =>
+                        const Divider(height: 1),
                     itemBuilder: (context, index) {
                       final tab = gameTabs[index];
                       final isSelected = _selectedExportTabIds.contains(tab.id);
-                      final title = tab.session.info.event ?? 'Untitled Game ${index + 1}';
-                      final pb = tab.session.info.blackName.isNotEmpty ? tab.session.info.blackName : 'Black';
-                      final pw = tab.session.info.whiteName.isNotEmpty ? tab.session.info.whiteName : 'White';
-                      
+                      final title =
+                          tab.session.info.event ??
+                          'Untitled Game ${index + 1}';
+                      final pb = tab.session.info.blackName.isNotEmpty
+                          ? tab.session.info.blackName
+                          : 'Black';
+                      final pw = tab.session.info.whiteName.isNotEmpty
+                          ? tab.session.info.whiteName
+                          : 'White';
+
                       return CheckboxListTile(
                         value: isSelected,
                         onChanged: (bool? value) {
@@ -705,20 +736,25 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         subtitle: Text(title),
-                        secondary: const Icon(Icons.grid_4x4_outlined, color: Colors.black45),
+                        secondary: const Icon(
+                          Icons.grid_4x4_outlined,
+                          color: Colors.black45,
+                        ),
                       );
                     },
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton.icon(
-                  onPressed: _selectedExportTabIds.isEmpty ? null : () => _downloadSGFCollection(gameTabs),
+                  onPressed: _selectedExportTabIds.isEmpty
+                      ? null
+                      : () => _downloadSGFCollection(gameTabs),
                   icon: const Icon(Icons.download),
                   label: const Text(
                     'Download Collection (SGF)',
@@ -738,15 +774,17 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   }
 
   Future<void> _downloadSGFCollection(List<GameTab> allGameTabs) async {
-    final selectedTabs = allGameTabs.where((t) => _selectedExportTabIds.contains(t.id)).toList();
+    final selectedTabs = allGameTabs
+        .where((t) => _selectedExportTabIds.contains(t.id))
+        .toList();
     if (selectedTabs.isEmpty) return;
-    
+
     final sessions = selectedTabs.map((t) => t.session).toList();
     final sgfContent = SgfWriter.writeAll(sessions);
-    
+
     final dateStr = DateTime.now().toIso8601String().split('T')[0];
     final filename = 'collection_$dateStr.sgf';
-    
+
     if (kIsWeb) {
       downloadTextFile(sgfContent, filename);
     } else {
@@ -902,7 +940,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             _tabs.insert(_activeIndex + i, newTab);
           }
         }
-        
+
         _saveSessions();
         _maxScoreScale = 10.0;
       });
@@ -920,20 +958,25 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
               if (constraints.maxHeight > _maxScreenHeight) {
                 _maxScreenHeight = constraints.maxHeight;
               }
-            
+
               final boardHeight = constraints.maxWidth;
               // If there's no analysis, the winrate bar returns SizedBox.shrink() which is 0 height
               final winrateHeight = (_currentAnalysis != null) ? 16.0 : 0.0;
               final statusBarHeight = 60.0;
-              
-              final availablePaneHeight = constraints.maxHeight - boardHeight - winrateHeight - statusBarHeight;
-              
+
+              final availablePaneHeight =
+                  constraints.maxHeight -
+                  boardHeight -
+                  winrateHeight -
+                  statusBarHeight;
+
               // If the keyboard is open, we enforce a minimum pane height of 250px so it becomes scrollable.
               // If the keyboard is closed, we exactly fill the screen so the bottom bar sits perfectly at the bottom.
               // Mobile Web often fails to update viewInsets, so we detect keyboard by checking if the screen shrank significantly.
-              final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0 || 
-                                     constraints.maxHeight < _maxScreenHeight - 100;
-                                     
+              final isKeyboardOpen =
+                  MediaQuery.of(context).viewInsets.bottom > 0 ||
+                  constraints.maxHeight < _maxScreenHeight - 100;
+
               final paneHeight = isKeyboardOpen
                   ? (availablePaneHeight < 250.0 ? 250.0 : availablePaneHeight)
                   : (availablePaneHeight < 0.0 ? 0.0 : availablePaneHeight);
@@ -943,84 +986,95 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                   children: [
                     // 1. Board wrapped in AspectRatio (no padding/margin)
                     AspectRatio(
-                aspectRatio: 1.0,
-                child: BoardWidget(
-                  board: tab.session.currentBoard,
-                  currentNode: tab.session.currentNode,
-                  settingsNotifier: _globalSettings,
-                  onIntersectionTapped: (x, y) {
-                    if (_editMode == BoardEditMode.play) {
-                      if (tab.session.play(x, y)) {
-                        setState(() {});
-                      }
-                    } else {
-                      // Handle setup stone placement/removal or markups
-                      if (_editMode == BoardEditMode.addBlack) {
-                        tab.session.addSetupStone(x, y, 1);
-                      } else if (_editMode == BoardEditMode.addWhite) {
-                        tab.session.addSetupStone(x, y, 2);
-                      } else if (_editMode == BoardEditMode.remove) {
-                        tab.session.addSetupStone(x, y, 0);
-                      } else {
-                        MarkupType? mType;
-                        if (_editMode == BoardEditMode.markTriangle) {
-                          mType = MarkupType.triangle;
-                        } else if (_editMode == BoardEditMode.markSquare) {
-                          mType = MarkupType.square;
-                        } else if (_editMode == BoardEditMode.markCircle) {
-                          mType = MarkupType.circle;
-                        } else if (_editMode == BoardEditMode.markCross) {
-                          mType = MarkupType.cross;
-                        } else if (_editMode == BoardEditMode.markLetter) {
-                          mType = MarkupType.letter;
-                        } else if (_editMode == BoardEditMode.markNumber) {
-                          mType = MarkupType.number;
-                        }
+                      aspectRatio: 1.0,
+                      child: BoardWidget(
+                        board: tab.session.currentBoard,
+                        currentNode: tab.session.currentNode,
+                        settingsNotifier: _globalSettings,
+                        onIntersectionTapped: (x, y) {
+                          if (_editMode == BoardEditMode.play) {
+                            if (tab.session.play(x, y)) {
+                              setState(() {});
+                            }
+                          } else {
+                            // Handle setup stone placement/removal or markups
+                            if (_editMode == BoardEditMode.addBlack) {
+                              tab.session.addSetupStone(x, y, 1);
+                            } else if (_editMode == BoardEditMode.addWhite) {
+                              tab.session.addSetupStone(x, y, 2);
+                            } else if (_editMode == BoardEditMode.remove) {
+                              tab.session.addSetupStone(x, y, 0);
+                            } else {
+                              MarkupType? mType;
+                              if (_editMode == BoardEditMode.markTriangle) {
+                                mType = MarkupType.triangle;
+                              } else if (_editMode ==
+                                  BoardEditMode.markSquare) {
+                                mType = MarkupType.square;
+                              } else if (_editMode ==
+                                  BoardEditMode.markCircle) {
+                                mType = MarkupType.circle;
+                              } else if (_editMode == BoardEditMode.markCross) {
+                                mType = MarkupType.cross;
+                              } else if (_editMode ==
+                                  BoardEditMode.markLetter) {
+                                mType = MarkupType.letter;
+                              } else if (_editMode ==
+                                  BoardEditMode.markNumber) {
+                                mType = MarkupType.number;
+                              }
 
-                        if (mType != null) {
-                          tab.session.toggleMarkup(x, y, mType);
-                        }
-                      }
-                      setState(() {});
-                    }
-                  },
-                  analysis:
-                      (_lastAnalysisTurn ==
-                          tab.session.currentBoard.currentTurn)
-                      ? _currentAnalysis
-                      : null,
+                              if (mType != null) {
+                                tab.session.toggleMarkup(x, y, mType);
+                              }
+                            }
+                            setState(() {});
+                          }
+                        },
+                        analysis:
+                            (_lastAnalysisTurn ==
+                                tab.session.currentBoard.currentTurn)
+                            ? _currentAnalysis
+                            : null,
+                      ),
+                    ),
+                    // 2. Winrate Bar directly beneath
+                    _buildWinrateBar(tab.session, isPortrait: true),
+
+                    // Active Pane
+                    if (_showMarkPane ||
+                        _showTreePane ||
+                        _showAnalysisPane ||
+                        _showCommentsPane ||
+                        _showSettingsPane)
+                      SizedBox(
+                        height: paneHeight,
+                        child: Builder(
+                          builder: (context) {
+                            if (_showMarkPane) return _buildMarkPaneMobile(tab);
+                            if (_showTreePane) return _buildTreeTab(tab);
+                            if (_showAnalysisPane)
+                              return _buildAnalysisTabMock();
+                            if (_showCommentsPane)
+                              return _buildCommentsPane(tab);
+                            if (_showSettingsPane)
+                              return _buildSettingsPaneMock();
+                            return const SizedBox.shrink();
+                          },
+                        ),
+                      )
+                    else
+                      SizedBox(height: paneHeight),
+
+                    // 3. Navigation Buttons
+                    _buildStatusBar(tab.session, isPortrait: true),
+                  ],
                 ),
-              ),
-              // 2. Winrate Bar directly beneath
-              _buildWinrateBar(tab.session, isPortrait: true),
-              
-              // Active Pane
-              if (_showMarkPane || _showTreePane || _showAnalysisPane || _showCommentsPane || _showSettingsPane)
-                SizedBox(
-                  height: paneHeight,
-                  child: Builder(
-                    builder: (context) {
-                      if (_showMarkPane) return _buildMarkPaneMobile(tab);
-                      if (_showTreePane) return _buildTreeTab(tab);
-                      if (_showAnalysisPane) return _buildAnalysisTabMock();
-                      if (_showCommentsPane) return _buildCommentsPane(tab);
-                      if (_showSettingsPane) return _buildSettingsPaneMock();
-                      return const SizedBox.shrink();
-                    },
-                  ),
-                )
-              else
-                SizedBox(height: paneHeight),
-
-              // 3. Navigation Buttons
-              _buildStatusBar(tab.session, isPortrait: true),
-            ],
+              );
+            },
           ),
-        );
-      },
-    ),
-  ),
-),
+        ),
+      ),
     ];
   }
 
@@ -1597,8 +1651,11 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildNavButton(IconData icon, VoidCallback onTap,
-      {bool isActive = false}) {
+  Widget _buildNavButton(
+    IconData icon,
+    VoidCallback onTap, {
+    bool isActive = false,
+  }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(4),
@@ -1606,7 +1663,9 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: isActive ? Colors.blue.withValues(alpha: 0.1) : Colors.transparent,
+          color: isActive
+              ? Colors.blue.withValues(alpha: 0.1)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(4),
         ),
         child: Center(
@@ -1825,7 +1884,9 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       builder: (context) {
         return AlertDialog(
           title: const Text('Delete Node?'),
-          content: const Text('This node and all its variations will be permanently deleted.'),
+          content: const Text(
+            'This node and all its variations will be permanently deleted.',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
@@ -1875,7 +1936,11 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     borderRadius: BorderRadius.circular(24),
                     child: Container(
                       padding: const EdgeInsets.all(8),
-                      child: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                      child: const Icon(
+                        Icons.delete_outline,
+                        color: Colors.red,
+                        size: 20,
+                      ),
                     ),
                   ),
                 ),
@@ -1891,8 +1956,12 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
         ? session.currentBoard.captures[player]
         : 0;
     String name = player == 0 ? session.info.blackName : session.info.whiteName;
-    String? rank = player == 0 ? session.info.blackRank : session.info.whiteRank;
-    String displayName = rank != null && rank.isNotEmpty ? '$name [$rank]' : name;
+    String? rank = player == 0
+        ? session.info.blackRank
+        : session.info.whiteRank;
+    String displayName = rank != null && rank.isNotEmpty
+        ? '$name [$rank]'
+        : name;
 
     String formatTime(String? timeStr) {
       if (timeStr == null || timeStr.isEmpty) return '--:--';
@@ -1910,13 +1979,16 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       String? otStr = session.getOvertimeLeft(player);
       if (otStr != null && otStr.isNotEmpty) {
         formatted += ' ($otStr)';
-      } else if (session.info.overtime != null && session.info.overtime!.isNotEmpty) {
+      } else if (session.info.overtime != null &&
+          session.info.overtime!.isNotEmpty) {
         formatted += ' + ${session.info.overtime}';
       }
       return formatted;
     }
 
-    String timeStr = formatTime(session.getTimeLeft(player) ?? session.info.baseTime);
+    String timeStr = formatTime(
+      session.getTimeLeft(player) ?? session.info.baseTime,
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -1940,7 +2012,10 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
               const SizedBox(width: 8),
               Text(
                 displayName,
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
               ),
             ],
           ),
@@ -1953,10 +2028,14 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
               const SizedBox(width: 16),
               Text(
                 timeStr,
-                style: const TextStyle(fontFamily: 'monospace', fontSize: 14, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -1981,115 +2060,115 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
               crossAxisSpacing: 4,
               childAspectRatio: 1.0,
               children: [
-                  _buildToolButton(
-                    Icons.circle,
-                    'Black Stone',
-                    isSelected: _editMode == BoardEditMode.addBlack,
-                    onTap: () => setState(
-                      () => _editMode = _editMode == BoardEditMode.addBlack
-                          ? BoardEditMode.play
-                          : BoardEditMode.addBlack,
-                    ),
+                _buildToolButton(
+                  Icons.circle,
+                  'Black Stone',
+                  isSelected: _editMode == BoardEditMode.addBlack,
+                  onTap: () => setState(
+                    () => _editMode = _editMode == BoardEditMode.addBlack
+                        ? BoardEditMode.play
+                        : BoardEditMode.addBlack,
                   ),
-                  _buildToolButton(
-                    Icons.circle_outlined,
-                    'White Stone',
-                    isSelected: _editMode == BoardEditMode.addWhite,
-                    onTap: () => setState(
-                      () => _editMode = _editMode == BoardEditMode.addWhite
-                          ? BoardEditMode.play
-                          : BoardEditMode.addWhite,
-                    ),
+                ),
+                _buildToolButton(
+                  Icons.circle_outlined,
+                  'White Stone',
+                  isSelected: _editMode == BoardEditMode.addWhite,
+                  onTap: () => setState(
+                    () => _editMode = _editMode == BoardEditMode.addWhite
+                        ? BoardEditMode.play
+                        : BoardEditMode.addWhite,
                   ),
-                  _buildToolButton(
-                    Icons.close,
-                    'Remove',
-                    isSelected: _editMode == BoardEditMode.remove,
-                    onTap: () => setState(
-                      () => _editMode = _editMode == BoardEditMode.remove
-                          ? BoardEditMode.play
-                          : BoardEditMode.remove,
-                    ),
+                ),
+                _buildToolButton(
+                  Icons.close,
+                  'Remove',
+                  isSelected: _editMode == BoardEditMode.remove,
+                  onTap: () => setState(
+                    () => _editMode = _editMode == BoardEditMode.remove
+                        ? BoardEditMode.play
+                        : BoardEditMode.remove,
                   ),
-                  _buildToolButton(
-                    Icons.change_history,
-                    'Triangle',
-                    isSelected: _editMode == BoardEditMode.markTriangle,
-                    onTap: () => setState(
-                      () => _editMode = _editMode == BoardEditMode.markTriangle
-                          ? BoardEditMode.play
-                          : BoardEditMode.markTriangle,
-                    ),
+                ),
+                _buildToolButton(
+                  Icons.change_history,
+                  'Triangle',
+                  isSelected: _editMode == BoardEditMode.markTriangle,
+                  onTap: () => setState(
+                    () => _editMode = _editMode == BoardEditMode.markTriangle
+                        ? BoardEditMode.play
+                        : BoardEditMode.markTriangle,
                   ),
-                  _buildToolButton(
-                    Icons.crop_square,
-                    'Square',
-                    isSelected: _editMode == BoardEditMode.markSquare,
-                    onTap: () => setState(
-                      () => _editMode = _editMode == BoardEditMode.markSquare
-                          ? BoardEditMode.play
-                          : BoardEditMode.markSquare,
-                    ),
+                ),
+                _buildToolButton(
+                  Icons.crop_square,
+                  'Square',
+                  isSelected: _editMode == BoardEditMode.markSquare,
+                  onTap: () => setState(
+                    () => _editMode = _editMode == BoardEditMode.markSquare
+                        ? BoardEditMode.play
+                        : BoardEditMode.markSquare,
                   ),
-                  _buildToolButton(
-                    Icons.radio_button_unchecked,
-                    'Circle',
-                    isSelected: _editMode == BoardEditMode.markCircle,
-                    onTap: () => setState(
-                      () => _editMode = _editMode == BoardEditMode.markCircle
-                          ? BoardEditMode.play
-                          : BoardEditMode.markCircle,
-                    ),
+                ),
+                _buildToolButton(
+                  Icons.radio_button_unchecked,
+                  'Circle',
+                  isSelected: _editMode == BoardEditMode.markCircle,
+                  onTap: () => setState(
+                    () => _editMode = _editMode == BoardEditMode.markCircle
+                        ? BoardEditMode.play
+                        : BoardEditMode.markCircle,
                   ),
-                  _buildToolButton(
-                    Icons.clear,
-                    'Cross',
-                    isSelected: _editMode == BoardEditMode.markCross,
-                    onTap: () => setState(
-                      () => _editMode = _editMode == BoardEditMode.markCross
-                          ? BoardEditMode.play
-                          : BoardEditMode.markCross,
-                    ),
+                ),
+                _buildToolButton(
+                  Icons.clear,
+                  'Cross',
+                  isSelected: _editMode == BoardEditMode.markCross,
+                  onTap: () => setState(
+                    () => _editMode = _editMode == BoardEditMode.markCross
+                        ? BoardEditMode.play
+                        : BoardEditMode.markCross,
                   ),
-                  _buildToolButton(
-                    Icons.text_fields,
-                    'Letter',
-                    isSelected: _editMode == BoardEditMode.markLetter,
-                    onTap: () => setState(
-                      () => _editMode = _editMode == BoardEditMode.markLetter
-                          ? BoardEditMode.play
-                          : BoardEditMode.markLetter,
-                    ),
+                ),
+                _buildToolButton(
+                  Icons.text_fields,
+                  'Letter',
+                  isSelected: _editMode == BoardEditMode.markLetter,
+                  onTap: () => setState(
+                    () => _editMode = _editMode == BoardEditMode.markLetter
+                        ? BoardEditMode.play
+                        : BoardEditMode.markLetter,
                   ),
-                  _buildToolButton(
-                    Icons.numbers,
-                    'Number',
-                    isSelected: _editMode == BoardEditMode.markNumber,
-                    onTap: () => setState(
-                      () => _editMode = _editMode == BoardEditMode.markNumber
-                          ? BoardEditMode.play
-                          : BoardEditMode.markNumber,
-                    ),
+                ),
+                _buildToolButton(
+                  Icons.numbers,
+                  'Number',
+                  isSelected: _editMode == BoardEditMode.markNumber,
+                  onTap: () => setState(
+                    () => _editMode = _editMode == BoardEditMode.markNumber
+                        ? BoardEditMode.play
+                        : BoardEditMode.markNumber,
                   ),
-                  _buildToolButton(
-                    Icons.download,
-                    'Export SGF',
-                    isSelected: false,
-                    backgroundColor: Colors.blue.shade600,
-                    iconColor: Colors.white,
-                    onTap: () {
-                      final session = tab.session;
-                      final sgfString = SgfWriter.write(session);
-                      String p1 = session.info.blackName.replaceAll(' ', '_');
-                      String p2 = session.info.whiteName.replaceAll(' ', '_');
-                      String filename = '${p1}_vs_$p2.sgf';
-                      if (p1.isEmpty && p2.isEmpty) filename = 'game_review.sgf';
-                      downloadTextFile(sgfString, filename);
-                    },
-                  ),
-                ],
-              ),
+                ),
+                _buildToolButton(
+                  Icons.download,
+                  'Export SGF',
+                  isSelected: false,
+                  backgroundColor: Colors.blue.shade600,
+                  iconColor: Colors.white,
+                  onTap: () {
+                    final session = tab.session;
+                    final sgfString = SgfWriter.write(session);
+                    String p1 = session.info.blackName.replaceAll(' ', '_');
+                    String p2 = session.info.whiteName.replaceAll(' ', '_');
+                    String filename = '${p1}_vs_$p2.sgf';
+                    if (p1.isEmpty && p2.isEmpty) filename = 'game_review.sgf';
+                    downloadTextFile(sgfString, filename);
+                  },
+                ),
+              ],
             ),
+          ),
         ],
       ),
     );

@@ -83,8 +83,7 @@ class BoardPainter extends CustomPainter {
 
     // 3. Draw star points (hoshi) if 19x19 board
     if (cols == 19 && rows == 19) {
-      final hoshiPaint = Paint()
-        ..color = settings.lineColor;
+      final hoshiPaint = Paint()..color = settings.lineColor;
       final List<int> hoshiPoints = [3, 9, 15]; // 4th, 10th, and 16th lines
       final double hoshiRadius =
           cellSize *
@@ -121,22 +120,32 @@ class BoardPainter extends CustomPainter {
 
         Paint stonePaint;
         if (player == 1) {
-          stonePaint = BoardStyles.stoneTextures[settings.blackStoneTextureIndex](stoneRect, settings.blackStoneColor);
+          stonePaint =
+              BoardStyles.stoneTextures[settings.blackStoneTextureIndex](
+                stoneRect,
+                settings.blackStoneColor,
+              );
         } else if (player == 2) {
-          stonePaint = BoardStyles.stoneTextures[settings.whiteStoneTextureIndex](stoneRect, settings.whiteStoneColor);
+          stonePaint =
+              BoardStyles.stoneTextures[settings.whiteStoneTextureIndex](
+                stoneRect,
+                settings.whiteStoneColor,
+              );
         } else {
           continue;
         }
 
         // Draw drop shadow
         if (settings.stoneDropShadow > 0) {
-          final double scaledShadow = settings.stoneDropShadow * (cellSize / 40.0);
+          final double scaledShadow =
+              settings.stoneDropShadow * (cellSize / 40.0);
           final shadowPaint = Paint()
             ..color = Colors.black.withValues(alpha: 0.3)
             ..maskFilter = MaskFilter.blur(BlurStyle.normal, scaledShadow);
           canvas.drawOval(
-              stoneRect.translate(scaledShadow / 2, scaledShadow / 2),
-              shadowPaint);
+            stoneRect.translate(scaledShadow / 2, scaledShadow / 2),
+            shadowPaint,
+          );
         }
 
         // Draw stone
@@ -144,14 +153,15 @@ class BoardPainter extends CustomPainter {
 
         // Draw outline
         if (settings.stoneOutlineThickness > 0) {
-          final double scaledOutline = settings.stoneOutlineThickness * (cellSize / 40.0);
+          final double scaledOutline =
+              settings.stoneOutlineThickness * (cellSize / 40.0);
           final outlinePaint = Paint()
             ..color = Colors.black87
             ..style = PaintingStyle.stroke
             ..strokeWidth = scaledOutline;
           canvas.drawOval(stoneRect, outlinePaint);
         }
-        
+
         int? latestMoveX = currentNode.move is Play
             ? (currentNode.move as Play).x
             : null;
@@ -294,7 +304,8 @@ class BoardPainter extends CustomPainter {
           stoneRadius *
               0.7, // Reduce the background circle size a bit since marks are smaller
           Paint()
-            ..color = settings.boardColor // Fully opaque board color
+            ..color = settings
+                .boardColor // Fully opaque board color
             ..style = PaintingStyle.fill,
         );
       }

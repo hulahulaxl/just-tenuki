@@ -13,7 +13,7 @@ void main() {
     // Simulate Hive roundtrip
     var jsonString = jsonEncode(jsonMap);
     var hiveMap = jsonDecode(jsonString) as Map<dynamic, dynamic>;
-    
+
     var loadedSession = GameSession.fromJson(hiveMap);
     expect(loadedSession.currentNode.move is Play, isTrue);
   });

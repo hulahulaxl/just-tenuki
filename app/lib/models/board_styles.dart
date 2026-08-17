@@ -54,7 +54,9 @@ class BoardStyles {
   static Color _lighten(Color color, [double amount = .1]) {
     assert(amount >= 0 && amount <= 1);
     final hsl = HSLColor.fromColor(color);
-    final hslLight = hsl.withLightness((hsl.lightness + amount).clamp(0.0, 1.0));
+    final hslLight = hsl.withLightness(
+      (hsl.lightness + amount).clamp(0.0, 1.0),
+    );
     return hslLight.toColor();
   }
 
@@ -68,7 +70,9 @@ class BoardStyles {
       return Paint()
         ..shader = RadialGradient(
           colors: [
-            baseColor.computeLuminance() > 0.5 ? Colors.white : _lighten(baseColor, 0.2),
+            baseColor.computeLuminance() > 0.5
+                ? Colors.white
+                : _lighten(baseColor, 0.2),
             _darken(baseColor, 0.2),
           ],
         ).createShader(rect);
@@ -77,10 +81,7 @@ class BoardStyles {
     (Rect rect, Color baseColor) {
       return Paint()
         ..shader = RadialGradient(
-          colors: [
-            _lighten(baseColor, 0.4),
-            _darken(baseColor, 0.4),
-          ],
+          colors: [_lighten(baseColor, 0.4), _darken(baseColor, 0.4)],
         ).createShader(rect);
     },
     // 3: Linear Gradient
@@ -89,10 +90,7 @@ class BoardStyles {
         ..shader = LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            _lighten(baseColor, 0.3),
-            _darken(baseColor, 0.3),
-          ],
+          colors: [_lighten(baseColor, 0.3), _darken(baseColor, 0.3)],
         ).createShader(rect);
     },
     // 4: Edge Highlight
@@ -100,10 +98,7 @@ class BoardStyles {
       return Paint()
         ..shader = RadialGradient(
           center: const Alignment(0, 0),
-          colors: [
-            _darken(baseColor, 0.1),
-            _lighten(baseColor, 0.3),
-          ],
+          colors: [_darken(baseColor, 0.1), _lighten(baseColor, 0.3)],
         ).createShader(rect);
     },
     // 5: Glossy
@@ -126,10 +121,7 @@ class BoardStyles {
         ..shader = RadialGradient(
           center: const Alignment(-0.2, -0.2),
           radius: 1.2,
-          colors: [
-            baseColor,
-            _darken(baseColor, 0.5),
-          ],
+          colors: [baseColor, _darken(baseColor, 0.5)],
         ).createShader(rect);
     },
   ];

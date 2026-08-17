@@ -37,23 +37,33 @@ class SettingsService {
   }
 
   // --- UI Layout State ---
-  static bool get showTreePane => _box.get(_showTreePaneKey, defaultValue: false);
-  static Future<void> setShowTreePane(bool value) => _box.put(_showTreePaneKey, value);
+  static bool get showTreePane =>
+      _box.get(_showTreePaneKey, defaultValue: false);
+  static Future<void> setShowTreePane(bool value) =>
+      _box.put(_showTreePaneKey, value);
 
-  static bool get showAnalysisPane => _box.get(_showAnalysisPaneKey, defaultValue: false);
-  static Future<void> setShowAnalysisPane(bool value) => _box.put(_showAnalysisPaneKey, value);
+  static bool get showAnalysisPane =>
+      _box.get(_showAnalysisPaneKey, defaultValue: false);
+  static Future<void> setShowAnalysisPane(bool value) =>
+      _box.put(_showAnalysisPaneKey, value);
 
-  static bool get showCommentsPane => _box.get(_showCommentsPaneKey, defaultValue: false);
-  static Future<void> setShowCommentsPane(bool value) => _box.put(_showCommentsPaneKey, value);
+  static bool get showCommentsPane =>
+      _box.get(_showCommentsPaneKey, defaultValue: false);
+  static Future<void> setShowCommentsPane(bool value) =>
+      _box.put(_showCommentsPaneKey, value);
 
-  static bool get showSettingsPane => _box.get(_showSettingsPaneKey, defaultValue: false);
-  static Future<void> setShowSettingsPane(bool value) => _box.put(_showSettingsPaneKey, value);
+  static bool get showSettingsPane =>
+      _box.get(_showSettingsPaneKey, defaultValue: false);
+  static Future<void> setShowSettingsPane(bool value) =>
+      _box.put(_showSettingsPaneKey, value);
 
-  static bool get showMarkPane => _box.get(_showMarkPaneKey, defaultValue: false);
-  static Future<void> setShowMarkPane(bool value) => _box.put(_showMarkPaneKey, value);
+  static bool get showMarkPane =>
+      _box.get(_showMarkPaneKey, defaultValue: false);
+  static Future<void> setShowMarkPane(bool value) =>
+      _box.put(_showMarkPaneKey, value);
 
   static const String _paneFlexesKey = 'paneFlexes';
-  
+
   static List<int> getPaneFlexes() {
     final dynamic flexes = _box.get(_paneFlexesKey);
     if (flexes is List) {
@@ -62,12 +72,15 @@ class SettingsService {
     return [10000, 10000, 10000, 10000];
   }
 
-  static Future<void> setPaneFlexes(List<int> flexes) => _box.put(_paneFlexesKey, flexes);
+  static Future<void> setPaneFlexes(List<int> flexes) =>
+      _box.put(_paneFlexesKey, flexes);
 
   // --- Active Tab Index ---
   static const String _activeTabIndexKey = 'activeTabIndex';
-  static int getActiveTabIndex() => _box.get(_activeTabIndexKey, defaultValue: 0) as int;
-  static Future<void> setActiveTabIndex(int index) => _box.put(_activeTabIndexKey, index);
+  static int getActiveTabIndex() =>
+      _box.get(_activeTabIndexKey, defaultValue: 0) as int;
+  static Future<void> setActiveTabIndex(int index) =>
+      _box.put(_activeTabIndexKey, index);
 
   // --- Game Sessions Persistence ---
   static const String _gamesBoxName = 'gamesBox';

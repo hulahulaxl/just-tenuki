@@ -64,9 +64,11 @@ class BoardSettings {
     return BoardSettings(
       boardColor: boardColor ?? this.boardColor,
       blackStoneColor: blackStoneColor ?? this.blackStoneColor,
-      blackStoneTextureIndex: blackStoneTextureIndex ?? this.blackStoneTextureIndex,
+      blackStoneTextureIndex:
+          blackStoneTextureIndex ?? this.blackStoneTextureIndex,
       whiteStoneColor: whiteStoneColor ?? this.whiteStoneColor,
-      whiteStoneTextureIndex: whiteStoneTextureIndex ?? this.whiteStoneTextureIndex,
+      whiteStoneTextureIndex:
+          whiteStoneTextureIndex ?? this.whiteStoneTextureIndex,
       lineColor: lineColor ?? this.lineColor,
       showCoordinates: showCoordinates ?? this.showCoordinates,
       highlightLastMove: highlightLastMove ?? this.highlightLastMove,
@@ -100,19 +102,41 @@ class BoardSettings {
   factory BoardSettings.fromJson(Map<dynamic, dynamic> json) {
     const defaults = BoardSettings.defaults();
     return BoardSettings(
-      boardColor: json['boardColor'] != null ? Color(json['boardColor'] as int) : defaults.boardColor,
-      blackStoneColor: json['blackStoneColor'] != null ? Color(json['blackStoneColor'] as int) : defaults.blackStoneColor,
-      blackStoneTextureIndex: json['blackStoneTextureIndex'] as int? ?? defaults.blackStoneTextureIndex,
-      whiteStoneColor: json['whiteStoneColor'] != null ? Color(json['whiteStoneColor'] as int) : defaults.whiteStoneColor,
-      whiteStoneTextureIndex: json['whiteStoneTextureIndex'] as int? ?? defaults.whiteStoneTextureIndex,
-      lineColor: json['lineColor'] != null ? Color(json['lineColor'] as int) : defaults.lineColor,
-      showCoordinates: json['showCoordinates'] as bool? ?? defaults.showCoordinates,
-      highlightLastMove: json['highlightLastMove'] as bool? ?? defaults.highlightLastMove,
-      stoneDropShadow: (json['stoneDropShadow'] as num?)?.toDouble() ?? defaults.stoneDropShadow,
-      stoneOutlineThickness: (json['stoneOutlineThickness'] as num?)?.toDouble() ?? defaults.stoneOutlineThickness,
-      lineThickness: (json['lineThickness'] as num?)?.toDouble() ?? defaults.lineThickness,
-      starPointThickness: (json['starPointThickness'] as num?)?.toDouble() ?? defaults.starPointThickness,
-      stoneScale: (json['stoneScale'] as num?)?.toDouble() ?? defaults.stoneScale,
+      boardColor: json['boardColor'] != null
+          ? Color(json['boardColor'] as int)
+          : defaults.boardColor,
+      blackStoneColor: json['blackStoneColor'] != null
+          ? Color(json['blackStoneColor'] as int)
+          : defaults.blackStoneColor,
+      blackStoneTextureIndex:
+          json['blackStoneTextureIndex'] as int? ??
+          defaults.blackStoneTextureIndex,
+      whiteStoneColor: json['whiteStoneColor'] != null
+          ? Color(json['whiteStoneColor'] as int)
+          : defaults.whiteStoneColor,
+      whiteStoneTextureIndex:
+          json['whiteStoneTextureIndex'] as int? ??
+          defaults.whiteStoneTextureIndex,
+      lineColor: json['lineColor'] != null
+          ? Color(json['lineColor'] as int)
+          : defaults.lineColor,
+      showCoordinates:
+          json['showCoordinates'] as bool? ?? defaults.showCoordinates,
+      highlightLastMove:
+          json['highlightLastMove'] as bool? ?? defaults.highlightLastMove,
+      stoneDropShadow:
+          (json['stoneDropShadow'] as num?)?.toDouble() ??
+          defaults.stoneDropShadow,
+      stoneOutlineThickness:
+          (json['stoneOutlineThickness'] as num?)?.toDouble() ??
+          defaults.stoneOutlineThickness,
+      lineThickness:
+          (json['lineThickness'] as num?)?.toDouble() ?? defaults.lineThickness,
+      starPointThickness:
+          (json['starPointThickness'] as num?)?.toDouble() ??
+          defaults.starPointThickness,
+      stoneScale:
+          (json['stoneScale'] as num?)?.toDouble() ?? defaults.stoneScale,
     );
   }
 }

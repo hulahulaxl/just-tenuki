@@ -58,7 +58,11 @@ class SgfWriter {
     return buffer.toString();
   }
 
-  static void _writeChildren(GameSession session, TreeNode node, StringBuffer buffer) {
+  static void _writeChildren(
+    GameSession session,
+    TreeNode node,
+    StringBuffer buffer,
+  ) {
     if (node.childIds.isEmpty) return;
 
     if (node.childIds.length == 1) {
@@ -75,7 +79,11 @@ class SgfWriter {
     }
   }
 
-  static void _writeNode(GameSession session, TreeNode node, StringBuffer buffer) {
+  static void _writeNode(
+    GameSession session,
+    TreeNode node,
+    StringBuffer buffer,
+  ) {
     _writeNodeProperties(node, buffer);
     _writeChildren(session, node, buffer);
   }

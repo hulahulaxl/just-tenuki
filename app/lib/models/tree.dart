@@ -41,7 +41,14 @@ class TreeNode {
       'id': id,
       'parentId': parentId,
       'childIds': childIds,
-      'move': move != null ? {'type': move is Play ? 'Play' : 'Pass', 'player': move!.playerId, 'x': move is Play ? (move as Play).x : null, 'y': move is Play ? (move as Play).y : null} : null,
+      'move': move != null
+          ? {
+              'type': move is Play ? 'Play' : 'Pass',
+              'player': move!.playerId,
+              'x': move is Play ? (move as Play).x : null,
+              'y': move is Play ? (move as Play).y : null,
+            }
+          : null,
       'comment': comment,
       'nodeName': nodeName,
       'setupBlackStones': setupBlackStones,
@@ -62,23 +69,34 @@ class TreeNode {
     TreeNode node = TreeNode(
       id: json['id'] as int,
       parentId: json['parentId'] as int?,
-      move: json['move'] != null ? (json['move']['type'] == 'Play' ? Play(json['move']['player'], json['move']['x'], json['move']['y']) : Pass(json['move']['player'])) : null,
+      move: json['move'] != null
+          ? (json['move']['type'] == 'Play'
+                ? Play(
+                    json['move']['player'],
+                    json['move']['x'],
+                    json['move']['y'],
+                  )
+                : Pass(json['move']['player']))
+          : null,
     );
-    
+
     if (json['childIds'] != null) {
       node.childIds.addAll((json['childIds'] as List).cast<int>());
     }
-    
+
     node.comment = json['comment'] ?? '';
     node.nodeName = json['nodeName'];
-    node.setupBlackStones = (json['setupBlackStones'] as List?)?.cast<int>() ?? [];
-    node.setupWhiteStones = (json['setupWhiteStones'] as List?)?.cast<int>() ?? [];
-    node.setupEmptyStones = (json['setupEmptyStones'] as List?)?.cast<int>() ?? [];
+    node.setupBlackStones =
+        (json['setupBlackStones'] as List?)?.cast<int>() ?? [];
+    node.setupWhiteStones =
+        (json['setupWhiteStones'] as List?)?.cast<int>() ?? [];
+    node.setupEmptyStones =
+        (json['setupEmptyStones'] as List?)?.cast<int>() ?? [];
     node.triangleMarks = (json['triangleMarks'] as List?)?.cast<int>() ?? [];
     node.squareMarks = (json['squareMarks'] as List?)?.cast<int>() ?? [];
     node.circleMarks = (json['circleMarks'] as List?)?.cast<int>() ?? [];
     node.crossMarks = (json['crossMarks'] as List?)?.cast<int>() ?? [];
-    
+
     if (json['labels'] != null) {
       (json['labels'] as Map).forEach((k, v) {
         node.labels[int.parse(k.toString())] = v.toString();
@@ -86,14 +104,18 @@ class TreeNode {
     }
 
     if (json['timeLeft'] != null) {
-      node.timeLeft = (json['timeLeft'] as List).map((e) => e as String?).toList();
+      node.timeLeft = (json['timeLeft'] as List)
+          .map((e) => e as String?)
+          .toList();
     }
     if (json['overtimeLeft'] != null) {
-      node.overtimeLeft = (json['overtimeLeft'] as List).map((e) => e as String?).toList();
+      node.overtimeLeft = (json['overtimeLeft'] as List)
+          .map((e) => e as String?)
+          .toList();
     }
-    
+
     node.playerToPlay = json['playerToPlay'] as int?;
-    
+
     return node;
   }
 }
@@ -119,7 +141,7 @@ class GameSession {
 
   /// The centralized normalized map of all nodes.
   Map<int, TreeNode> nodes = {};
-  
+
   int nextNodeId = 0;
 
   /// The absolute start of the timeline.
@@ -145,8 +167,10 @@ class GameSession {
   TreeNode get currentNode => nodes[currentNodeId]!;
   set currentNode(TreeNode node) => currentNodeId = node.id;
 
-  TreeNode? getParent(TreeNode node) => node.parentId != null ? nodes[node.parentId!] : null;
-  List<TreeNode> getChildren(TreeNode node) => node.childIds.map((id) => nodes[id]!).toList();
+  TreeNode? getParent(TreeNode node) =>
+      node.parentId != null ? nodes[node.parentId!] : null;
+  List<TreeNode> getChildren(TreeNode node) =>
+      node.childIds.map((id) => nodes[id]!).toList();
 
   /// Attempts to play a move on the physical board.
   /// If successful, adds the move to the tree and advances the timeline.
@@ -198,9 +222,11 @@ class GameSession {
       }
       nodes.remove(id);
     }
-    
+
     deleteSubtree(currentNodeId);
-    jumpTo(parent); // This updates currentNode, board state, and fires onStateChanged
+    jumpTo(
+      parent,
+    ); // This updates currentNode, board state, and fires onStateChanged
   }
 
   /// Re-calculates the physical board state via Pure Event Sourcing.
@@ -461,7 +487,7 @@ class GameSession {
     session.rootNodeId = json['rootNodeId'] as int;
     session.currentNodeId = json['currentNodeId'] as int;
     session.nextNodeId = json['nextNodeId'] as int;
-    
+
     if (json['info'] != null) {
       session.info.blackName = json['info']['blackName'] ?? 'Black';
       session.info.whiteName = json['info']['whiteName'] ?? 'White';

@@ -47,9 +47,12 @@ class SgfParser {
           currentNode = currentSession.rootNode;
           isFirstNode = false;
         } else {
-          TreeNode child = TreeNode(id: currentSession.nextNodeId++, parentId: currentNode!.id);
+          TreeNode child = TreeNode(
+            id: currentSession.nextNodeId++,
+            parentId: currentNode!.id,
+          );
           currentSession.nodes[child.id] = child;
-          currentNode!.childIds.add(child.id);
+          currentNode.childIds.add(child.id);
           currentNode = child;
         }
         i++;
@@ -109,7 +112,7 @@ class SgfParser {
           }
 
           if (key.isNotEmpty) {
-            _applyPropertyToNode(currentSession, currentNode!, key, values);
+            _applyPropertyToNode(currentSession, currentNode, key, values);
           }
         }
       } else {
