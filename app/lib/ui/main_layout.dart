@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../models/tree.dart';
 import '../models/board_settings.dart';
 import '../models/board_styles.dart';
+import '../services/settings_service.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 import '../utils/sgf_parser.dart';
@@ -72,14 +73,23 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   int? _lastAnalysisTurn;
   double _maxScoreScale = 10.0;
 
-  bool _showTreePane = true;
-  bool _showAnalysisPane = false;
-  bool _showCommentsPane = false;
-  bool _showSettingsPane = false;
-  bool _showMarkPane = false; // Add state for mobile Mark Pane
+  bool get _showTreePane => SettingsService.showTreePane;
+  set _showTreePane(bool value) => SettingsService.setShowTreePane(value);
+
+  bool get _showAnalysisPane => SettingsService.showAnalysisPane;
+  set _showAnalysisPane(bool value) => SettingsService.setShowAnalysisPane(value);
+
+  bool get _showCommentsPane => SettingsService.showCommentsPane;
+  set _showCommentsPane(bool value) => SettingsService.setShowCommentsPane(value);
+
+  bool get _showSettingsPane => SettingsService.showSettingsPane;
+  set _showSettingsPane(bool value) => SettingsService.setShowSettingsPane(value);
+
+  bool get _showMarkPane => SettingsService.showMarkPane;
+  set _showMarkPane(bool value) => SettingsService.setShowMarkPane(value);
 
   final ValueNotifier<BoardSettings> _globalSettings = ValueNotifier(
-    const BoardSettings.defaults(),
+    SettingsService.loadBoardSettings(),
   );
 
   // High precision flex values for smooth 1:1 cursor tracking, isolated via ValueNotifier
@@ -100,8 +110,10 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-
     _commentController = TextEditingController();
+    _globalSettings.addListener(() {
+      SettingsService.saveBoardSettings(_globalSettings.value);
+    });
 
     // TEMP: Commented out WS connection per user request
     // engineClient.connect();

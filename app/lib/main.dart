@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'ui/main_layout.dart';
 
-void main() {
+import 'services/settings_service.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SettingsService.init();
   runApp(const JustTenukiApp());
 }
 

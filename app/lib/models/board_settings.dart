@@ -78,4 +78,41 @@ class BoardSettings {
       stoneScale: stoneScale ?? this.stoneScale,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'boardColor': boardColor.toARGB32(),
+      'blackStoneColor': blackStoneColor.toARGB32(),
+      'blackStoneTextureIndex': blackStoneTextureIndex,
+      'whiteStoneColor': whiteStoneColor.toARGB32(),
+      'whiteStoneTextureIndex': whiteStoneTextureIndex,
+      'lineColor': lineColor.toARGB32(),
+      'showCoordinates': showCoordinates,
+      'highlightLastMove': highlightLastMove,
+      'stoneDropShadow': stoneDropShadow,
+      'stoneOutlineThickness': stoneOutlineThickness,
+      'lineThickness': lineThickness,
+      'starPointThickness': starPointThickness,
+      'stoneScale': stoneScale,
+    };
+  }
+
+  factory BoardSettings.fromJson(Map<dynamic, dynamic> json) {
+    const defaults = BoardSettings.defaults();
+    return BoardSettings(
+      boardColor: json['boardColor'] != null ? Color(json['boardColor'] as int) : defaults.boardColor,
+      blackStoneColor: json['blackStoneColor'] != null ? Color(json['blackStoneColor'] as int) : defaults.blackStoneColor,
+      blackStoneTextureIndex: json['blackStoneTextureIndex'] as int? ?? defaults.blackStoneTextureIndex,
+      whiteStoneColor: json['whiteStoneColor'] != null ? Color(json['whiteStoneColor'] as int) : defaults.whiteStoneColor,
+      whiteStoneTextureIndex: json['whiteStoneTextureIndex'] as int? ?? defaults.whiteStoneTextureIndex,
+      lineColor: json['lineColor'] != null ? Color(json['lineColor'] as int) : defaults.lineColor,
+      showCoordinates: json['showCoordinates'] as bool? ?? defaults.showCoordinates,
+      highlightLastMove: json['highlightLastMove'] as bool? ?? defaults.highlightLastMove,
+      stoneDropShadow: (json['stoneDropShadow'] as num?)?.toDouble() ?? defaults.stoneDropShadow,
+      stoneOutlineThickness: (json['stoneOutlineThickness'] as num?)?.toDouble() ?? defaults.stoneOutlineThickness,
+      lineThickness: (json['lineThickness'] as num?)?.toDouble() ?? defaults.lineThickness,
+      starPointThickness: (json['starPointThickness'] as num?)?.toDouble() ?? defaults.starPointThickness,
+      stoneScale: (json['stoneScale'] as num?)?.toDouble() ?? defaults.stoneScale,
+    );
+  }
 }
