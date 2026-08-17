@@ -33,8 +33,9 @@ enum BoardEditMode {
 }
 
 abstract class AppTab {
+  static int _idCounter = 0;
   final String id;
-  AppTab({String? id}) : id = id ?? DateTime.now().microsecondsSinceEpoch.toString();
+  AppTab({String? id}) : id = id ?? '${DateTime.now().microsecondsSinceEpoch}_${_idCounter++}';
 
   IconData get icon;
   String get tooltip;
@@ -671,12 +672,13 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
               const SizedBox(height: 16),
               
               Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.grey.shade300),
+                child: Material(
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    side: BorderSide(color: Colors.grey.shade300),
                     borderRadius: BorderRadius.circular(8),
                   ),
+                  clipBehavior: Clip.antiAlias,
                   child: ListView.separated(
                     itemCount: gameTabs.length,
                     separatorBuilder: (context, index) => const Divider(height: 1),
