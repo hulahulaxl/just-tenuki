@@ -148,16 +148,12 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
         final tabId = json['id'] as String?;
         if (json['type'] == 'lobby') {
           _tabs.add(LobbyTab(id: tabId));
-        } else {
+        } else if (json['type'] == 'game' && json['session'] != null) {
           try {
-            // Support both old and new format during migration
-            final sessionData = json.containsKey('type') ? json['session'] : json;
-            if (sessionData != null) {
-              var session = GameSession.fromJson(sessionData);
-              var gameTab = GameTab(session, id: tabId);
-              session.onStateChanged = () => _saveSingleTab(gameTab);
-              _tabs.add(gameTab);
-            }
+            var session = GameSession.fromJson(json['session']);
+            var gameTab = GameTab(session, id: tabId);
+            session.onStateChanged = () => _saveSingleTab(gameTab);
+            _tabs.add(gameTab);
           } catch (e) {
             debugPrint('Error loading game session: $e');
           }
@@ -165,11 +161,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       }
       if (_tabs.isEmpty) {
         _tabs.add(LobbyTab());
-      }
-      
-      // If we migrated from old sessions, save to the new format right away
-      if (SettingsService.hasOldSessions()) {
-        _saveSessions();
       }
     } else {
       // Very first run or cleared data
@@ -181,8 +172,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     if (_activeIndex >= _tabs.length) {
       _activeIndex = _tabs.length - 1;
     }
-    
-    SettingsService.clearOldSessions();
     _commentController = TextEditingController();
     _globalSettings.addListener(() {
       SettingsService.saveBoardSettings(_globalSettings.value);
