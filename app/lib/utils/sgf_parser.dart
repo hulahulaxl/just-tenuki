@@ -2,34 +2,54 @@ import '../models/tree.dart';
 import '../models/move.dart';
 
 class SgfParser {
-  static GameSession parse(String sgfText) {
-    GameSession session = GameSession();
+  static List<GameSession> parseAll(String sgfText) {
+    List<GameSession> sessions = [];
+    GameSession? currentSession;
     List<TreeNode> stack = [];
-    TreeNode currentNode = session.rootNode;
+    TreeNode? currentNode;
     bool isFirstNode = true;
+    int treeDepth = 0;
 
     int i = 0;
     while (i < sgfText.length) {
       String char = sgfText[i];
 
       if (char == '(') {
-        stack.add(currentNode);
-        i++;
-      } else if (char == ')') {
-        if (stack.isNotEmpty) {
-          currentNode = stack.removeLast();
+        treeDepth++;
+        if (treeDepth == 1) {
+          currentSession = GameSession();
+          sessions.add(currentSession);
+          currentNode = currentSession.rootNode;
+          isFirstNode = true;
+          stack.clear();
+        } else {
+          if (currentNode != null) stack.add(currentNode);
         }
         i++;
+      } else if (char == ')') {
+        if (treeDepth > 1 && stack.isNotEmpty) {
+          currentNode = stack.removeLast();
+        }
+        treeDepth--;
+        if (treeDepth < 0) treeDepth = 0;
+        i++;
       } else if (char == ';') {
+        if (currentSession == null) {
+          currentSession = GameSession();
+          sessions.add(currentSession);
+          currentNode = currentSession.rootNode;
+          isFirstNode = true;
+          stack.clear();
+          treeDepth = 1;
+        }
+
         if (isFirstNode) {
-          // The first node in the file IS the root node (setup / metadata)
-          currentNode = session.rootNode;
+          currentNode = currentSession.rootNode;
           isFirstNode = false;
         } else {
-          // Create a new child node
-          TreeNode child = TreeNode(id: session.nextNodeId++, parentId: currentNode.id);
-          session.nodes[child.id] = child;
-          currentNode.childIds.add(child.id);
+          TreeNode child = TreeNode(id: currentSession.nextNodeId++, parentId: currentNode!.id);
+          currentSession.nodes[child.id] = child;
+          currentNode!.childIds.add(child.id);
           currentNode = child;
         }
         i++;
@@ -89,7 +109,7 @@ class SgfParser {
           }
 
           if (key.isNotEmpty) {
-            _applyPropertyToNode(session, currentNode, key, values);
+            _applyPropertyToNode(currentSession, currentNode!, key, values);
           }
         }
       } else {
@@ -98,7 +118,10 @@ class SgfParser {
       }
     }
 
-    return session;
+    if (sessions.isEmpty) {
+      sessions.add(GameSession());
+    }
+    return sessions;
   }
 
   static void _applyPropertyToNode(

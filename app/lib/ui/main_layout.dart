@@ -706,18 +706,31 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       }
 
       // 3. Parse and load
-      GameSession parsedSession = SgfParser.parse(sgfText);
-      // Guarantee that the root board state (including setup stones) is physically applied
-      parsedSession.first();
-      parsedSession.last();
+      List<GameSession> parsedSessions = SgfParser.parseAll(sgfText);
+      if (parsedSessions.isEmpty) return;
 
       setState(() {
-        var newTab = GameTab(parsedSession);
-        parsedSession.onStateChanged = () => _saveSingleTab(newTab);
-        _tabs[_activeIndex] = newTab;
+        for (int i = 0; i < parsedSessions.length; i++) {
+          var parsedSession = parsedSessions[i];
+          // Guarantee that the root board state (including setup stones) is physically applied
+          parsedSession.first();
+          parsedSession.last();
+
+          var newTab = GameTab(parsedSession);
+          parsedSession.onStateChanged = () => _saveSingleTab(newTab);
+
+          if (i == 0) {
+            // Replace the current active tab with the first imported game
+            _tabs[_activeIndex] = newTab;
+            engineClient.analyze(parsedSession);
+          } else {
+            // Append the rest as new tabs
+            _tabs.add(newTab);
+          }
+        }
+        
         _saveSessions();
         _maxScoreScale = 10.0;
-        engineClient.analyze(parsedSession);
       });
     }
   }
