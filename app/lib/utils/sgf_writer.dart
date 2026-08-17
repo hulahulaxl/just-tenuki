@@ -2,7 +2,12 @@ import '../models/tree.dart';
 import '../models/move.dart';
 
 class SgfWriter {
-  /// Converts a GameSession into an SGF string.
+  /// Converts multiple GameSessions into a single combined SGF string.
+  static String writeAll(List<GameSession> sessions) {
+    return sessions.map((s) => write(s)).join('\n');
+  }
+
+  /// Converts a single GameSession into an SGF string.
   static String write(GameSession session) {
     final buffer = StringBuffer();
     buffer.write('(;FF[4]GM[1]SZ[19]');

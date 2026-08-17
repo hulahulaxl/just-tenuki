@@ -103,6 +103,10 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   BoardEditMode _editMode = BoardEditMode.play;
   
   double _maxScreenHeight = 0;
+  
+  // State for Export Tab
+  bool _showExportPage = false;
+  final Set<String> _selectedExportTabIds = {};
 
   StreamSubscription<EngineResponse>? _analysisSub;
   EngineResponse? _currentAnalysis;
@@ -227,8 +231,9 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                   thickness: 1,
                   color: Color(0xFFEEEEEE),
                 ),
-                if (activeTab is LobbyTab) ..._buildLobbyContentPortrait(),
-                if (activeTab is GameTab)
+                if (_showExportPage) ..._buildExportTab()
+                else if (activeTab is LobbyTab) ..._buildLobbyContentPortrait()
+                else if (activeTab is GameTab)
                   ..._buildPortraitGameContent(activeTab),
               ],
             );
@@ -242,8 +247,9 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                 thickness: 1,
                 color: Color(0xFFEEEEEE),
               ),
-              if (activeTab is LobbyTab) ..._buildLobbyContent(),
-              if (activeTab is GameTab) ..._buildGameContent(activeTab),
+              if (_showExportPage) ..._buildExportTab()
+              else if (activeTab is LobbyTab) ..._buildLobbyContent()
+              else if (activeTab is GameTab) ..._buildGameContent(activeTab),
             ],
           );
         },
@@ -287,6 +293,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
         } else if (_activeIndex >= _tabs.length) {
           _activeIndex = _tabs.length - 1;
         }
+        _showExportPage = false;
 
         if (_tabs[_activeIndex] is GameTab) {
           engineClient.analyze((_tabs[_activeIndex] as GameTab).session);
@@ -324,9 +331,16 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             setState(() {
               _tabs.add(LobbyTab());
               _activeIndex = _tabs.length - 1;
+              _showExportPage = false;
               _saveSessions();
             });
           }),
+          // Add a new Export Tab when clicked
+          _buildHorizontalSidebarButton(Icons.file_download_outlined, 'Export Games', () {
+            setState(() {
+              _showExportPage = true;
+            });
+          }, isSelected: _showExportPage),
           const SizedBox(width: 8),
         ],
       ),
@@ -339,7 +353,10 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       message: tooltip,
       child: GestureDetector(
         onTap: () {
-          setState(() => _activeIndex = index);
+          setState(() {
+            _activeIndex = index;
+            _showExportPage = false;
+          });
           if (_tabs[index] is GameTab) {
             engineClient.analyze((_tabs[index] as GameTab).session);
           }
@@ -389,8 +406,9 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   Widget _buildHorizontalSidebarButton(
     IconData icon,
     String tooltip,
-    VoidCallback onTap,
-  ) {
+    VoidCallback onTap, {
+    bool isSelected = false,
+  }) {
     return Tooltip(
       message: tooltip,
       child: GestureDetector(
@@ -403,7 +421,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             alignment: Alignment.center,
             child: Icon(
               icon,
-              color: Colors.black87,
+              color: isSelected ? Colors.blue : Colors.black87,
               size: 24,
             ),
           ),
@@ -438,9 +456,16 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             setState(() {
               _tabs.add(LobbyTab());
               _activeIndex = _tabs.length - 1;
+              _showExportPage = false;
               _saveSessions();
             });
           }),
+          // Add a new Export Tab when clicked
+          _buildSidebarButton(Icons.file_download_outlined, 'Export Games', () {
+            setState(() {
+              _showExportPage = true;
+            });
+          }, isSelected: _showExportPage),
           const SizedBox(height: 16),
         ],
       ),
@@ -453,7 +478,10 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       message: tooltip,
       child: GestureDetector(
         onTap: () {
-          setState(() => _activeIndex = index);
+          setState(() {
+            _activeIndex = index;
+            _showExportPage = false;
+          });
           if (_tabs[index] is GameTab) {
             engineClient.analyze((_tabs[index] as GameTab).session);
           }
@@ -539,8 +567,9 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   Widget _buildSidebarButton(
     IconData icon,
     String tooltip,
-    VoidCallback onTap,
-  ) {
+    VoidCallback onTap, {
+    bool isSelected = false,
+  }) {
     return Tooltip(
       message: tooltip,
       child: GestureDetector(
@@ -551,7 +580,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             width: 60,
             height: 48,
             alignment: Alignment.center,
-            child: Icon(icon, color: Colors.black54, size: 26),
+            child: Icon(icon, color: isSelected ? Colors.blue : Colors.black54, size: 26),
           ),
         ),
       ),
@@ -588,6 +617,149 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
         ),
       ),
     ];
+  }
+
+  List<Widget> _buildExportTab() {
+    final gameTabs = _tabs.whereType<GameTab>().toList();
+
+    return [
+      Expanded(
+        child: Container(
+          color: const Color(0xFFF9F9F9),
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Export Games',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Select the games you wish to export as a single SGF collection.',
+                style: TextStyle(fontSize: 16, color: Colors.black54),
+              ),
+              const SizedBox(height: 24),
+              
+              Row(
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _selectedExportTabIds.addAll(gameTabs.map((t) => t.id));
+                      });
+                    },
+                    icon: const Icon(Icons.check_box_outlined),
+                    label: const Text('Select All'),
+                  ),
+                  const SizedBox(width: 8),
+                  TextButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _selectedExportTabIds.clear();
+                      });
+                    },
+                    icon: const Icon(Icons.check_box_outline_blank),
+                    label: const Text('Deselect All'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: ListView.separated(
+                    itemCount: gameTabs.length,
+                    separatorBuilder: (context, index) => const Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      final tab = gameTabs[index];
+                      final isSelected = _selectedExportTabIds.contains(tab.id);
+                      final title = tab.session.info.event ?? 'Untitled Game ${index + 1}';
+                      final pb = tab.session.info.blackName.isNotEmpty ? tab.session.info.blackName : 'Black';
+                      final pw = tab.session.info.whiteName.isNotEmpty ? tab.session.info.whiteName : 'White';
+                      
+                      return CheckboxListTile(
+                        value: isSelected,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            if (value == true) {
+                              _selectedExportTabIds.add(tab.id);
+                            } else {
+                              _selectedExportTabIds.remove(tab.id);
+                            }
+                          });
+                        },
+                        title: Text(
+                          '$pb vs $pw',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(title),
+                        secondary: const Icon(Icons.grid_4x4_outlined, color: Colors.black45),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 24),
+              
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton.icon(
+                  onPressed: _selectedExportTabIds.isEmpty ? null : () => _downloadSGFCollection(gameTabs),
+                  icon: const Icon(Icons.download),
+                  label: const Text(
+                    'Download Collection (SGF)',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ];
+  }
+
+  Future<void> _downloadSGFCollection(List<GameTab> allGameTabs) async {
+    final selectedTabs = allGameTabs.where((t) => _selectedExportTabIds.contains(t.id)).toList();
+    if (selectedTabs.isEmpty) return;
+    
+    final sessions = selectedTabs.map((t) => t.session).toList();
+    final sgfContent = SgfWriter.writeAll(sessions);
+    
+    final dateStr = DateTime.now().toIso8601String().split('T')[0];
+    final filename = 'collection_$dateStr.sgf';
+    
+    if (kIsWeb) {
+      downloadTextFile(sgfContent, filename);
+    } else {
+      String? outputFile = await FilePicker.platform.saveFile(
+        dialogTitle: 'Save SGF Collection',
+        fileName: filename,
+        type: FileType.custom,
+        allowedExtensions: ['sgf'],
+      );
+
+      if (outputFile != null) {
+        final file = File(outputFile);
+        await file.writeAsString(sgfContent);
+      }
+    }
   }
 
   List<Widget> _buildLobbyContentPortrait() {
