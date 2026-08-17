@@ -66,13 +66,18 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   final List<AppTab> _tabs = [LobbyTab()]; // Start with 1 Lobby tab
 
   void _saveSessions() {
-    List<Map<dynamic, dynamic>> sessionsJson = [];
+    List<Map<dynamic, dynamic>> tabsJson = [];
     for (var tab in _tabs) {
-      if (tab is GameTab) {
-        sessionsJson.add(tab.session.toJson());
+      if (tab is LobbyTab) {
+        tabsJson.add({'type': 'lobby'});
+      } else if (tab is GameTab) {
+        tabsJson.add({
+          'type': 'game',
+          'session': tab.session.toJson(),
+        });
       }
     }
-    SettingsService.saveGameSessions(sessionsJson);
+    SettingsService.saveGameSessions(tabsJson);
   }
   int _activeIndex = 0;
   int _lobbyMenuIndex = 0; // 0 = New, 1 = Recent, 2 = Online Library
@@ -117,21 +122,30 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    final savedGames = SettingsService.loadGameSessions();
-    if (savedGames.isNotEmpty) {
+    final savedTabs = SettingsService.loadGameSessions();
+    if (savedTabs.isNotEmpty) {
       _tabs.clear();
-      _tabs.add(LobbyTab());
-      for (var json in savedGames) {
-        try {
-          var session = GameSession.fromJson(json);
-          session.onStateChanged = _saveSessions;
-          _tabs.add(GameTab(session));
-        } catch (e) {
-          debugPrint('Error loading game session: $e');
+      for (var json in savedTabs) {
+        if (json['type'] == 'lobby') {
+          _tabs.add(LobbyTab());
+        } else {
+          try {
+            // Support both old and new format during migration
+            final sessionData = json.containsKey('type') ? json['session'] : json;
+            if (sessionData != null) {
+              var session = GameSession.fromJson(sessionData);
+              session.onStateChanged = _saveSessions;
+              _tabs.add(GameTab(session));
+            }
+          } catch (e) {
+            debugPrint('Error loading game session: $e');
+          }
         }
       }
-      if (_tabs.length > 1) {
-        _activeIndex = 1; // Focus the first loaded game
+      if (_tabs.isEmpty) {
+        _tabs.add(LobbyTab());
+      } else {
+        _activeIndex = _tabs.length - 1;
       }
     }
     _commentController = TextEditingController();
@@ -238,6 +252,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             setState(() {
               _tabs.add(LobbyTab());
               _activeIndex = _tabs.length - 1;
+              _saveSessions();
             });
           }),
           const SizedBox(width: 8),
@@ -322,6 +337,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             setState(() {
               _tabs.add(LobbyTab());
               _activeIndex = _tabs.length - 1;
+              _saveSessions();
             });
           }),
           const SizedBox(height: 16),
