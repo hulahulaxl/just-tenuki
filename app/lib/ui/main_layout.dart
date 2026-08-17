@@ -93,12 +93,9 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   );
 
   // High precision flex values for smooth 1:1 cursor tracking, isolated via ValueNotifier
-  final ValueNotifier<List<int>> _paneFlexes = ValueNotifier([
-    10000,
-    10000,
-    10000,
-    10000,
-  ]);
+  final ValueNotifier<List<int>> _paneFlexes = ValueNotifier(
+    SettingsService.getPaneFlexes(),
+  );
 
   double _cumulativeDragDelta = 0;
   int _dragStartFlexTop = 0;
@@ -1410,6 +1407,12 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
         newFlexes[topIndex] = newTop;
         newFlexes[bottomIndex] = newBottom;
         _paneFlexes.value = newFlexes;
+      },
+      onVerticalDragEnd: (details) {
+        SettingsService.setPaneFlexes(_paneFlexes.value);
+      },
+      onVerticalDragCancel: () {
+        SettingsService.setPaneFlexes(_paneFlexes.value);
       },
       child: MouseRegion(
         cursor: SystemMouseCursors.resizeUpDown,

@@ -50,4 +50,16 @@ class SettingsService {
 
   static bool get showMarkPane => _box.get(_showMarkPaneKey, defaultValue: false);
   static Future<void> setShowMarkPane(bool value) => _box.put(_showMarkPaneKey, value);
+
+  static const String _paneFlexesKey = 'paneFlexes';
+  
+  static List<int> getPaneFlexes() {
+    final dynamic flexes = _box.get(_paneFlexesKey);
+    if (flexes is List) {
+      return flexes.map((e) => e as int).toList();
+    }
+    return [10000, 10000, 10000, 10000];
+  }
+
+  static Future<void> setPaneFlexes(List<int> flexes) => _box.put(_paneFlexesKey, flexes);
 }
