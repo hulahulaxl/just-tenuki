@@ -151,6 +151,7 @@ class _TreeGraphWidgetState extends State<TreeGraphWidget>
           boundaryMargin: const EdgeInsets.all(40),
           minScale: 0.5,
           maxScale: 2.0,
+          scaleEnabled: false, // Disabled due to buggy behavior on mobile web
           child: GestureDetector(
             onTapUp: (details) {
               // Hit test: Find the node closest to the tap coordinate
