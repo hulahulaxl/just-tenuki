@@ -101,6 +101,8 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   
   int _lobbyMenuIndex = 0; // 0 = New, 1 = Recent, 2 = Online Library
   BoardEditMode _editMode = BoardEditMode.play;
+  
+  double _maxScreenHeight = 0;
 
   StreamSubscription<EngineResponse>? _analysisSub;
   EngineResponse? _currentAnalysis;
@@ -252,7 +254,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   // Horizontal Tab Bar for Portrait Mode
   Widget _buildHorizontalTabBar() {
     return Container(
-      height: 40,
+      height: 56,
       color: const Color(0xFFFAFAFA),
       child: Row(
         children: [
@@ -299,13 +301,13 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
         child: MouseRegion(
           cursor: SystemMouseCursors.click,
           child: Container(
-            width: 40,
-            height: 40,
+            width: 56,
+            height: 56,
             alignment: Alignment.center,
             child: Icon(
               icon,
               color: isSelected ? Colors.black87 : Colors.black38,
-              size: 26,
+              size: 28,
             ),
           ),
         ),
@@ -325,10 +327,10 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
         child: MouseRegion(
           cursor: SystemMouseCursors.click,
           child: Container(
-            width: 40,
-            height: 40,
+            width: 48,
+            height: 48,
             alignment: Alignment.center,
-            child: Icon(icon, color: Colors.black54, size: 26),
+            child: Icon(icon, color: Colors.black54, size: 30),
           ),
         ),
       ),
@@ -626,10 +628,34 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
       Expanded(
         child: Container(
           color: const Color(0xFFF7F7F7),
-          child: Column(
-            children: [
-              // 1. Board wrapped in AspectRatio (no padding/margin)
-              AspectRatio(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxHeight > _maxScreenHeight) {
+                _maxScreenHeight = constraints.maxHeight;
+              }
+            
+              final boardHeight = constraints.maxWidth;
+              // If there's no analysis, the winrate bar returns SizedBox.shrink() which is 0 height
+              final winrateHeight = (_currentAnalysis != null) ? 16.0 : 0.0;
+              final statusBarHeight = 60.0;
+              
+              final availablePaneHeight = constraints.maxHeight - boardHeight - winrateHeight - statusBarHeight;
+              
+              // If the keyboard is open, we enforce a minimum pane height of 250px so it becomes scrollable.
+              // If the keyboard is closed, we exactly fill the screen so the bottom bar sits perfectly at the bottom.
+              // Mobile Web often fails to update viewInsets, so we detect keyboard by checking if the screen shrank significantly.
+              final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0 || 
+                                     constraints.maxHeight < _maxScreenHeight - 100;
+                                     
+              final paneHeight = isKeyboardOpen
+                  ? (availablePaneHeight < 250.0 ? 250.0 : availablePaneHeight)
+                  : (availablePaneHeight < 0.0 ? 0.0 : availablePaneHeight);
+
+              return SingleChildScrollView(
+                child: Column(
+                  children: [
+                    // 1. Board wrapped in AspectRatio (no padding/margin)
+                    AspectRatio(
                 aspectRatio: 1.0,
                 child: BoardWidget(
                   board: tab.session.currentBoard,
@@ -682,25 +708,32 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
               _buildWinrateBar(tab.session, isPortrait: true),
               
               // Active Pane
-              if (_showMarkPane)
-                Expanded(child: _buildMarkPaneMobile(tab)),
-              if (_showTreePane)
-                Expanded(child: _buildTreeTab(tab)),
-              if (_showAnalysisPane)
-                Expanded(child: _buildAnalysisTabMock()),
-              if (_showCommentsPane)
-                Expanded(child: _buildCommentsPane(tab)),
-              if (_showSettingsPane)
-                Expanded(child: _buildSettingsPaneMock()),
-              if (!_showMarkPane && !_showTreePane && !_showAnalysisPane && !_showCommentsPane && !_showSettingsPane)
-                const Spacer(),
+              if (_showMarkPane || _showTreePane || _showAnalysisPane || _showCommentsPane || _showSettingsPane)
+                SizedBox(
+                  height: paneHeight,
+                  child: Builder(
+                    builder: (context) {
+                      if (_showMarkPane) return _buildMarkPaneMobile(tab);
+                      if (_showTreePane) return _buildTreeTab(tab);
+                      if (_showAnalysisPane) return _buildAnalysisTabMock();
+                      if (_showCommentsPane) return _buildCommentsPane(tab);
+                      if (_showSettingsPane) return _buildSettingsPaneMock();
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                )
+              else
+                SizedBox(height: paneHeight),
 
               // 3. Navigation Buttons
               _buildStatusBar(tab.session, isPortrait: true),
             ],
           ),
-        ),
-      ),
+        );
+      },
+    ),
+  ),
+),
     ];
   }
 
@@ -999,12 +1032,12 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
   Widget _buildStatusBar(GameSession session, {bool isPortrait = false}) {
     if (isPortrait) {
       return Container(
-        height: 48,
+        height: 60,
         decoration: const BoxDecoration(
           color: Colors.white,
           border: Border(top: BorderSide(color: Color(0xFFEEEEEE))),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -1023,7 +1056,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     }
                   });
                 }, isActive: _showMarkPane),
-                const SizedBox(width: 4),
                 _buildNavButton(Icons.account_tree_outlined, () {
                   setState(() {
                     bool wasActive = _showTreePane;
@@ -1036,7 +1068,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     }
                   });
                 }, isActive: _showTreePane),
-                const SizedBox(width: 4),
                 _buildNavButton(Icons.analytics_outlined, () {
                   setState(() {
                     bool wasActive = _showAnalysisPane;
@@ -1049,7 +1080,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     }
                   });
                 }, isActive: _showAnalysisPane),
-                const SizedBox(width: 4),
                 _buildNavButton(Icons.chat_bubble_outline, () {
                   setState(() {
                     bool wasActive = _showCommentsPane;
@@ -1062,7 +1092,6 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                     }
                   });
                 }, isActive: _showCommentsPane),
-                const SizedBox(width: 4),
                 _buildNavButton(Icons.settings_outlined, () {
                   setState(() {
                     bool wasActive = _showSettingsPane;
@@ -1084,17 +1113,14 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                   setState(() => session.first());
                   engineClient.analyze(session);
                 }),
-                const SizedBox(width: 2),
                 _buildNavButton(Icons.navigate_before, () {
                   setState(() => session.undo());
                   engineClient.analyze(session);
                 }),
-                const SizedBox(width: 2),
                 _buildNavButton(Icons.navigate_next, () {
                   setState(() => session.next());
                   engineClient.analyze(session);
                 }),
-                const SizedBox(width: 2),
                 _buildNavButton(Icons.last_page, () {
                   setState(() => session.last());
                   engineClient.analyze(session);
@@ -1166,7 +1192,7 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     );
 
     return Container(
-      height: 40,
+      height: 52,
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(top: BorderSide(color: Color(0xFFEEEEEE))),
@@ -1284,23 +1310,23 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildNavButton(IconData icon, VoidCallback onTap, {bool isActive = false}) {
-    return GestureDetector(
+  Widget _buildNavButton(IconData icon, VoidCallback onTap,
+      {bool isActive = false}) {
+    return InkWell(
       onTap: onTap,
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: Container(
-          width: 32,
-          height: 32,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: isActive ? Colors.blue.withValues(alpha: 0.1) : Colors.transparent,
-            borderRadius: BorderRadius.circular(4),
-          ),
+      borderRadius: BorderRadius.circular(4),
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: isActive ? Colors.blue.withValues(alpha: 0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Center(
           child: Icon(
-            icon, 
-            color: isActive ? Colors.blue.shade700 : Colors.black54, 
-            size: 20
+            icon,
+            size: 24,
+            color: isActive ? Colors.blue.shade700 : Colors.black87,
           ),
         ),
       ),
