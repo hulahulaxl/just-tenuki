@@ -477,16 +477,11 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
             });
           }),
           // Add a new Export Tab when clicked
-          _buildSidebarButton(
-            Icons.file_download_outlined,
-            'Export Games',
-            () {
-              setState(() {
-                _showExportPage = true;
-              });
-            },
-            isSelected: _showExportPage,
-          ),
+          _buildSidebarButton(Icons.file_download_outlined, 'Export Games', () {
+            setState(() {
+              _showExportPage = true;
+            });
+          }, isSelected: _showExportPage),
           const SizedBox(height: 16),
         ],
       ),
@@ -1053,12 +1048,15 @@ class _MainLayoutState extends State<MainLayout> with TickerProviderStateMixin {
                           builder: (context) {
                             if (_showMarkPane) return _buildMarkPaneMobile(tab);
                             if (_showTreePane) return _buildTreeTab(tab);
-                            if (_showAnalysisPane)
+                            if (_showAnalysisPane) {
                               return _buildAnalysisTabMock();
-                            if (_showCommentsPane)
+                            }
+                            if (_showCommentsPane) {
                               return _buildCommentsPane(tab);
-                            if (_showSettingsPane)
+                            }
+                            if (_showSettingsPane) {
                               return _buildSettingsPaneMock();
+                            }
                             return const SizedBox.shrink();
                           },
                         ),
