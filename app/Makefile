@@ -16,13 +16,17 @@ dev-web:
 dev-macos:
 	flutter run -d macos
 
-# Build the Android APK
+# Build the Android Universal Release APK
 build-apk:
-	flutter build apk
+	flutter build apk --release
 
-# Build the Web version
+# Build the Web version (root domain e.g. Vercel, Netlify, custom domain)
 build-web:
-	flutter build web
+	flutter build web --release --base-href "/"
+
+# Build the Web version for GitHub Pages (repo subpath /just-tenuki/)
+build-web-gh-pages:
+	flutter build web --release --base-href "/just-tenuki/"
 
 # Clean the Flutter project and reinstall dependencies (useful when things get weird)
 clean:

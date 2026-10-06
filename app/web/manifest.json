@@ -1,11 +1,11 @@
 {
-    "name": "go_review",
-    "short_name": "go_review",
+    "name": "Just Tenuki",
+    "short_name": "Just Tenuki",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Just Tenuki - A modern Go (Baduk/Weiqi) game review application.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
