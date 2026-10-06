@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'ui/main_layout.dart';
 
@@ -7,6 +8,10 @@ import 'services/settings_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SettingsService.init();
+
+  // Enable full immersive mode (hides top status bar and bottom navigation bar)
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
   runApp(const JustTenukiApp());
 }
 
