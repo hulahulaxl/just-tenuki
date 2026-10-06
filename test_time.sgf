@@ -1,0 +1,12 @@
+(;FF[4]GM[1]SZ[19]PB[Black Player]PW[White Player]TM[60]OT[3x30 byo-yomi]C[A test game demonstrating time and byo-yomi tracking.]
+;B[pd]BL[55]OB[3]
+;W[dp]WL[50]OW[3]
+;B[pp]BL[30]OB[3]
+;W[dd]WL[15]OW[3]
+;B[fq]BL[5]OB[3]
+;W[cn]WL[0]OW[2]C[White's main time runs out. White enters byo-yomi (2 periods left).]
+;B[qf]BL[0]OB[2]C[Black's main time runs out. Black enters byo-yomi (2 periods left).]
+;W[nc]WL[0]OW[2]C[White plays quickly, still has 2 periods left.]
+;B[qn]BL[0]OB[1]C[Black thinks for a long time and uses a period. 1 period left.]
+;W[nq]WL[0]OW[2]
+)

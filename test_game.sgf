@@ -1,0 +1,22 @@
+(;GM[1]FF[4]SZ[19]
+PB[Black Player]PW[White Player]
+C[Welcome to Just Tenuki! This is a test file featuring setup stones, comments, and branching variations.]
+AB[pd][dp]AW[dd][pp]
+;B[fq]C[Black approaches the bottom left.]
+;W[cn]
+(;B[dr]C[Variation A (Main Line): Black slides into the corner.]
+;W[cq]
+;B[iq]C[Black secures a base.])
+(;B[jp]C[Variation B (Pincer): Black plays a high pincer.]
+;W[cq]
+;B[cp]
+;W[dq]
+(;B[ep]C[Sub-variation B1: Black blocks on the outside.]
+;W[eq]
+;B[fp])
+(;B[eq]C[Sub-variation B2: Black blocks on the inside.]
+;W[ep]
+;B[do]
+;W[eo]
+;B[dn]
+;W[en])))
