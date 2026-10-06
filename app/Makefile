@@ -1,4 +1,4 @@
-.PHONY: dev dev-chrome dev-web dev-macos build-apk build-web clean lint format
+.PHONY: dev dev-chrome dev-web dev-macos build-apk build-web clean lint format icons
 
 # Run the app on the default device
 dev:
@@ -38,3 +38,8 @@ lint:
 
 format:
 	dart format .
+
+# Generate app launcher icons across Android, Web, and macOS
+icons:
+	flutter pub get
+	dart run flutter_launcher_icons
